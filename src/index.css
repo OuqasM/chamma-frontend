@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ivory text-noir font-sans antialiased;
+  }
+
+  /* Latin brand copy stays LTR inside RTL pages (product SKUs, references). */
+  [dir='rtl'] .font-mono,
+  [dir='rtl'] input[type='tel'],
+  [dir='rtl'] input[type='email'] {
+    direction: ltr;
+    text-align: right;
+  }
+
+  ::selection {
+    @apply bg-gold text-white;
+  }
+}
+
+@layer utilities {
+  /* Horizontal carousels keep native scroll-snap but hide the scrollbar; the
+     arrows and dots are the affordance. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Hero artwork. Each breakpoint is served its own photo via `<picture>`, so
+     this only has to fill the frame and pick the focal point. The portrait
+     phone shot is biased off the very top so the products sit mid-frame
+     rather than hugging the bottom edge; the landscape one is centred. */
+  .hero-art {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 40%;
+  }
+
+  @media (min-width: 640px) {
+    .hero-art {
+      object-position: 50% 50%;
+    }
+  }
+}
