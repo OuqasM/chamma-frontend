@@ -232,31 +232,43 @@ function DrawerSection({ label, items }) {
   if (!items.length) return null
 
   return (
-    <div className="border-b border-stone-200">
+    <div className="border-t border-stone-200/80">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between py-3 text-start text-xs uppercase tracking-widest text-stone-600"
+        className="group flex w-full items-center justify-between py-4 text-start"
       >
-        {label}
-        <span aria-hidden="true" className={`text-[9px] transition ${open ? 'rotate-180' : ''}`}>
+        <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-noir">{label}</span>
+        <span
+          aria-hidden="true"
+          className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] leading-none transition duration-300 ${
+            open
+              ? 'rotate-180 border-gold bg-gold text-white'
+              : 'border-stone-300 text-stone-500 group-hover:border-gold group-hover:text-gold'
+          }`}
+        >
           ▾
         </span>
       </button>
 
-      {/* Animating the row height keeps the links below it from jumping. */}
+      {/* Animating the row height keeps the links below it from jumping.
+          min-h-0 on the list is what makes the collapse possible at all: a grid
+          item defaults to min-height auto, so a 0fr row could not shrink it
+          below its content and the first link stayed poking out. */}
       <div
+        data-open={open}
         className={`accordion grid ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!open}
       >
-        {/* min-h-0 is what makes the collapse work: a grid item defaults to
-            min-height auto, so with a 0fr row it would refuse to shrink below
-            its content and the first link would stay poking out. */}
-        <ul className="min-h-0 overflow-hidden space-y-2 pb-3 pe-2 text-sm normal-case text-stone-600">
-          {items.map((it) => (
-            <li key={it.id}>
-              <Link to={it.to} tabIndex={open ? undefined : -1} className="block py-0.5 hover:text-gold">
+        <ul className="min-h-0 overflow-hidden pb-4 pe-1">
+          {items.map((it, i) => (
+            <li key={it.id} className="accordion-item" style={{ '--i': i }}>
+              <Link
+                to={it.to}
+                tabIndex={open ? undefined : -1}
+                className="block border-s-2 border-transparent py-2 ps-3 text-sm font-semibold text-stone-600 transition hover:border-gold hover:text-noir"
+              >
                 {it.name}
               </Link>
             </li>
@@ -268,7 +280,7 @@ function DrawerSection({ label, items }) {
 }
 
 // Matches the `transition` duration of `.drawer` in index.css.
-const DRAWER_MS = 300
+const DRAWER_MS = 380
 // Matches the `transition` duration of `.dropdown` in index.css.
 const DROPDOWN_MS = 180
 
@@ -349,8 +361,8 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         type="button"
         aria-label={t('common', 'close')}
         onClick={onClose}
-        style={{ opacity: shown ? 1 : 0 }}
-        className="drawer-backdrop absolute inset-0 bg-noir/40"
+        data-open={shown}
+        className="drawer-backdrop absolute inset-0 bg-noir/50 backdrop-blur-[2px]"
       />
 
       <div
@@ -359,42 +371,56 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         aria-modal="true"
         aria-label={t('common', 'menu')}
         data-open={shown}
-        className="drawer absolute inset-y-0 start-0 flex w-[min(20rem,85vw)] flex-col overflow-y-auto bg-ivory shadow-xl"
+        className="drawer absolute inset-y-0 start-0 flex w-[min(21rem,86vw)] flex-col bg-ivory shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-          <span className="text-xs uppercase tracking-[0.3em] text-noir">{t('common', 'menu')}</span>
-          {/* The language list drops below the trigger, so it lives up here
-              rather than at the foot of the panel, where the scroll area would
-              clip it. */}
-          <div className="flex items-center gap-4">
-            <LocaleSwitcher />
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t('common', 'close')}
-              className="text-lg leading-none text-stone-500 hover:text-gold"
-            >
-              ✕
-            </button>
+        <div className="shrink-0 border-b border-stone-200 bg-ivory px-6 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 pt-1">
+              <span className="block font-serif text-xl font-bold uppercase leading-none tracking-[0.2em] text-noir">
+                Chamma
+              </span>
+              <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.35em] text-gold">
+                {t('common', 'menu')}
+              </span>
+            </div>
+
+            {/* The language list drops below the trigger, so it lives up here
+                rather than at the foot of the panel, where the scroll area would
+                clip it. */}
+            <div className="flex shrink-0 items-center gap-2">
+              <LocaleSwitcher />
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={t('common', 'close')}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 text-sm leading-none text-stone-500 transition hover:border-gold hover:text-gold"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <SearchBar onNavigate={onClose} block />
           </div>
         </div>
 
-        <div className="px-5 py-4">
-          <SearchBar onNavigate={onClose} />
-        </div>
-
-        <nav className="flex flex-col border-t border-stone-200 px-5 text-xs uppercase tracking-widest">
+        <nav className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-6 pb-6">
           {links.map((l) => (
             <NavLink
               key={l.key}
               to={l.to}
               end={l.end}
               onClick={onClose}
-              className={({ isActive }) =>
-                `border-b border-stone-200 py-3 transition ${
-                  isActive && linkIsActive(l.key, isActive, isNewRoute) ? 'text-gold' : 'text-stone-600'
-                }`
-              }
+              className={({ isActive }) => {
+                const active = isActive && linkIsActive(l.key, isActive, isNewRoute)
+                return [
+                  'flex items-center border-b border-stone-200/80 py-4 text-[15px] font-bold tracking-wide transition',
+                  active
+                    ? 'border-s-2 border-gold ps-3 text-noir'
+                    : 'border-s-2 border-transparent text-stone-600 hover:text-noir',
+                ].join(' ')
+              }}
             >
               {l.label}
             </NavLink>
@@ -404,16 +430,10 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
           <DrawerSection label={t('nav', 'categories')} items={categoryItems} />
         </nav>
 
-        <div className="mt-auto border-t border-stone-200 px-5 py-4 text-xs uppercase tracking-widest">
-          <div className="flex items-center justify-between">
-            <Link to={`/${locale}/wishlist`} onClick={onClose} className="text-stone-600 hover:text-gold">
-              {t('common', 'wishlist')}
-              {wishlist.length > 0 && <span className="ms-1 text-gold">{wishlist.length}</span>}
-            </Link>
-            <Link to={`/${locale}/cart`} onClick={onClose} className="text-stone-600 hover:text-gold">
-              {t('common', 'cart')}
-              {cartCount > 0 && <span className="ms-1 text-gold">{cartCount}</span>}
-            </Link>
+        <div className="shrink-0 border-t border-stone-200 bg-ivory px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-3">
+            <DrawerFooterLink to={`/${locale}/wishlist`} onClick={onClose} label={t('common', 'wishlist')} count={wishlist.length} />
+            <DrawerFooterLink to={`/${locale}/cart`} onClick={onClose} label={t('common', 'cart')} count={cartCount} />
           </div>
         </div>
       </div>
@@ -422,7 +442,22 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
   )
 }
 
-function SearchBar({ onNavigate }) {
+/** Wishlist and cart sit along the bottom as a matched pair, the count riding
+    in a gold pill so it reads as a figure rather than loose text. */
+function DrawerFooterLink({ to, onClick, label, count }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex flex-1 items-center justify-center gap-2 border border-stone-300 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-700 transition hover:border-gold hover:text-noir"
+    >
+      {label}
+      {count > 0 && <span className="rounded-full bg-gold px-1.5 py-0.5 text-[10px] leading-none text-white">{count}</span>}
+    </Link>
+  )
+}
+
+function SearchBar({ onNavigate, block = false }) {
   const { locale, t } = useApp()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
@@ -445,7 +480,11 @@ function SearchBar({ onNavigate }) {
         onChange={(e) => setQ(e.target.value)}
         placeholder={t('nav', 'search')}
         aria-label={t('nav', 'search')}
-        className="w-32 border-b border-noir/20 bg-transparent py-1 text-xs outline-none transition focus:w-44 focus:border-gold md:w-44 md:focus:w-56"
+        className={
+          block
+            ? 'w-full border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-noir outline-none transition placeholder:font-normal placeholder:text-stone-400 focus:border-gold'
+            : 'w-32 border-b border-noir/20 bg-transparent py-1 text-xs outline-none transition focus:w-44 focus:border-gold md:w-44 md:focus:w-56'
+        }
       />
     </form>
   )

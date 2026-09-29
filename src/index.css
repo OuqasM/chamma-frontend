@@ -149,7 +149,8 @@
   .drawer {
     --drawer-hidden: -100%;
     transform: translateX(var(--drawer-hidden));
-    transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    overscroll-behavior: contain;
   }
 
   [dir='rtl'] .drawer {
@@ -160,8 +161,15 @@
     transform: translateX(0);
   }
 
+  /* The veil dims and blurs the shop behind it. Fading the element rather than
+     just its colour is what makes the blur come in with it. */
   .drawer-backdrop {
-    transition: opacity 300ms ease;
+    opacity: 0;
+    transition: opacity 380ms ease;
+  }
+
+  .drawer-backdrop[data-open='true'] {
+    opacity: 1;
   }
 
   /* Navbar dropdowns: a short fade with a few pixels of travel, so they read as
@@ -182,14 +190,31 @@
   /* The sidebar accordion pushes the rows below it down, so it animates height
      rather than fading. */
   .accordion {
-    transition: grid-template-rows 200ms ease;
+    transition: grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Height alone leaves the links looking pasted in, so each one fades down
+     into place slightly after the one above it. The stagger is only applied
+     while the section is open — on the way out every item has to leave at
+     once or the collapse feels like it is being held back. */
+  .accordion-item {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+
+  .accordion[data-open='true'] .accordion-item {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(var(--i, 0) * 30ms);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .drawer,
     .drawer-backdrop,
     .dropdown,
-    .accordion {
+    .accordion,
+    .accordion-item {
       transition: none;
     }
   }
