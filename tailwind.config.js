@@ -8,31 +8,35 @@ export default {
         //
         // The names are historical; the values are a rose-flower theme:
         //   noir  - deep wine, body and heading ink
-        //   ivory - pale blush page background
+        //   ivory - the page background, now plain white
         //   gold  - dusty rose, the primary accent (replaces the old gold)
-        //   sand  - blush mid-tone for panels and rules
+        //   sand  - neutral grey for panels and badges
         //   plum  - muted mauve
         //   jade  - muted sage, the one cool accent, kept so the "new" badge
         //           stays distinct from the rose accent and the error reds
         noir: '#3d1f2b',
-        ivory: '#fdf7f5',
-        sand: '#f2dfe2',
+        ivory: '#ffffff',
+        sand: '#e6e6e6',
         gold: '#b8506b',
         plum: '#8a5568',
         jade: '#4e8347',
 
-        // Tailwind's stock `stone` is a warm grey. Re-tinting the scale towards
-        // rose keeps the ~100 `stone-*` greys (borders, muted text, dividers) in
-        // the same family as the accents, so nothing reads as cold grey.
+        // The light end of the `stone` scale is plain neutral grey. These are
+        // the large painted areas — page sections, table stripes, input fills,
+        // the 1px rules on ~76 borders — and across that much screen area the
+        // rose tint read as a pink cast rather than as brand. Each value keeps
+        // the lightness of the rose one it replaces, so no contrast ratio moves.
         //
+        // 400 and darker stay rose: they are body and muted text, not surface,
+        // and the rose is what keeps the type on-brand against a white page.
         // 400/500/600 carry real text in this UI, so they clear WCAG AA (4.5:1)
-        // on both white and the ivory page background. 300 is decorative only
-        // (spinner track, empty-image placeholder).
+        // on white. 300 is decorative only (spinner track, empty-image
+        // placeholder, hero eyebrow over a photo).
         stone: {
-          50: '#fdf7f8',
-          100: '#f9ecee',
-          200: '#f2dade',
-          300: '#d3a7a9',
+          50: '#f9f9f9',
+          100: '#f1f1f1',
+          200: '#e3e3e3',
+          300: '#b6b6b6',
           400: '#8e686a',
           500: '#7f6162',
           600: '#6f5758',
@@ -43,12 +47,11 @@ export default {
         },
       },
       fontFamily: {
-        // Allura is a Latin-only script face, Amiri a naskh revival for Arabic.
-        // Neither face covers the other's script, so this single stack resolves
-        // per-glyph: FR/EN headings render in Allura, AR headings in Amiri.
-        // Georgia/Times remain as a last-resort fallback.
+        // Amiri is a naskh revival covering Arabic only, so it leads and the
+        // stack still resolves per-glyph: Arabic headings render in Amiri, Latin
+        // headings fall through to Georgia. The decorative script face this
+        // stack used to lead with has been dropped; see src/fonts.css.
         serif: [
-          "'Allura'",
           'Amiri',
           'Georgia',
           "'Times New Roman'",
