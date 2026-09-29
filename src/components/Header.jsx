@@ -97,9 +97,42 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
   const closeTimer = useRef(null)
   const { mounted, shown } = useOverlayTransition(open, MEGA_MS)
 
+  // Only the route, never `items`: the parent rebuilds that array on every
+  // render, so depending on it closed the sheet the instant it opened.
   useEffect(() => {
     setOpen(false)
-  }, [to, items])
+  }, [to])
+
+  useEffect(() => () => {
+    clearTimeout(openTimer.current)
+    clearTimeout(closeTimer.current)
+  }, [])
+
+  // The sheet is hover-driven but must also yield to a click elsewhere, or it
+  // sits over the page. Outside means outside the trigger *and* the portalled
+  // panel, which are in different trees.
+  useEffect(() => {
+    if (!open) return
+
+    const onDown = (e) => {
+      const inTrigger = triggerRef.current?.contains(e.target)
+      const inPanel = panelRef.current?.contains(e.target)
+
+      if (!inTrigger && !inPanel) setOpen(false)
+    }
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', onDown)
+    window.addEventListener('keydown', onKey)
+
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
 
   useEffect(() => {
     if (open) setTop(triggerRef.current?.getBoundingClientRect().bottom ?? 0)
@@ -111,17 +144,6 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
     if (!mounted) return
     panelRef.current?.setAttribute('data-shown', String(shown))
   }, [mounted, shown])
-
-  useEffect(() => {
-    if (!open) return
-
-    const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open])
 
   const clearTimers = () => {
     clearTimeout(openTimer.current)
