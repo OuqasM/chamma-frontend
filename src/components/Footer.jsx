@@ -23,7 +23,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-stone-400 sm:text-end">
-            © {new Date().getFullYear()} Chamma Perfumes. {t('footer', 'rights')}
+            © {new Date().getFullYear()} Chamma Store. {t('footer', 'rights')}
           </p>
         </div>
       </div>

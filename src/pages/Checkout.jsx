@@ -328,13 +328,6 @@ export default function Checkout() {
             </div>
           </dl>
 
-          {quote && !quote.is_free_shipping && quote.remaining_for_free_shipping > 0 && (
-            <p className="mt-2 text-xs text-stone-400">
-              {formatPrice(quote.remaining_for_free_shipping, locale)} —{' '}
-              {t('product', 'freeShipping', { amount: `${quote.free_threshold} MAD` })}
-            </p>
-          )}
-
           <button
             type="submit"
             form="checkout-form"

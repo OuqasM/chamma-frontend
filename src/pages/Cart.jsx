@@ -76,7 +76,6 @@ export default function Cart() {
               <dd>{formatPrice(cartSubtotal, locale)}</dd>
             </div>
           </dl>
-          <p className="mt-3 text-xs text-stone-400">{t('product', 'freeShipping', { amount: '700 MAD' })}</p>
 
           <Link
             to={`/${locale}/checkout`}
