@@ -42,8 +42,8 @@ export function AdminLayout() {
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="font-serif text-lg text-noir">Chamma</span>
-            <span className="text-[10px] uppercase tracking-widest text-stone-400">{t('admin', 'title')}</span>
+            <span className="text-base font-semibold tracking-wide text-noir sm:text-lg">Chamma</span>
+            <span className="text-[11px] uppercase tracking-widest text-stone-400 sm:text-xs">{t('admin', 'title')}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ export function AdminLayout() {
               value={locale}
               onChange={(e) => setLocale(e.target.value)}
               aria-label={t('admin', 'locale')}
-              className="border border-stone-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-gold"
+              className="min-h-11 border border-stone-200 bg-white px-2 text-sm outline-none focus:border-gold"
             >
               {LOCALES.map((code) => (
                 <option key={code} value={code}>
@@ -67,12 +67,12 @@ export function AdminLayout() {
               {t('admin', 'viewStore')}
             </a>
 
-            <span className="hidden text-xs text-stone-500 md:inline">{user.name}</span>
+            <span className="hidden text-sm text-stone-500 md:inline">{user.name}</span>
 
             <button
               type="button"
               onClick={logout}
-              className="border border-stone-200 px-3 py-1.5 text-xs uppercase tracking-widest text-noir transition hover:border-gold hover:bg-gold hover:text-white"
+              className="min-h-11 border border-stone-200 px-3 text-[13px] uppercase tracking-widest text-noir transition hover:border-gold hover:bg-gold hover:text-white sm:text-xs"
             >
               {t('admin', 'logout')}
             </button>
@@ -86,7 +86,7 @@ export function AdminLayout() {
                 <NavLink
                   to={`/${locale}/admin/${item.to}`}
                   className={({ isActive }) =>
-                    `block whitespace-nowrap border-b-2 px-3 py-2.5 text-xs uppercase tracking-widest transition ${
+                    `block whitespace-nowrap border-b-2 px-3 py-3 text-[13px] uppercase tracking-widest transition sm:py-2.5 sm:text-xs ${
                       isActive ? 'border-gold text-noir' : 'border-transparent text-stone-500 hover:text-noir'
                     }`
                   }
@@ -99,7 +99,7 @@ export function AdminLayout() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
         <Outlet />
       </main>
     </div>

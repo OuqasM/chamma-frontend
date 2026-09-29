@@ -28,7 +28,7 @@ const BADGE_TONES = {
 
 export function Badge({ children, tone = 'neutral', className = '' }) {
   return (
-    <span className={`inline-block border px-2 py-0.5 text-[10px] uppercase tracking-widest ${BADGE_TONES[tone] || BADGE_TONES.neutral} ${className}`}>
+    <span className={`inline-block border px-2 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs ${BADGE_TONES[tone] || BADGE_TONES.neutral} ${className}`}>
       {children}
     </span>
   )
@@ -36,7 +36,7 @@ export function Badge({ children, tone = 'neutral', className = '' }) {
 
 export function StatusBadge({ label, color }) {
   return (
-    <span className={`inline-block border px-2 py-0.5 text-[10px] uppercase tracking-widest ${STATUS_TONES[color] || STATUS_TONES.indigo}`}>
+    <span className={`inline-block border px-2 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs ${STATUS_TONES[color] || STATUS_TONES.indigo}`}>
       {label}
     </span>
   )
@@ -54,7 +54,7 @@ export function Panel({ title, actions, children, className = '', bodyClassName 
     <section className={`border border-stone-200 bg-white ${className}`}>
       {(title || actions) && (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
-          {title && <h2 className="text-xs uppercase tracking-widest text-stone-500">{title}</h2>}
+          {title && <h2 className="text-[13px] uppercase tracking-widest text-stone-500 sm:text-xs">{title}</h2>}
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>
       )}
@@ -67,7 +67,7 @@ export function PageHeader({ title, subtitle, actions }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="font-serif text-3xl text-noir">{title}</h1>
+        <h1 className="text-2xl font-semibold text-noir sm:text-3xl">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-stone-500">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -89,7 +89,8 @@ export function Banner({ children, tone = 'error' }) {
   )
 }
 
-const PRIMARY_BUTTON_CLASS = 'bg-noir px-5 py-2.5 text-xs uppercase tracking-widest text-white transition hover:bg-gold'
+const PRIMARY_BUTTON_CLASS =
+  'min-h-11 bg-noir px-5 py-2.5 text-[13px] uppercase tracking-widest text-white transition hover:bg-gold sm:text-xs'
 const GHOST_TONES = {
   default: 'border-stone-200 text-noir hover:border-gold hover:bg-gold hover:text-white',
   danger: 'border-rose-300 text-rose-700 hover:bg-rose-600 hover:text-white hover:border-rose-600',
@@ -103,7 +104,7 @@ const GHOST_TONES = {
 export function buttonClass(variant = 'primary', tone = 'default') {
   return variant === 'primary'
     ? PRIMARY_BUTTON_CLASS
-    : `border px-4 py-2 text-xs uppercase tracking-widest transition ${GHOST_TONES[tone] || GHOST_TONES.default}`
+    : `min-h-11 border px-4 py-2 text-[13px] uppercase tracking-widest transition sm:text-xs ${GHOST_TONES[tone] || GHOST_TONES.default}`
 }
 
 export function PrimaryButton({ children, className = '', ...props }) {
@@ -139,9 +140,9 @@ export function Modal({ open, onClose, title, children, footer, wide = false }) 
         aria-label={title}
       >
         <header className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-3.5">
-          <h2 className="text-xs uppercase tracking-widest text-stone-500">{title}</h2>
+          <h2 className="text-[13px] uppercase tracking-widest text-stone-500 sm:text-xs">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="text-stone-400 transition hover:text-noir">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-6 w-6" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
             </svg>
           </button>
@@ -197,14 +198,14 @@ function ConfirmButtonInner({ label, confirmLabel, onConfirm, disabled, tone }) 
 export function Table({ head, children, className = '' }) {
   return (
     <div className={`overflow-x-auto ${className}`}>
-      <table className="w-full min-w-[46rem] border-collapse text-start">
+      <table className="w-full min-w-[40rem] border-collapse text-start">
         <thead>
           <tr className="border-b border-stone-200 bg-stone-50">
             {head.map((h) => (
               <th
                 key={h}
                 scope="col"
-                className={`px-4 py-2.5 text-[10px] uppercase tracking-widest text-stone-500 ${h === '' ? 'w-px' : 'text-start'}`}
+                className={`px-4 py-3 text-[11px] uppercase tracking-widest text-stone-500 sm:py-2.5 sm:text-xs ${h === '' ? 'w-px' : 'text-start'}`}
               >
                 {h}
               </th>
@@ -218,7 +219,7 @@ export function Table({ head, children, className = '' }) {
 }
 
 export function Td({ children, className = '' }) {
-  return <td className={`px-4 py-3 align-middle text-sm text-noir ${className}`}>{children}</td>
+  return <td className={`px-4 py-3 align-middle text-[15px] text-noir sm:text-sm ${className}`}>{children}</td>
 }
 
 /** Paginator driven by Laravel's `meta.links`, so any admin list can use it. */
@@ -235,7 +236,7 @@ export function Pagination({ meta, onPage }) {
             type="button"
             onClick={() => onPage(new URL(link.url, window.location.origin).searchParams.get('page'))}
             disabled={link.active}
-            className={`min-w-9 border px-3 py-1.5 text-xs ${
+            className={`min-h-11 min-w-11 border px-3 py-2 text-sm ${
               link.active ? 'border-gold bg-gold text-white' : 'border-stone-200 hover:border-gold'
             }`}
             dangerouslySetInnerHTML={{ __html: link.label }}
@@ -243,7 +244,7 @@ export function Pagination({ meta, onPage }) {
         ) : (
           <span
             key={i}
-            className="min-w-9 border border-stone-100 px-3 py-1.5 text-center text-xs text-stone-300"
+            className="min-h-11 min-w-11 border border-stone-100 px-3 py-2 text-center text-sm text-stone-300"
             dangerouslySetInnerHTML={{ __html: link.label }}
           />
         ),

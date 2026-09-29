@@ -6,21 +6,21 @@
  * API returns in `ApiError.errors`.
  */
 function control(invalid, extra = '') {
-  return `mt-1.5 w-full border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
+  return `mt-1.5 w-full border bg-white px-3 py-2.5 text-base outline-none transition focus:border-gold sm:text-sm ${
     invalid ? 'border-rose-400' : 'border-stone-200'
   } ${extra}`
 }
 
 function Help({ error, hint }) {
-  if (error) return <span className="mt-1 block text-xs text-rose-600">{error}</span>
-  if (hint) return <span className="mt-1 block text-xs text-stone-500">{hint}</span>
+  if (error) return <span className="mt-1 block text-[13px] text-rose-600 sm:text-xs">{error}</span>
+  if (hint) return <span className="mt-1 block text-[13px] text-stone-500 sm:text-xs">{hint}</span>
   return null
 }
 
 export function Field({ label, error, hint, className = '', children }) {
   return (
     <label className={`block ${className}`}>
-      {label && <span className="text-xs uppercase tracking-widest text-stone-400">{label}</span>}
+      {label && <span className="text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</span>}
       {children}
       <Help error={error} hint={hint} />
     </label>
@@ -70,8 +70,8 @@ export function Toggle({ label, checked, onChange, hint, disabled = false }) {
         className="mt-0.5 h-4 w-4 accent-gold"
       />
       <span>
-        <span className="block text-sm text-noir">{label}</span>
-        {hint && <span className="mt-0.5 block text-xs text-stone-500">{hint}</span>}
+        <span className="block text-[15px] text-noir sm:text-sm">{label}</span>
+        {hint && <span className="mt-0.5 block text-[13px] text-stone-500 sm:text-xs">{hint}</span>}
       </span>
     </label>
   )

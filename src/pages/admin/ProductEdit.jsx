@@ -438,7 +438,7 @@ export default function AdminProductEdit() {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute end-0 top-0 bg-rose-600 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-white transition hover:bg-rose-700"
+                      className="absolute end-0 top-0 bg-rose-600 px-1.5 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs text-white transition hover:bg-rose-700"
                     >
                       {t('admin', 'removeImage')}
                     </button>

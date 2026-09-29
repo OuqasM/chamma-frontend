@@ -86,7 +86,7 @@ export default function AdminOrderDetail() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-stone-400">{t('admin', 'order')}</p>
+          <p className="text-[11px] uppercase tracking-widest text-stone-400 sm:text-xs">{t('admin', 'order')}</p>
           <h1 className="text-2xl font-light tracking-wide text-stone-900">{order.reference}</h1>
         </div>
         <Link to={`/${locale}/admin/orders`} className={buttonClass('ghost')}>
@@ -200,7 +200,7 @@ export default function AdminOrderDetail() {
           </Panel>
 
           <Panel title={t('admin', 'customer')}>
-            <p className="font-serif text-lg text-stone-900">{order.customer?.name}</p>
+            <p className="text-lg font-medium text-stone-900">{order.customer?.name}</p>
 
             <dl className="mt-3 space-y-1.5 text-sm">
               {order.customer?.phone && (

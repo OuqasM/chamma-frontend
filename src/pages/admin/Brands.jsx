@@ -168,7 +168,7 @@ export default function AdminBrands() {
                     {b.logo ? (
                       <img src={imageUrl(b.logo)} alt="" className="h-full w-full object-contain" loading="lazy" />
                     ) : (
-                      <span className="text-[10px] text-stone-400">{t('admin', 'noImage')}</span>
+                      <span className="text-[11px] text-stone-400 sm:text-xs">{t('admin', 'noImage')}</span>
                     )}
                   </span>
                 </Td>
