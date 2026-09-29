@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState, ErrorState, Spinner } from '../../components/Spinner'
 import { TextInput, Toggle } from '../../components/admin/Form'
-import { Badge, Banner, ConfirmButton, GhostButton, Modal, PageHeader, Panel, PrimaryButton, Table, Td } from '../../components/admin/Ui'
+import { ActionMenu, Badge, Banner, GhostButton, Modal, PageHeader, Panel, PrimaryButton, Table, Td } from '../../components/admin/Ui'
 
 // Everything is entered once: a brand is called the same thing in every
 // language, and there is no per-language input in this form at all.
@@ -185,7 +185,18 @@ export default function AdminBrands() {
                       <GhostButton>{t('admin', 'viewOnStore')}</GhostButton>
                     </a>
                     <GhostButton onClick={() => open(b)}>{t('admin', 'edit')}</GhostButton>
-                    <ConfirmButton label={t('admin', 'delete')} confirmLabel={t('admin', 'confirm')} onConfirm={() => destroy(b)} />
+                    <ActionMenu
+                      label={t('admin', 'actions')}
+                      items={[
+                        {
+                          key: 'delete',
+                          label: t('admin', 'delete'),
+                          confirmLabel: t('admin', 'confirm'),
+                          tone: 'danger',
+                          onClick: () => destroy(b),
+                        },
+                      ]}
+                    />
                   </div>
                 </Td>
               </tr>

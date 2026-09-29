@@ -53,8 +53,11 @@ export const prefillFromProduct = (product) => ({
   cost_price: product.cost_price ?? '',
   // UI-only: never sent as-is, converted to compare_at_price on submit.
   discount: product.discount_percent ?? '',
-  // One switch covers both halves of "can a shopper buy this".
-  available: Boolean(product.is_active) && Number(product.stock) > 0,
+  // The publish flag and the availability flag are separate, and the duplicate
+  // starts as a plain live product: the merchant sets what it should be.
+  is_active: true,
+  is_available: true,
+  stock: 100,
   gender: product.gender || '',
   is_new: Boolean(product.is_new),
   short_descriptions: copyFromTranslations(product.translations, 'short_description'),

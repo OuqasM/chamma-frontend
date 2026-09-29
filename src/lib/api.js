@@ -135,6 +135,7 @@ export const adminApi = {
   createProduct: (l, body) => admin(l, '/admin/products', { method: 'POST', body }),
   updateProduct: (l, id, body) => admin(l, `/admin/products/${id}`, { method: 'PUT', body }),
   toggleProduct: (l, id) => admin(l, `/admin/products/${id}/toggle`, { method: 'PATCH' }),
+  toggleProductAvailability: (l, id) => admin(l, `/admin/products/${id}/availability`, { method: 'PATCH' }),
   deleteProduct: (l, id) => admin(l, `/admin/products/${id}`, { method: 'DELETE' }),
   restoreProduct: (l, id) => admin(l, `/admin/products/${id}/restore`, { method: 'POST' }),
 

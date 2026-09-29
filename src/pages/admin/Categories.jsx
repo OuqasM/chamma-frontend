@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState, ErrorState, Spinner } from '../../components/Spinner'
 import { Select, TextInput, Toggle } from '../../components/admin/Form'
-import { Badge, Banner, ConfirmButton, GhostButton, Modal, PageHeader, Panel, PrimaryButton, Table, Td } from '../../components/admin/Ui'
+import { ActionMenu, Badge, Banner, GhostButton, Modal, PageHeader, Panel, PrimaryButton, Table, Td } from '../../components/admin/Ui'
 
 // The name is entered once — it is a label, not copy, so it is not translated.
 // The per-locale rows below carry only the fields that genuinely differ.
@@ -174,11 +174,24 @@ export default function AdminCategories() {
                 <Td>{c.is_active ? <Badge tone="accent">{t('admin', 'active')}</Badge> : <Badge>{t('admin', 'inactive')}</Badge>}</Td>
                 <Td>
                   <div className="flex flex-wrap items-center gap-1.5">
+                    {/* Kept as a real anchor opening a new tab: the storefront can
+                        be on another host, which a router link cannot navigate to. */}
                     <a href={c.url} target="_blank" rel="noreferrer">
                       <GhostButton>{t('admin', 'viewOnStore')}</GhostButton>
                     </a>
                     <GhostButton onClick={() => open(c)}>{t('admin', 'edit')}</GhostButton>
-                    <ConfirmButton label={t('admin', 'delete')} confirmLabel={t('admin', 'confirm')} onConfirm={() => destroy(c)} />
+                    <ActionMenu
+                      label={t('admin', 'actions')}
+                      items={[
+                        {
+                          key: 'delete',
+                          label: t('admin', 'delete'),
+                          confirmLabel: t('admin', 'confirm'),
+                          tone: 'danger',
+                          onClick: () => destroy(c),
+                        },
+                      ]}
+                    />
                   </div>
                 </Td>
               </tr>

@@ -7,10 +7,9 @@ import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState, ErrorState, Spinner } from '../../components/Spinner'
 import {
+  ActionMenu,
   Badge,
   Banner,
-  ConfirmButton,
-  GhostButton,
   PageHeader,
   Pagination,
   Panel,
@@ -97,6 +96,18 @@ export default function AdminProducts() {
     setNotice(null)
     try {
       const res = await call(() => adminApi.toggleProduct(locale, product.id))
+      setData((d) => ({ ...d, data: d.data.map((p) => (p.id === product.id ? res.product : p)) }))
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  // Separate from the publish toggle: this one leaves the product on the
+  // storefront and only changes whether it reads as out of stock.
+  const toggleAvailability = async (product) => {
+    setNotice(null)
+    try {
+      const res = await call(() => adminApi.toggleProductAvailability(locale, product.id))
       setData((d) => ({ ...d, data: d.data.map((p) => (p.id === product.id ? res.product : p)) }))
     } catch (e) {
       setError(e.message)
@@ -241,19 +252,38 @@ export default function AdminProducts() {
                     <span className={p.stock === 0 ? 'text-rose-600' : p.stock <= 3 ? 'text-gold' : ''}>{p.stock}</span>
                   </Td>
                   <Td>
-                    {p.is_active ? <Badge tone="accent">{t('admin', 'active')}</Badge> : <Badge>{t('admin', 'inactive')}</Badge>}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {p.is_active ? <Badge tone="accent">{t('admin', 'active')}</Badge> : <Badge>{t('admin', 'inactive')}</Badge>}
+                      {!p.is_available && <Badge tone="danger">{t('product', 'outOfStock')}</Badge>}
+                    </div>
                   </Td>
                   <Td>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Link to={`/${locale}/admin/products/${p.id}`} className={buttonClass('ghost')}>
                         {t('admin', 'edit')}
                       </Link>
-                      <GhostButton onClick={() => duplicate(p)}>{t('admin', 'duplicate')}</GhostButton>
-                      <GhostButton onClick={() => toggle(p)}>{p.is_active ? t('admin', 'inactive') : t('admin', 'active')}</GhostButton>
-                      <ConfirmButton
-                        label={t('admin', 'delete')}
-                        confirmLabel={t('admin', 'confirm')}
-                        onConfirm={() => destroy(p)}
+                      <ActionMenu
+                        label={t('admin', 'actions')}
+                        items={[
+                          { key: 'duplicate', label: t('admin', 'duplicate'), onClick: () => duplicate(p) },
+                          {
+                            key: 'toggle',
+                            label: p.is_active ? t('admin', 'inactive') : t('admin', 'active'),
+                            onClick: () => toggle(p),
+                          },
+                          {
+                            key: 'availability',
+                            label: p.is_available ? t('admin', 'markUnavailable') : t('admin', 'markAvailable'),
+                            onClick: () => toggleAvailability(p),
+                          },
+                          {
+                            key: 'delete',
+                            label: t('admin', 'delete'),
+                            confirmLabel: t('admin', 'confirm'),
+                            tone: 'danger',
+                            onClick: () => destroy(p),
+                          },
+                        ]}
                       />
                     </div>
                   </Td>

@@ -4,6 +4,10 @@
  * every admin screen builds on.
  */
 
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
+
 /**
  * The API reports an order status as a Tailwind colour *name* (amber, sky, …).
  * Those names cannot be interpolated into a class string — Tailwind only emits
@@ -195,8 +199,185 @@ function ConfirmButtonInner({ label, confirmLabel, onConfirm, disabled, tone }) 
   )
 }
 
-export function Table({ head, children, className = '' }) {
+/**
+ * The secondary actions of a table row, behind one trigger.
+ *
+ * A row had grown to four 44px buttons, which is a wall of borders and gets
+ * worse with every action added. Only the primary action stays in the cell.
+ *
+ * The menu is rendered in a portal at a fixed position rather than absolutely
+ * inside the cell: `Table` scrolls horizontally, and an overflow container
+ * clips its children, so a dropdown anchored in the cell would be cut off and
+ * force the table to scroll to reach it. Position is measured from the trigger
+ * instead.
+ *
+ * Items are `{ key, label, onClick | to, tone, confirmLabel }`. A `confirmLabel`
+ * arms the item on the first click and runs it on the second, which is how
+ * `ConfirmButton` keeps a destructive action two clicks deep without a modal.
+ */
+export function ActionMenu({ label, items = [] }) {
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState(null)
+  const [placement, setPlacement] = useState({ top: 0, left: 0 })
+  const [armedKey, setArmedKey] = useState(null)
+  const triggerRef = useRef(null)
+  const menuRef = useRef(null)
+  const itemRefs = useRef([])
+
+  // Measured before paint so the menu never appears at the wrong spot first.
+  // The height is read on a second pass because the menu is not in the DOM yet
+  // on the first one, and it is what decides whether there is room below.
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return
+    const r = triggerRef.current.getBoundingClientRect()
+    setAnchor(r)
+
+    const raf = requestAnimationFrame(() => {
+      const h = menuRef.current?.offsetHeight ?? 0
+      const gap = 6
+      const fitsBelow = window.innerHeight - r.bottom - gap >= h
+      setPlacement({
+        top: fitsBelow ? r.bottom + gap : Math.max(gap, r.top - gap - h),
+        left: Math.max(8, Math.min(r.right - 208, window.innerWidth - 208 - 8)),
+      })
+    })
+
+    return () => cancelAnimationFrame(raf)
+  }, [open])
+
+  const close = useCallback((returnFocus = true) => {
+    setOpen(false)
+    setArmedKey(null)
+    if (returnFocus) triggerRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        close()
+        return
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+
+      // A menu is expected to move between its items with the arrow keys;
+      // letting Tab do it instead strands the user once the last item is past.
+      e.preventDefault()
+      const count = items.length
+      if (!count) return
+      const at = itemRefs.current.indexOf(document.activeElement)
+      const step = e.key === 'ArrowDown' ? 1 : -1
+      const next = at === -1 ? 0 : (at + step + count) % count
+      itemRefs.current[next]?.focus()
+    }
+
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || triggerRef.current?.contains(e.target)) return
+      close(false)
+    }
+
+    // Re-measuring on every scroll frame would make the menu chase the row;
+    // closing is the predictable behaviour and is what the other admin
+    // overlays do.
+    const dismiss = () => close(false)
+
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('resize', dismiss)
+    window.addEventListener('scroll', dismiss, true)
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('resize', dismiss)
+      window.removeEventListener('scroll', dismiss, true)
+    }
+  }, [open, items.length, close])
+
+  useEffect(() => {
+    if (open) itemRefs.current[0]?.focus()
+  }, [open])
+
+  const runItem = (item) => {
+    // A destructive item is armed first, then run on the second click.
+    if (item.confirmLabel && armedKey !== item.key) {
+      setArmedKey(item.key)
+      // Disarms itself so a stray later click cannot delete twice.
+      setTimeout(() => setArmedKey((k) => (k === item.key ? null : k)), 4000)
+      return
+    }
+
+    setOpen(false)
+    setArmedKey(null)
+    item.onClick?.()
+  }
+
+  // Flipped above the trigger when there is not enough room below, and inset
+  // from the right edge so it cannot run off screen on a narrow table.
+  const style = anchor ? placement : undefined
+
   return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        className="inline-flex min-h-11 w-11 items-center justify-center border border-stone-200 text-noir transition hover:border-gold hover:bg-gold hover:text-white"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.75" />
+          <circle cx="12" cy="12" r="1.75" />
+          <circle cx="19" cy="12" r="1.75" />
+        </svg>
+      </button>
+
+      {open &&
+        style &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            aria-label={label}
+            style={style}
+            className="fixed z-50 w-52 border border-stone-200 bg-white py-1 shadow-lg"
+          >
+            {items.map((item, index) => {
+              const armed = armedKey === item.key
+              const content = armed && item.confirmLabel ? item.confirmLabel : item.label
+              const tone = item.tone === 'danger' ? 'text-rose-700 hover:bg-rose-50' : 'text-noir hover:bg-sand'
+              const className = `flex w-full items-center px-3 py-2.5 text-start text-[13px] uppercase tracking-widest transition sm:text-xs ${tone} ${
+                armed ? 'bg-rose-50' : ''
+              }`
+              const ref = (el) => {
+                itemRefs.current[index] = el
+              }
+
+              // An item either navigates or acts; only navigation needs a Link,
+              // and rendering a button as a Link would need a `to` it has no
+              // meaning for.
+              return item.to ? (
+                <Link key={item.key} to={item.to} role="menuitem" ref={ref} onClick={() => runItem(item)} className={className}>
+                  {content}
+                </Link>
+              ) : (
+                <button key={item.key} type="button" role="menuitem" ref={ref} onClick={() => runItem(item)} className={className}>
+                  {content}
+                </button>
+              )
+            })}
+          </div>,
+          document.body,
+        )}
+    </>
+  )
+}
+
+export function Table({ head, children, className = '' }) {  return (
     <div className={`overflow-x-auto ${className}`}>
       <table className="w-full min-w-[40rem] border-collapse text-start">
         <thead>

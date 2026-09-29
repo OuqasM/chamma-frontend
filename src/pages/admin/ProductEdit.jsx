@@ -14,12 +14,10 @@ const GENDERS = ['women', 'men', 'unisex']
 const MAX_IMAGES = 8
 
 /**
- * The merchant never enters a stock count: one switch says whether the product
- * is buyable. "Available" parks the unit count well clear of the low-stock
- * threshold (<= 3) so the storefront only ever shows "En stock"; "not available"
- * writes 0, which is the out-of-stock state everywhere.
+ * A new product starts published and available, with a unit count comfortably
+ * clear of the low-stock threshold so the storefront reads "En stock".
  */
-const IN_STOCK = 100
+const DEFAULT_STOCK = 100
 
 const emptyForm = () => ({
   name: '',
@@ -30,7 +28,11 @@ const emptyForm = () => ({
   slug: '',
   price: '',
   cost_price: '',
-  available: true,
+  // `is_active` hides the product from the storefront; `is_available` only
+  // controls the out-of-stock label. They are set independently from here on.
+  is_active: true,
+  is_available: true,
+  stock: DEFAULT_STOCK,
   gender: '',
   is_new: false,
   // One short and one long description per language, each optional: a language
@@ -135,9 +137,13 @@ export default function AdminProductEdit() {
           cost_price: p.cost_price ?? '',
           // UI-only: never sent as-is, converted to compare_at_price on submit.
           discount: p.discount_percent ?? '',
-          // One switch covers both halves of "can a shopper buy this": the
-          // product has to be published and to have units on hand.
-          available: Boolean(p.is_active) && Number(p.stock) > 0,
+          // The two switches answer different questions and are sent as two
+          // separate flags: `is_active` decides whether the product is on the
+          // storefront at all, `is_available` only whether it reads as buyable
+          // or gets the out-of-stock label.
+          is_active: Boolean(p.is_active),
+          is_available: Boolean(p.is_available ?? true),
+          stock: p.stock ?? 0,
           gender: p.gender || '',
           is_new: Boolean(p.is_new),
           short_descriptions: copyFromTranslations(p.translations, 'short_description'),
@@ -225,10 +231,12 @@ export default function AdminProductEdit() {
       price: pricing.final,
       cost_price: numberOrNull(form.cost_price),
       compare_at_price: pricing.original,
-      // The availability switch is the only stock input, so it drives both the
-      // published flag and the unit count.
-      is_active: form.available,
-      stock: form.available ? IN_STOCK : 0,
+      // Two independent flags, and the unit count is its own number again:
+      // marking a product unavailable no longer unpublishes it or rewrites how
+      // many units it has.
+      is_active: form.is_active,
+      is_available: form.is_available,
+      stock: Number(form.stock) || 0,
       gender: textOrNull(form.gender),
       is_new: form.is_new,
       // Keyed by language, so the API can tell "French is blank" from "French
@@ -368,13 +376,34 @@ export default function AdminProductEdit() {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <TextInput
+                label={t('admin', 'stock')}
+                type="number"
+                min="0"
+                step="1"
+                value={form.stock}
+                onChange={setField('stock')}
+                error={errors.stock?.[0]}
+              />
+              <Toggle label={t('admin', 'isNew')} checked={form.is_new} onChange={setFlag('is_new')} />
+            </div>
+
+            {/* The two are deliberately separate: unpublishing takes the product
+                off the storefront, marking it unavailable leaves it listed and
+                only changes the label to out of stock. */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Toggle
+                label={t('admin', 'active')}
+                hint={t('admin', 'activeHint')}
+                checked={form.is_active}
+                onChange={setFlag('is_active')}
+              />
               <Toggle
                 label={t('admin', 'available')}
                 hint={t('admin', 'availableHint')}
-                checked={form.available}
-                onChange={setFlag('available')}
+                checked={form.is_available}
+                onChange={setFlag('is_available')}
               />
-              <Toggle label={t('admin', 'isNew')} checked={form.is_new} onChange={setFlag('is_new')} />
             </div>
           </Panel>
 
