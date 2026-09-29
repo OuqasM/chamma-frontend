@@ -46,7 +46,7 @@ export const copyFromTranslations = (rows, field) => {
 export const prefillFromProduct = (product) => ({
   name: product.name || '',
   brand_id: product.brand_id ?? '',
-  category_id: product.category_id ?? '',
+  category_ids: (product.category_ids ?? []).map(Number),
   // The form edits the full price; when discounted that is the struck
   // original, not the discounted amount the customer is charged.
   price: (product.discount_percent ?? 0) > 0 ? (product.compare_at_price ?? product.price) : (product.price ?? ''),

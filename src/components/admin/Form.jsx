@@ -58,6 +58,67 @@ export function Select({ label, error, hint, className = '', options, placeholde
   )
 }
 
+/**
+ * A checkbox list rather than a `multiple` <select>.
+ *
+ * The shop has a handful of categories, and a list shows what is currently
+ * picked at a glance instead of collapsing the whole selection into one summary
+ * line. Wrapped in a <fieldset> rather than reusing <Field>, whose <label>
+ * cannot legally contain a set of checkboxes.
+ */
+export function MultiSelect({ label, error, hint, className = '', options = [], value = [], onChange, max = 20 }) {
+  const selected = value.map(Number)
+  const full = selected.length >= max
+
+  const toggle = (id, checked) => {
+    onChange(checked ? [...selected, id] : selected.filter((v) => v !== id))
+  }
+
+  return (
+    <fieldset className={className}>
+      {label && (
+        <legend className="font-semibold text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</legend>
+      )}
+
+      <div
+        className={`mt-1.5 max-h-56 overflow-y-auto border bg-white ${
+          error ? 'border-rose-400' : 'border-stone-200'
+        }`}
+      >
+        {options.map((o) => {
+          const id = Number(o.value)
+          const checked = selected.includes(id)
+          // Past the cap the unticked boxes go quiet rather than the form
+          // silently accepting a twenty-first category.
+          const disabled = !checked && full
+
+          return (
+            <label
+              key={o.value}
+              className={`flex items-center gap-2.5 border-b border-stone-100 px-3 py-2 last:border-b-0 ${
+                disabled ? 'opacity-40' : 'cursor-pointer hover:bg-stone-50'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                disabled={disabled}
+                onChange={(e) => toggle(id, e.target.checked)}
+                className="h-4 w-4 accent-gold"
+              />
+              <span className="text-sm text-noir">{o.label}</span>
+            </label>
+          )
+        })}
+
+        {options.length === 0 && <p className="px-3 py-2.5 text-sm text-stone-400">—</p>}
+      </div>
+
+      <Help error={error} hint={hint} />
+    </fieldset>
+  )
+}
+
 /** Checkbox styled as a switchable row; `checked` drives the admin boolean. */
 export function Toggle({ label, checked, onChange, hint, disabled = false }) {
   return (

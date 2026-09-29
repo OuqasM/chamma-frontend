@@ -5,7 +5,7 @@ import { formatPrice } from '../../lib/format'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { ErrorState, Spinner } from '../../components/Spinner'
-import { Select, TextInput, Toggle } from '../../components/admin/Form'
+import { MultiSelect, Select, TextInput, Toggle } from '../../components/admin/Form'
 import { dictionaries } from '../../lib/i18n'
 import { COPY_LOCALES, copyFromTranslations, emptyCopy } from '../../lib/productForm'
 import { Badge, Banner, GhostButton, PageHeader, Panel, PrimaryButton, buttonClass } from '../../components/admin/Ui'
@@ -22,7 +22,7 @@ const DEFAULT_STOCK = 100
 const emptyForm = () => ({
   name: '',
   brand_id: '',
-  category_id: '',
+  category_ids: [],
   // Server-owned: the URL follows the name. Kept only to build the "view on
   // store" link, refreshed from the response after every save.
   slug: '',
@@ -132,7 +132,7 @@ export default function AdminProductEdit() {
         setForm({
           name: p.name || '',
           brand_id: p.brand_id ?? '',
-          category_id: p.category_id ?? '',
+          category_ids: (p.category_ids ?? []).map(Number),
           slug: p.slug || '',
           // Form edits the full price; when discounted that is the struck
           // original, not the discounted amount the customer is charged.
@@ -170,6 +170,14 @@ export default function AdminProductEdit() {
 
   const setField = (key) => (e) => {
     const value = e.target.value
+    setForm((f) => ({ ...f, [key]: value }))
+    setErrors((prev) => ({ ...prev, [key]: undefined }))
+  }
+
+  // For the controls that are not <input> elements and therefore have no event
+  // to read a value off. It also drops the field's error, the way setField
+  // does, so a corrected field stops showing the previous run's message.
+  const setValue = (key) => (value) => {
     setForm((f) => ({ ...f, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
@@ -230,7 +238,7 @@ export default function AdminProductEdit() {
     const body = {
       name: form.name,
       brand_id: form.brand_id === '' ? null : Number(form.brand_id),
-      category_id: form.category_id === '' ? null : Number(form.category_id),
+      category_ids: form.category_ids,
       price: pricing.final,
       cost_price: numberOrNull(form.cost_price),
       compare_at_price: pricing.original,
@@ -368,13 +376,13 @@ export default function AdminProductEdit() {
                 options={brandOptions}
                 error={errors.brand_id?.[0]}
               />
-              <Select
-                label={t('admin', 'category')}
-                value={form.category_id}
-                onChange={setField('category_id')}
-                placeholder="—"
+              <MultiSelect
+                label={t('admin', 'categories')}
                 options={categoryOptions}
-                error={errors.category_id?.[0]}
+                value={form.category_ids}
+                onChange={setValue('category_ids')}
+                hint={t('admin', 'categoriesHint')}
+                error={errors.category_ids?.[0]}
               />
             </div>
 

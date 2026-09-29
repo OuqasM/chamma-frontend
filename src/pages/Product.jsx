@@ -43,14 +43,18 @@ export default function Product() {
     <div className="mx-auto max-w-7xl px-4 py-10">
       <nav className="mb-8 text-xs text-stone-400">
         <Link to={`/${locale}`} className="hover:text-gold">{t('nav', 'home')}</Link>
-        {p.category && (
-          <>
+        {/* A product can sit in several categories, so the trail shows them
+            all. `category` is the API's compatibility alias and is only read
+            when `categories` is missing, which is the case for a storefront
+            bundle served against a backend that predates the list. */}
+        {(p.categories ?? (p.category ? [p.category] : [])).map((c) => (
+          <span key={c.id}>
             {' / '}
-            <Link to={`/${locale}/categories/${p.category.slug}`} className="hover:text-gold">
-              {p.category.name}
+            <Link to={`/${locale}/categories/${c.slug}`} className="hover:text-gold">
+              {c.name}
             </Link>
-          </>
-        )}
+          </span>
+        ))}
         {' / '}
         <span className="text-stone-600">{p.name}</span>
       </nav>
