@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import { AdminProvider } from './context/AdminContext'
 import { Layout } from './layouts/Layout'
@@ -48,6 +48,17 @@ function AdminLocaleRedirect() {
   return <Navigate to={`/${normalize(navigator.language?.slice(0, 2))}/admin${rest}${search}`} replace />
 }
 
+/**
+ * Keyed on the product being edited, so the form is rebuilt whenever that
+ * changes. `products/new` matches no `:id`, so it keys on 'new' and reads the
+ * prefill handed over by "duplicate" on its first render.
+ */
+function ProductEditRoute() {
+  const { id } = useParams()
+
+  return <AdminProductEdit key={id ?? 'new'} />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -77,8 +88,13 @@ export default function App() {
             <Route element={<AdminLayout />}>
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
-              <Route path="products/new" element={<AdminProductEdit />} />
-              <Route path="products/:id" element={<AdminProductEdit />} />
+              {/* The key is what makes "duplicate" work, and stops one product's
+                  form surviving into the next: without it React Router reuses the
+                  component across /products/new, /products/1 and /products/2, so
+                  the prefill in the navigation state is never read and the form
+                  being left behind is the one that stays on screen. */}
+              <Route path="products/new" element={<ProductEditRoute />} />
+              <Route path="products/:id" element={<ProductEditRoute />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="brands" element={<AdminBrands />} />
               <Route path="orders" element={<AdminOrders />} />

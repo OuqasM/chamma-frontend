@@ -94,7 +94,20 @@ export default function Product() {
 
           <h1 className="mt-2 font-serif text-3xl leading-tight text-noir md:text-4xl">{p.name}</h1>
 
-          {p.short_description && <p className="mt-3 text-sm leading-relaxed text-stone-600">{p.short_description}</p>}
+          {p.short_description_html ? (
+            // The API renders the merchant's markdown server-side into a fixed
+            // tag set with author HTML escaped, so it is safe to inject here.
+            <div
+              className="rich-text rich-text-sm mt-3"
+              dangerouslySetInnerHTML={{ __html: p.short_description_html }}
+            />
+          ) : (
+            // A response predating the rendered fields: show the source as text
+            // rather than trusting unrendered markdown as HTML.
+            p.short_description && (
+              <p className="mt-3 text-sm leading-relaxed text-stone-600">{p.short_description}</p>
+            )
+          )}
 
           <Price product={p} className="mt-5 text-xl" />
 
@@ -164,7 +177,14 @@ export default function Product() {
             </div>
           )}
 
-          {p.description && (
+          {p.description_html && (
+            <div className="mt-8">
+              <h2 className="text-xs uppercase tracking-widest text-stone-400">{t('product', 'description')}</h2>
+              <div className="rich-text mt-2" dangerouslySetInnerHTML={{ __html: p.description_html }} />
+            </div>
+          )}
+
+          {!p.description_html && p.description && (
             <div className="mt-8">
               <h2 className="text-xs uppercase tracking-widest text-stone-400">{t('product', 'description')}</h2>
               <p className="mt-2 text-sm leading-relaxed text-stone-700">{p.description}</p>

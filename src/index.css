@@ -54,4 +54,71 @@
       object-position: 50% 50%;
     }
   }
+
+  /* Rendered product copy. The API emits a fixed tag set (p, br, strong, em, a,
+     code, ul/ol/li, blockquote, h2, h3) and escapes everything else, so the rules
+     below only lay that set out. Only element selectors are used: injecting
+     utilities here would need @apply and a safelist rebuild. */
+  .rich-text {
+    @apply text-sm leading-relaxed text-stone-700;
+  }
+
+  .rich-text > * + * {
+    margin-top: 0.75rem;
+  }
+
+  .rich-text strong {
+    @apply font-semibold text-noir;
+  }
+
+  .rich-text em {
+    @apply italic;
+  }
+
+  .rich-text a {
+    @apply text-rose-700 underline underline-offset-2 hover:text-gold;
+  }
+
+  .rich-text code {
+    @apply rounded bg-stone-100 px-1 py-0.5 font-mono text-[0.85em] text-noir;
+  }
+
+  .rich-text ul,
+  .rich-text ol {
+    @apply ps-5;
+  }
+
+  .rich-text ul {
+    list-style: disc;
+  }
+
+  .rich-text ol {
+    list-style: decimal;
+  }
+
+  .rich-text li + li {
+    margin-top: 0.25rem;
+  }
+
+  .rich-text blockquote {
+    @apply border-s-2 border-stone-200 ps-3 text-stone-600;
+  }
+
+  .rich-text h2 {
+    @apply font-serif text-lg text-noir;
+  }
+
+  .rich-text h3 {
+    @apply font-serif text-base text-noir;
+  }
+
+  /* The short description sits above the price in a tighter slot than the
+     full description, so it drops a step without a second set of rules. */
+  .rich-text-sm {
+    @apply text-sm text-stone-600;
+  }
+
+  .rich-text-sm > * + * {
+    margin-top: 0.5rem;
+  }
 }

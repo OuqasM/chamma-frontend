@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { adminApi, imageUrl } from '../../lib/api'
 import { formatPrice } from '../../lib/format'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { ErrorState, Spinner } from '../../components/Spinner'
 import { Select, TextInput, Toggle } from '../../components/admin/Form'
+import { dictionaries } from '../../lib/i18n'
 import { Badge, Banner, GhostButton, PageHeader, Panel, PrimaryButton, buttonClass } from '../../components/admin/Ui'
 
 const GENDERS = ['women', 'men', 'unisex']
@@ -19,6 +20,11 @@ const MAX_IMAGES = 8
  */
 const IN_STOCK = 100
 
+/** The languages copy can be written in; mirrors config('chamma.locales') in the API. */
+const COPY_LOCALES = ['fr', 'ar', 'en']
+
+const emptyCopy = () => Object.fromEntries(COPY_LOCALES.map((code) => [code, '']))
+
 const emptyForm = () => ({
   name: '',
   brand_id: '',
@@ -31,8 +37,11 @@ const emptyForm = () => ({
   available: true,
   gender: '',
   is_new: false,
-  short_description: '',
-  description: '',
+  // One short and one long description per language, each optional: a language
+  // left blank is simply not written, and the storefront then shows the copy of
+  // a language that is filled rather than an empty block.
+  short_descriptions: emptyCopy(),
+  descriptions: emptyCopy(),
 })
 
 const numberOrNull = (value) => (value === '' || value === null ? null : Number(value))
@@ -70,12 +79,18 @@ export default function AdminProductEdit() {
   const { locale, t } = useApp()
   const { call } = useAdmin()
   const navigate = useNavigate()
+  const { state } = useLocation()
 
   // `/admin/products/new` is its own route, so it arrives with no `:id` at all;
   // `new` is still accepted in case the path is ever reached as `products/:id`.
   const isNew = !id || id === 'new'
 
-  const [form, setForm] = useState(emptyForm)
+  // Set only by the Duplicate button, which hands the open form to a fresh
+  // `/new` render. Router state, not storage: a refresh on `/new` then gives an
+  // honestly blank form rather than silently re-filling from a stale entry.
+  const prefill = state?.prefill
+
+  const [form, setForm] = useState(() => (prefill ? { ...emptyForm(), ...prefill } : emptyForm))
   const [images, setImages] = useState([])
   const [removed, setRemoved] = useState([])
   const [taxonomies, setTaxonomies] = useState({ brands: [], categories: [] })
@@ -111,11 +126,17 @@ export default function AdminProductEdit() {
       .then((d) => {
         if (!alive) return
         const p = d.product
-        // The copy is shown and edited in one place: the English row. Other
-        // locales keep whatever was translated before and are not exposed.
-        const english = (p.translations || []).find((tr) => tr.locale === 'en')
-          || (p.translations || [])[0]
-          || {}
+        // The copy is read per language, so each one can be edited or left
+        // blank independently. A missing row reads as empty rather than
+        // failing, which is what a product created before this change has.
+        const rows = p.translations || []
+        const copyFor = (field) => {
+          const out = emptyCopy()
+          rows.forEach((tr) => {
+            if (COPY_LOCALES.includes(tr.locale) && typeof tr[field] === 'string') out[tr.locale] = tr[field]
+          })
+          return out
+        }
 
         setForm({
           name: p.name || '',
@@ -133,8 +154,8 @@ export default function AdminProductEdit() {
           available: Boolean(p.is_active) && Number(p.stock) > 0,
           gender: p.gender || '',
           is_new: Boolean(p.is_new),
-          short_description: english.short_description || '',
-          description: english.description || '',
+          short_descriptions: copyFor('short_description'),
+          descriptions: copyFor('description'),
         })
         setImages((p.images || []).map((img) => ({ id: img.id, path: img.path, url: img.url, is_primary: img.is_primary })))
         setError(null)
@@ -160,16 +181,19 @@ export default function AdminProductEdit() {
 
   const setFlag = (key) => (value) => setForm((f) => ({ ...f, [key]: value }))
 
-  const setCopy = (key) => (e) => {
+  /**
+   * One language, one field. The error key is dotted (`descriptions.fr`) so it
+   * matches the validation key the API reports for that exact input.
+   */
+  const setCopy = (group) => (locale) => (e) => {
     const value = e.target.value
-    setForm((f) => ({
-      ...f,
-      [key]: value,
-    }))
+    const key = `${group}.${locale}`
+
+    setForm((f) => ({ ...f, [group]: { ...f[group], [locale]: value } }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
 
-  const copyError = (field) => errors[field]?.[0]
+  const copyError = (group) => (locale) => errors[`${group}.${locale}`]?.[0]
 
   const addImage = async (result) => {
     setImages((list) => [...list, { path: result.path, url: imageUrl(result.url), is_primary: false }].slice(0, MAX_IMAGES))
@@ -189,6 +213,32 @@ export default function AdminProductEdit() {
     } finally {
       setUploading(false)
     }
+  }
+
+  /**
+   * Opens the very same form on a blank record instead of creating one now, so
+   * the merchant adjusts the price or the photos before anything is written.
+   *
+   * `slug` is dropped because the API derives it from the name, and the photos
+   * are deliberately left behind: the image rows point at files this product
+   * owns, and handing the same paths to a second product would make removing a
+   * photo from either one delete it for both.
+   */
+  const duplicate = () => {
+    const { slug, ...carried } = form
+
+    navigate(`/${locale}/admin/products/new`, {
+      state: {
+        prefill: {
+          ...carried,
+          // Copied rather than shared: the description maps are nested, and a
+          // reference shared with the form being left behind would be edited
+          // in both places at once.
+          short_descriptions: { ...form.short_descriptions },
+          descriptions: { ...form.descriptions },
+        },
+      },
+    })
   }
 
   const removeImage = (index) => {
@@ -221,29 +271,27 @@ export default function AdminProductEdit() {
       stock: form.available ? IN_STOCK : 0,
       gender: textOrNull(form.gender),
       is_new: form.is_new,
-      short_description: textOrNull(form.short_description),
-      description: form.description,
+      // Keyed by language, so the API can tell "French is blank" from "French
+      // was not submitted": only a submitted key is written.
+      short_descriptions: form.short_descriptions,
+      descriptions: form.descriptions,
       images: images.map((img) => img.path),
       remove_images: removed,
     }
 
     try {
       if (isNew) {
-        const res = await call(() => adminApi.createProduct(locale, body))
-        navigate(`/${locale}/admin/products/${res.product.id}`, { replace: true })
+        await call(() => adminApi.createProduct(locale, body))
       } else {
         await call(() => adminApi.updateProduct(locale, id, body))
-        // Re-read so server-normalised values (slug uniquifying, defaults) show.
-        // Availability is re-read too: an order placed while this page was open
-        // has already decremented the stock behind the toggle.
-        const fresh = await call(() => adminApi.product(locale, id))
-        setForm((f) => ({
-          ...f,
-          slug: fresh.product.slug,
-          available: Boolean(fresh.product.is_active) && Number(fresh.product.stock) > 0,
-        }))
-        setError(null)
       }
+
+      // Saving sends the admin back to the list, for both creating and editing:
+      // the list is where the next product is opened from, so staying on a form
+      // that is now redundant only costs a trip. `replace` keeps the saved
+      // product out of the history, so Back returns to wherever the admin came
+      // from rather than re-opening a form they have already submitted.
+      navigate(`/${locale}/admin/products`, { replace: true })
     } catch (err) {
       setErrors(err.errors || {})
       setError(err.message)
@@ -290,6 +338,11 @@ export default function AdminProductEdit() {
               <a href={`/${locale}/products/${form.slug}`} target="_blank" rel="noreferrer">
                 <GhostButton type="button">{t('admin', 'viewOnStore')}</GhostButton>
               </a>
+            )}
+            {!isNew && (
+              <GhostButton type="button" onClick={duplicate}>
+                {t('admin', 'duplicate')}
+              </GhostButton>
             )}
             <PrimaryButton type="submit" disabled={saving}>
               {saving ? t('admin', 'saving') : t('admin', 'save')}
@@ -371,21 +424,36 @@ export default function AdminProductEdit() {
           </Panel>
 
           <Panel title={t('admin', 'descriptionTitle')} bodyClassName="p-5">
-            <TextInput
-              label={t('admin', 'shortDescription')}
-              value={form.short_description}
-              onChange={setCopy('short_description')}
-              error={copyError('short_description')}
-            />
-            <TextInput
-              className="mt-4"
-              textarea
-              rows={6}
-              label={t('admin', 'description')}
-              value={form.description}
-              onChange={setCopy('description')}
-              error={copyError('description')}
-            />
+            <p className="mb-4 text-xs text-stone-500">{t('admin', 'descriptionHint')}</p>
+
+            {COPY_LOCALES.map((code) => (
+              <fieldset
+                key={code}
+                // A group per language, so the heading separates them for
+                // screen readers as well as visually.
+                className="mb-5 border-t border-stone-200 pt-4 last:mb-0 last:border-0"
+              >
+                <legend className="sr-only">{dictionaries[code].localeName}</legend>
+                <p className="mb-2 text-sm font-medium text-noir">{dictionaries[code].localeName}</p>
+
+                <TextInput
+                  label={t('admin', 'shortDescription')}
+                  value={form.short_descriptions[code]}
+                  onChange={setCopy('short_descriptions')(code)}
+                  error={copyError('short_descriptions')(code)}
+                />
+                <TextInput
+                  className="mt-4"
+                  textarea
+                  rows={6}
+                  label={t('admin', 'description')}
+                  value={form.descriptions[code]}
+                  onChange={setCopy('descriptions')(code)}
+                  error={copyError('descriptions')(code)}
+                  hint={t('admin', 'descriptionMarkdown')}
+                />
+              </fieldset>
+            ))}
           </Panel>
         </div>
 

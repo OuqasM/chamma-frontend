@@ -44,15 +44,21 @@ export function ProductCard({ product, showAdd = true }) {
 
       <div className="flex flex-1 flex-col gap-1 pt-3">
         {product.brand?.name && (
-          <p className="text-[11px] uppercase tracking-widest text-stone-400">{product.brand.name}</p>
+          <p className="truncate text-[11px] uppercase tracking-widest text-stone-400">{product.brand.name}</p>
         )}
-        <h3 className="font-serif text-base leading-snug text-noir">
+        {/* Two lines are always reserved and the name is clamped to them. A long
+            name on a narrow card would otherwise grow the text block and drag the
+            price and button out of line with the cards beside it; the grid
+            stretches the cards, but it cannot align what varies inside them. */}
+        <h3 className="line-clamp-2 min-h-[2.75rem] font-serif text-base leading-snug text-noir">
           <Link to={href} className="hover:text-gold">
             {product.name}
           </Link>
         </h3>
-        {product.size && <p className="text-xs text-stone-400">{product.size}</p>}
-        <Price product={product} className="mt-1 text-sm font-medium" />
+        {product.size && <p className="truncate text-xs text-stone-400">{product.size}</p>}
+        {/* mt-auto pins price and button to the bottom, so cards line up even
+            when a brand or size line is missing. */}
+        <Price product={product} className="mt-auto pt-1 text-sm font-medium" />
 
         {showAdd && !soldOut && (
           <button
