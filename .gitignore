@@ -6,6 +6,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+# The production API origin. Vite inlines VITE_* values into the public bundle,
+# so this can never be a secret, and committing it makes `npm run build`
+# produce the same bundle on every machine and on the host.
+!/.env.production
 
 .DS_Store
 Thumbs.db

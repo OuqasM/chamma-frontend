@@ -3,11 +3,15 @@
  *
  * The backend is the single source of truth: catalogue text, prices, stock
  * and shipping are always read from the API, never cached in the browser.
- * `VITE_API_URL` is empty by default so dev/prod both go through the Vite
- * proxy (or same-origin) and never need CORS.
+ *
+ * `VITE_API_URL` is the API origin and is empty by default: local development
+ * and a single origin deployment leave it unset, so every request is relative
+ * and goes through the Vite proxy without needing CORS. It is set when the
+ * storefront is served from a different host than the API, in which case
+ * requests are cross-origin and the API has to allow the storefront origin.
  */
-const RAW_BASE = import.meta.env.VITE_API_URL || ''
-const BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
+const ORIGIN = import.meta.env.VITE_API_URL || ''
+const BASE = `${ORIGIN}${import.meta.env.VITE_API_BASE || '/api'}`.replace(/\/$/, '')
 
 export class ApiError extends Error {
   constructor(message, { status, errors } = {}) {
@@ -167,25 +171,36 @@ export function productHref(url, locale) {
   return /^\/[a-z]{2}\//i.test(url) ? url : `/${locale}${url}`
 }
 
-/** Normalises image URLs so they resolve through the proxy in dev. */
+/**
+ * Normalises image URLs so each one resolves against the host that serves it.
+ *
+ * The API keeps its media in its own document root under `images/`, while the
+ * storefront ships its own files (the bank transfer slip). With the API on a
+ * separate host, `images/` paths have to carry the API origin or the browser
+ * looks for them on the storefront and gets a 404; with a shared origin the
+ * API origin is stripped so everything resolves through this host.
+ */
 export function imageUrl(url) {
   if (!url) return null
+
   if (/^https?:\/\//i.test(url)) {
-    if (!RAW_BASE) {
-      // Same-origin proxy: strip the API origin so /images/... is used.
+    if (!ORIGIN) {
+      // Same-origin: strip the API origin so /images/... is used here.
       try {
         return new URL(url).pathname
       } catch {
         return url
       }
     }
+
     return url
   }
-  // The API keeps media in the document root under `images/` (the `storefront`
-  // disk), and hands out a bare relative path in `image.path` / `image_path` /
-  // `logo_path` and in the upload response. Those need the `images/` prefix to
-  // resolve, or the browser 404s on e.g. /uploads/x.png instead of
-  // /images/uploads/x.png.
-  if (url.startsWith('/images/')) return url
-  return url.startsWith('/') ? url : `/images/${url}`
+
+  // Media owned by the API, handed out either as `images/products/x.svg` or as
+  // the bare `products/x.svg` stored in the database.
+  if (url.startsWith('/images/')) return `${ORIGIN}${url}`
+  if (!url.startsWith('/')) return `${ORIGIN}/images/${url}`
+
+  // Anything else root relative (the bank slip) ships with the storefront.
+  return url
 }
