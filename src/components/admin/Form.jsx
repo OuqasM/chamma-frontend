@@ -20,7 +20,7 @@ function Help({ error, hint }) {
 export function Field({ label, error, hint, className = '', children }) {
   return (
     <label className={`block ${className}`}>
-      {label && <span className="text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</span>}
+      {label && <span className="font-semibold text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</span>}
       {children}
       <Help error={error} hint={hint} />
     </label>
@@ -70,7 +70,7 @@ export function Toggle({ label, checked, onChange, hint, disabled = false }) {
         className="mt-0.5 h-4 w-4 accent-gold"
       />
       <span>
-        <span className="block text-[15px] text-noir sm:text-sm">{label}</span>
+        <span className="block font-semibold text-[15px] text-noir sm:text-sm">{label}</span>
         {hint && <span className="mt-0.5 block text-[13px] text-stone-500 sm:text-xs">{hint}</span>}
       </span>
     </label>

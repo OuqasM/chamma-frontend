@@ -258,7 +258,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
             </span>
 
             <label className="flex items-center gap-2">
-              <span className="uppercase tracking-widest text-stone-400">Sort</span>
+              <span className="font-semibold uppercase tracking-widest text-stone-400">Sort</span>
               <select
                 value={params.get('sort') || 'featured'}
                 onChange={(e) => setParam('sort', e.target.value)}

@@ -141,7 +141,7 @@ export function OrderLookup() {
 
       <form onSubmit={submit} className="mt-8 space-y-4">
         <label className="block">
-          <span className="text-xs uppercase tracking-widest text-stone-400">{t('order', 'reference')}</span>
+          <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('order', 'reference')}</span>
           <input
             value={reference}
             onChange={(e) => setReference(e.target.value)}
@@ -151,7 +151,7 @@ export function OrderLookup() {
           />
         </label>
         <label className="block">
-          <span className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'phone')}</span>
+          <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'phone')}</span>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}

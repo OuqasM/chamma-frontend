@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { adminApi, imageUrl } from '../../lib/api'
 import { formatPrice } from '../../lib/format'
+import { prefillFromProduct } from '../../lib/productForm'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState, ErrorState, Spinner } from '../../components/Spinner'
@@ -23,6 +24,7 @@ export default function AdminProducts() {
   const { locale, t } = useApp()
   const { call } = useAdmin()
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
 
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -99,6 +101,21 @@ export default function AdminProducts() {
     } catch (e) {
       setError(e.message)
     }
+  }
+
+  /**
+   * Starts a copy of a product instead of creating one now, so the merchant
+   * adjusts the price or the photos before anything is written.
+   *
+   * The prefill travels in the navigation state rather than in the URL: it is
+   * a form's worth of text, it is never a link anyone shares or reloads, and
+   * putting it in a query string would risk a description landing in a
+   * referrer. Nothing is fetched and nothing is stored yet.
+   */
+  const duplicate = (product) => {
+    navigate(`/${locale}/admin/products/new`, {
+      state: { prefill: prefillFromProduct(product) },
+    })
   }
 
   const destroy = async (product) => {
@@ -231,6 +248,7 @@ export default function AdminProducts() {
                       <Link to={`/${locale}/admin/products/${p.id}`} className={buttonClass('ghost')}>
                         {t('admin', 'edit')}
                       </Link>
+                      <GhostButton onClick={() => duplicate(p)}>{t('admin', 'duplicate')}</GhostButton>
                       <GhostButton onClick={() => toggle(p)}>{p.is_active ? t('admin', 'inactive') : t('admin', 'active')}</GhostButton>
                       <ConfirmButton
                         label={t('admin', 'delete')}

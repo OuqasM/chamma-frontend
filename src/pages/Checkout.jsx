@@ -115,7 +115,7 @@ export default function Checkout() {
 
   const field = (key, label, props = {}) => (
     <label className="block">
-      <span className="text-xs uppercase tracking-widest text-stone-400">{label}</span>
+      <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{label}</span>
       <input
         value={form[key]}
         onChange={update(key)}
@@ -177,7 +177,7 @@ export default function Checkout() {
           {field('phone', t('checkout', 'phone'), { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: '0612345678' })}
 
           <label className="block">
-            <span className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'city')}</span>
+            <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'city')}</span>
             {optionsError ? (
               <p className="mt-1.5 border border-rose-300 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">
                 {t('checkout', 'cityError')}
@@ -208,7 +208,7 @@ export default function Checkout() {
           {field('address', t('checkout', 'address'), { autoComplete: 'street-address' })}
 
           <label className="block">
-            <span className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'notes')}</span>
+            <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'notes')}</span>
             <textarea
               value={form.notes}
               onChange={update('notes')}
@@ -218,7 +218,7 @@ export default function Checkout() {
           </label>
 
           <fieldset>
-            <legend className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'payment')}</legend>
+            <legend className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'payment')}</legend>
             <div className="mt-2 space-y-2">
               {methods.map((m) => (
                 <label

@@ -7,6 +7,7 @@ import { useAdmin } from '../../context/AdminContext'
 import { ErrorState, Spinner } from '../../components/Spinner'
 import { Select, TextInput, Toggle } from '../../components/admin/Form'
 import { dictionaries } from '../../lib/i18n'
+import { COPY_LOCALES, copyFromTranslations, emptyCopy } from '../../lib/productForm'
 import { Badge, Banner, GhostButton, PageHeader, Panel, PrimaryButton, buttonClass } from '../../components/admin/Ui'
 
 const GENDERS = ['women', 'men', 'unisex']
@@ -19,11 +20,6 @@ const MAX_IMAGES = 8
  * writes 0, which is the out-of-stock state everywhere.
  */
 const IN_STOCK = 100
-
-/** The languages copy can be written in; mirrors config('chamma.locales') in the API. */
-const COPY_LOCALES = ['fr', 'ar', 'en']
-
-const emptyCopy = () => Object.fromEntries(COPY_LOCALES.map((code) => [code, '']))
 
 const emptyForm = () => ({
   name: '',
@@ -127,17 +123,7 @@ export default function AdminProductEdit() {
         if (!alive) return
         const p = d.product
         // The copy is read per language, so each one can be edited or left
-        // blank independently. A missing row reads as empty rather than
-        // failing, which is what a product created before this change has.
-        const rows = p.translations || []
-        const copyFor = (field) => {
-          const out = emptyCopy()
-          rows.forEach((tr) => {
-            if (COPY_LOCALES.includes(tr.locale) && typeof tr[field] === 'string') out[tr.locale] = tr[field]
-          })
-          return out
-        }
-
+        // blank independently.
         setForm({
           name: p.name || '',
           brand_id: p.brand_id ?? '',
@@ -154,8 +140,8 @@ export default function AdminProductEdit() {
           available: Boolean(p.is_active) && Number(p.stock) > 0,
           gender: p.gender || '',
           is_new: Boolean(p.is_new),
-          short_descriptions: copyFor('short_description'),
-          descriptions: copyFor('description'),
+          short_descriptions: copyFromTranslations(p.translations, 'short_description'),
+          descriptions: copyFromTranslations(p.translations, 'description'),
         })
         setImages((p.images || []).map((img) => ({ id: img.id, path: img.path, url: img.url, is_primary: img.is_primary })))
         setError(null)
@@ -213,32 +199,6 @@ export default function AdminProductEdit() {
     } finally {
       setUploading(false)
     }
-  }
-
-  /**
-   * Opens the very same form on a blank record instead of creating one now, so
-   * the merchant adjusts the price or the photos before anything is written.
-   *
-   * `slug` is dropped because the API derives it from the name, and the photos
-   * are deliberately left behind: the image rows point at files this product
-   * owns, and handing the same paths to a second product would make removing a
-   * photo from either one delete it for both.
-   */
-  const duplicate = () => {
-    const { slug, ...carried } = form
-
-    navigate(`/${locale}/admin/products/new`, {
-      state: {
-        prefill: {
-          ...carried,
-          // Copied rather than shared: the description maps are nested, and a
-          // reference shared with the form being left behind would be edited
-          // in both places at once.
-          short_descriptions: { ...form.short_descriptions },
-          descriptions: { ...form.descriptions },
-        },
-      },
-    })
   }
 
   const removeImage = (index) => {
@@ -338,11 +298,6 @@ export default function AdminProductEdit() {
               <a href={`/${locale}/products/${form.slug}`} target="_blank" rel="noreferrer">
                 <GhostButton type="button">{t('admin', 'viewOnStore')}</GhostButton>
               </a>
-            )}
-            {!isNew && (
-              <GhostButton type="button" onClick={duplicate}>
-                {t('admin', 'duplicate')}
-              </GhostButton>
             )}
             <PrimaryButton type="submit" disabled={saving}>
               {saving ? t('admin', 'saving') : t('admin', 'save')}

@@ -87,7 +87,7 @@ export default function AdminOrderDetail() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-[11px] uppercase tracking-widest text-stone-400 sm:text-xs">{t('admin', 'order')}</p>
-          <h1 className="text-2xl font-light tracking-wide text-stone-900">{order.reference}</h1>
+          <h1 className="text-2xl tracking-wide text-stone-900">{order.reference}</h1>
         </div>
         <Link to={`/${locale}/admin/orders`} className={buttonClass('ghost')}>
           {t('admin', 'backToOrders')}
