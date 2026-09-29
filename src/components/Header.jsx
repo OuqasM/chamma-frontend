@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -75,68 +75,69 @@ function LocaleSwitcher() {
   )
 }
 
-function NavMenu({ label, items, active, to }) {
+/**
+ * A top-level nav entry that opens a full-width sheet under the header.
+ *
+ * The panel is portalled to <body> for two reasons: the header is a backdrop
+ * filter, and a filtered ancestor becomes the containing block for
+ * `position: fixed`, which would size the sheet to the header strip instead of
+ * the viewport. The nav is also a horizontal scroll container, which would clip
+ * an in-flow panel outright.
+ *
+ * Hover opens it, but on a short delay and with a matching grace period on the
+ * way out, so sweeping the cursor across the bar to reach a link does not flash
+ * every menu open in turn. Escape and a click outside both close it.
+ */
+function MegaMenu({ label, items, kind, active, to, onNavigate }) {
   const [open, setOpen] = useState(false)
-  const [style, setStyle] = useState(null)
+  const [top, setTop] = useState(0)
   const triggerRef = useRef(null)
-  const menuRef = useRef(null)
-  const refs = useRef([])
-  refs.current = [triggerRef, menuRef]
-  useDismiss(refs, open, setOpen)
-  const { mounted, shown } = useOverlayTransition(open, DROPDOWN_MS)
+  const panelRef = useRef(null)
+  const openTimer = useRef(null)
+  const closeTimer = useRef(null)
+  const { mounted, shown } = useOverlayTransition(open, MEGA_MS)
 
   useEffect(() => {
     setOpen(false)
   }, [to, items])
 
-  // The nav is a horizontal scroll container, so an in-flow dropdown would be
-  // clipped by it. Render into <body> and place it against the trigger instead.
-  // Placement follows `mounted` rather than `open`, so the box is still measured
-  // and anchored while it fades out.
-  useLayoutEffect(() => {
-    if (!mounted) {
-      setStyle(null)
-      return
+  useEffect(() => {
+    if (open) setTop(triggerRef.current?.getBoundingClientRect().bottom ?? 0)
+  }, [open, mounted])
+
+  // Nothing is clickable or focusable once the sheet is gone, and a hidden
+  // sheet must not sit over the page swallowing clicks.
+  useEffect(() => {
+    if (!mounted) return
+    panelRef.current?.setAttribute('data-shown', String(shown))
+  }, [mounted, shown])
+
+  useEffect(() => {
+    if (!open) return
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false)
     }
 
-    const place = () => {
-      const trigger = triggerRef.current
-      const menu = menuRef.current
-      if (!trigger || !menu) return
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
 
-      const r = trigger.getBoundingClientRect()
-      const h = menu.offsetHeight
-      const w = menu.offsetWidth
-      const gap = 8
-      const fitsBelow = window.innerHeight - r.bottom - gap >= h
-      const top = fitsBelow ? r.bottom + gap : Math.max(gap, r.top - gap - h)
-      const rtl = document.documentElement.dir === 'rtl'
-      // The trigger can sit at either end of the horizontally scrolling nav, so
-      // clamp the menu to stay fully on screen.
-      const clamp = (v) => Math.min(Math.max(gap, v), Math.max(gap, window.innerWidth - w - gap))
+  const clearTimers = () => {
+    clearTimeout(openTimer.current)
+    clearTimeout(closeTimer.current)
+  }
 
-      setStyle({
-        top,
-        minWidth: Math.max(r.width, 200),
-        ...(rtl ? { right: clamp(window.innerWidth - r.right) } : { left: clamp(r.left) }),
-        visibility: 'visible',
-      })
-    }
+  // Pointer only: a touch tap has no hover, so the trigger opens on click.
+  const show = () => {
+    clearTimers()
+    openTimer.current = setTimeout(() => setOpen(true), 90)
+  }
 
-    place()
-    // The menu is measured before its min-width is applied, so re-place once
-    // the final box is known.
-    const raf = requestAnimationFrame(place)
-    window.addEventListener('scroll', place, true)
-    window.addEventListener('resize', place)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('scroll', place, true)
-      window.removeEventListener('resize', place)
-    }
-  }, [mounted, items.length])
-
-  if (!items.length) return null
+  const hide = () => {
+    clearTimers()
+    closeTimer.current = setTimeout(() => setOpen(false), 160)
+  }
 
   return (
     <>
@@ -144,79 +145,131 @@ function NavMenu({ label, items, active, to }) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
+        onMouseEnter={show}
+        onMouseLeave={hide}
         aria-haspopup="true"
         aria-expanded={open}
-        className={`block whitespace-nowrap border-b pb-1 font-bold uppercase transition ${
-          active || open
-            ? 'border-gold text-gold'
-            : 'border-transparent text-stone-600 hover:border-stone-300 hover:text-noir'
+        className={`nav-link whitespace-nowrap py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
+          active ? 'is-current text-noir' : 'text-stone-500 hover:text-noir'
         }`}
       >
         {label}
-        <span aria-hidden="true" className="ms-1 text-[9px] align-middle">▾</span>
+        <span aria-hidden="true" className="ms-1.5 text-[8px] align-middle">▾</span>
       </button>
 
       {mounted &&
         createPortal(
-          <ul
-            ref={menuRef}
+          <div
+            ref={panelRef}
+            onMouseEnter={show}
+            onMouseLeave={hide}
             data-open={shown}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              visibility: 'hidden',
-              ...(style || {}),
-            }}
-            className="dropdown z-50 mt-0 min-w-[210px] border border-stone-200 bg-white py-1.5 text-[15px] font-bold normal-case shadow-lg"
+            style={{ position: 'fixed', top, left: 0, right: 0, pointerEvents: shown ? 'auto' : 'none' }}
+            className="mega z-30 hidden border-b border-stone-200 bg-ivory shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] xl:block"
           >
-            {items.map((it) => (
-              <li key={it.id}>
-                <Link
-                  to={it.to}
-                  onClick={() => setOpen(false)}
-                  className="block whitespace-nowrap px-3.5 py-2 text-[15px] font-bold normal-case text-noir transition hover:bg-ivory"
-                >
-                  <span>{it.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>,
-          document.body
+            <div className="mx-auto max-w-7xl px-8 py-10">
+              <div className="flex items-baseline gap-4">
+                <h2 className="font-serif text-2xl font-bold uppercase tracking-[0.18em] text-noir">{label}</h2>
+                <span aria-hidden="true" className="h-px flex-1 bg-stone-200" />
+              </div>
+
+              {kind === 'categories' ? (
+                <ul className="mt-7 grid grid-cols-3 gap-x-8 gap-y-7">
+                  {items.map((it) => (
+                    <li key={it.id}>
+                      <Link
+                        to={it.to}
+                        onClick={() => {
+                          setOpen(false)
+                          onNavigate?.()
+                        }}
+                        className="group block"
+                      >
+                        {it.image && (
+                          <span className="block aspect-[4/3] overflow-hidden bg-stone-100">
+                            <img
+                              src={it.image}
+                              alt=""
+                              loading="lazy"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                            />
+                          </span>
+                        )}
+                        <span className="mt-3 block font-serif text-lg font-bold text-noir transition group-hover:text-gold">
+                          {it.name}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="mt-7 grid grid-cols-3 gap-x-8 gap-y-6">
+                  {items.map((it) => (
+                    <li key={it.id}>
+                      <Link
+                        to={it.to}
+                        onClick={() => {
+                          setOpen(false)
+                          onNavigate?.()
+                        }}
+                        className="group block border-t border-stone-200 pt-3"
+                      >
+                        <span className="block font-serif text-lg font-bold text-noir transition group-hover:text-gold">
+                          {it.name}
+                        </span>
+                        {it.tagline && (
+                          <span className="mt-1 block text-xs leading-relaxed text-stone-500">{it.tagline}</span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>,
+          document.body,
         )}
     </>
   )
 }
 
-function HeaderMenus() {
+function HeaderMenus({ onNavigate }) {
   const { locale, t, nav } = useApp()
   const location = useLocation()
 
+  // The mega sheet is built from what the navigation endpoint already returns:
+  // category photographs and brand taglines. Nothing extra is fetched.
   const brandItems = (nav?.brands || []).map((b) => ({
     id: b.id,
     name: b.name,
+    tagline: b.tagline,
     to: `/${locale}/brands/${b.slug}`,
   }))
 
   const categoryItems = (nav?.categories || []).map((c) => ({
     id: c.id,
     name: c.name,
+    image: c.image?.url,
     to: `/${locale}/categories/${c.slug}`,
   }))
 
   return (
     <>
-      <NavMenu
-        label={t('nav', 'brands')}
-        items={brandItems}
-        to={location.pathname}
-        active={location.pathname.startsWith(`/${locale}/brands/`)}
-      />
-      <NavMenu
+      <MegaMenu
         label={t('nav', 'categories')}
         items={categoryItems}
+        kind="categories"
         to={location.pathname}
+        onNavigate={onNavigate}
         active={location.pathname.startsWith(`/${locale}/categories/`)}
+      />
+      <MegaMenu
+        label={t('nav', 'brands')}
+        items={brandItems}
+        kind="brands"
+        to={location.pathname}
+        onNavigate={onNavigate}
+        active={location.pathname.startsWith(`/${locale}/brands/`)}
       />
     </>
   )
@@ -239,7 +292,7 @@ function DrawerSection({ label, items }) {
         aria-expanded={open}
         className="group flex w-full items-center justify-between py-4 text-start"
       >
-        <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-noir">{label}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold">{label}</span>
         <span
           aria-hidden="true"
           className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] leading-none transition duration-300 ${
@@ -267,7 +320,7 @@ function DrawerSection({ label, items }) {
               <Link
                 to={it.to}
                 tabIndex={open ? undefined : -1}
-                className="block border-s-2 border-transparent py-2 ps-3 text-[15px] font-bold text-stone-600 transition hover:border-s-gold hover:text-noir"
+                className="nav-link block py-2 font-serif text-base font-semibold text-stone-600 transition hover:text-noir"
               >
                 {it.name}
               </Link>
@@ -281,6 +334,8 @@ function DrawerSection({ label, items }) {
 
 // Matches the `transition` duration of `.drawer` in index.css.
 const DRAWER_MS = 380
+// Matches the `transition` duration of `.mega` in index.css.
+const MEGA_MS = 260
 // Matches the `transition` duration of `.dropdown` in index.css.
 const DROPDOWN_MS = 180
 
@@ -373,16 +428,16 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         data-open={shown}
         className="drawer absolute inset-y-0 start-0 flex w-[min(21rem,86vw)] flex-col bg-ivory shadow-2xl"
       >
-        <div className="shrink-0 border-b border-stone-200 bg-ivory px-6 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
+        <div className="shrink-0 border-b border-stone-200 bg-ivory px-7 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 pt-1">
-              <span className="block font-serif text-xl font-bold uppercase leading-none tracking-[0.2em] text-noir">
+            {/* The same lockup as the header, so the drawer reads as the site
+                rather than a separate widget. */}
+            <Link to={`/${locale}`} onClick={onClose} className="group flex flex-col">
+              <span className="font-serif text-xl font-bold uppercase leading-none tracking-[0.3em] text-noir transition group-hover:text-gold">
                 Chamma
               </span>
-              <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.35em] text-gold">
-                {t('common', 'menu')}
-              </span>
-            </div>
+              <span aria-hidden="true" className="mt-1.5 block h-px w-full bg-gold/50" />
+            </Link>
 
             {/* The language list drops below the trigger, so it lives up here
                 rather than at the foot of the panel, where the scroll area would
@@ -400,12 +455,12 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-6">
             <SearchBar onNavigate={onClose} block />
           </div>
         </div>
 
-        <nav className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-6 pb-6">
+        <nav className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-7 pb-8">
           {links.map((l) => (
             <NavLink
               key={l.key}
@@ -414,16 +469,10 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
               onClick={onClose}
               className={({ isActive }) => {
                 const active = isActive && linkIsActive(l.key, isActive, isNewRoute)
+
                 return [
-                  'flex items-center border-b border-stone-200/80 py-4 text-[15px] font-bold tracking-wide transition',
-                  // `border-s-gold`, not `border-gold`: the bare colour utility
-                  // sets every side, which recoloured the divider underneath and
-                  // left the active row boxed in gold along the bottom too. The
-                  // side utility is logical, so the bar sits on the left in
-                  // French and the right in Arabic.
-                  active
-                    ? 'border-s-2 border-s-gold ps-3 text-noir'
-                    : 'border-s-2 border-s-transparent text-stone-600 hover:text-noir',
+                  'nav-link border-b border-stone-200/80 py-4 font-serif text-lg font-bold tracking-wide transition',
+                  active ? 'is-current text-noir' : 'text-stone-600 hover:text-noir',
                 ].join(' ')
               }}
             >
@@ -431,8 +480,8 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
             </NavLink>
           ))}
 
-          <DrawerSection label={t('nav', 'brands')} items={brandItems} />
           <DrawerSection label={t('nav', 'categories')} items={categoryItems} />
+          <DrawerSection label={t('nav', 'brands')} items={brandItems} />
         </nav>
 
         <div className="shrink-0 border-t border-stone-200 bg-ivory px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -518,6 +567,8 @@ export function Header() {
     { key: 'new', to: `/${locale}/products?is_new=1`, label: t('nav', 'new') },
   ]
 
+  // The drawer needs the same two taxonomies, without the imagery and taglines
+  // the mega sheet shows.
   const brandItems = (nav?.brands || []).map((b) => ({
     id: b.id,
     name: b.name,
@@ -539,35 +590,43 @@ export function Header() {
     return () => mq.removeEventListener('change', close)
   }, [])
 
-  const linkClass = (active) =>
-    `whitespace-nowrap pb-1 transition ${
-      active ? 'border-b border-gold text-gold' : 'text-stone-600 hover:text-noir'
-    }`
-
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-ivory/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center gap-x-5 gap-y-2 py-3 xl:gap-x-7">
-          <Link to={`/${locale}`} aria-label="Chamma Store" className="flex shrink-0 items-center">
-            <img
-              src="/chamma-store-logo.png"
-              alt="Chamma Store"
-              className="h-11 w-auto"
-              width="44"
-              height="44"
+      {/* A hairline tier carrying only the language switch. It earns its place
+          by lifting the language picker out of the main bar, where it was
+          competing with the cart for the same few pixels. */}
+      <div className="hidden border-b border-stone-200/70 xl:block">
+        <div className="mx-auto flex max-w-7xl justify-end px-8 py-1.5">
+          <LocaleSwitcher />
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 xl:px-8">
+        <div className="flex items-center gap-x-5 gap-y-2 py-4 xl:gap-x-9 xl:py-5">
+          <Link to={`/${locale}`} aria-label="Chamma Store" className="group flex shrink-0 flex-col">
+            <span className="font-serif text-xl font-bold uppercase leading-none tracking-[0.3em] text-noir transition group-hover:text-gold xl:text-2xl">
+              Chamma
+            </span>
+            <span
+              aria-hidden="true"
+              className="mt-1.5 block h-px w-full bg-gold/50"
             />
           </Link>
 
-          <nav
-            className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto text-xs uppercase tracking-widest xl:flex"
-            aria-label="Main"
-          >
+          <nav className="hidden min-w-0 flex-1 items-center gap-7 xl:flex" aria-label="Main">
             {links.map((l) => (
               <NavLink
                 key={l.key}
                 to={l.to}
                 end={l.end}
-                className={({ isActive }) => linkClass(linkIsActive(l.key, isActive, isNewRoute))}
+                className={({ isActive }) => {
+                  const current = linkIsActive(l.key, isActive, isNewRoute)
+
+                  return [
+                    'nav-link whitespace-nowrap py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition',
+                    current ? 'is-current text-noir' : 'text-stone-500 hover:text-noir',
+                  ].join(' ')
+                }}
               >
                 {l.label}
               </NavLink>
@@ -576,16 +635,16 @@ export function Header() {
             <HeaderMenus />
           </nav>
 
-          <div className="ms-auto flex shrink-0 items-center gap-4 xl:ms-0">
+          <div className="ms-auto flex shrink-0 items-center gap-5 xl:ms-0 xl:gap-6">
             <div className="hidden sm:block">
               <SearchBar />
             </div>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block xl:hidden">
               <LocaleSwitcher />
             </div>
             <Link
               to={`/${locale}/wishlist`}
-              className="relative hidden text-xs uppercase tracking-widest text-noir hover:text-gold sm:block"
+              className="relative hidden text-sm text-noir transition hover:text-gold sm:block"
               aria-label={t('common', 'wishlist')}
             >
               ♡
@@ -595,10 +654,11 @@ export function Header() {
             </Link>
             <Link
               to={`/${locale}/cart`}
-              className="relative text-xs uppercase tracking-widest text-noir hover:text-gold"
+              className="relative flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-noir transition hover:text-gold"
               aria-label={t('common', 'cart')}
             >
-              {t('common', 'cart')}
+              <span aria-hidden="true" className="text-sm">🛒</span>
+              <span className="hidden sm:inline">{t('common', 'cart')}</span>
               {cartCount > 0 && (
                 <span className="absolute -end-2.5 -top-2 rounded-full bg-gold px-1 text-[10px] text-white">
                   {cartCount}
@@ -611,7 +671,7 @@ export function Header() {
               onClick={() => setMenuOpen(true)}
               aria-label={t('common', 'menu')}
               aria-expanded={menuOpen}
-              className="-me-1 p-1 text-xl leading-none text-noir xl:hidden"
+              className="-me-1 p-1 text-xl leading-none text-noir transition hover:text-gold xl:hidden"
             >
               <span aria-hidden="true">☰</span>
             </button>

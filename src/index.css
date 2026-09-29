@@ -209,12 +209,52 @@
     transition-delay: calc(var(--i, 0) * 30ms);
   }
 
+  /* Header links carry a single cue for where you are: a hairline that grows
+     from the inline-start edge. Earlier passes tinted the whole row and boxed
+     it in gold, which read as a rendering fault rather than a choice. */
+  .nav-link {
+    @apply relative;
+  }
+
+  .nav-link::after {
+    @apply absolute inset-x-0 bottom-0 h-px bg-gold;
+    content: '';
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* scaleX(0) grows from the start edge, which is the right-hand side in
+     Arabic, so the origin has to follow the writing direction. */
+  [dir='rtl'] .nav-link::after {
+    transform-origin: right;
+  }
+
+  .nav-link:hover::after,
+  .nav-link.is-current::after {
+    transform: scaleX(1);
+  }
+
+  /* The mega panel: a full-width sheet under the header, so an open menu reads
+     as part of the page rather than a popover floating over it. */
+  .mega {
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 220ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mega[data-open='true'] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .drawer,
     .drawer-backdrop,
     .dropdown,
     .accordion,
-    .accordion-item {
+    .accordion-item,
+    .mega,
+    .nav-link::after {
       transition: none;
     }
   }
