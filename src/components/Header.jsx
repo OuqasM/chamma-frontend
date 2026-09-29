@@ -30,7 +30,7 @@ function LocaleSwitcher() {
   const refs = useRef([])
   refs.current = [ref]
   useDismiss(refs, open, setOpen)
-  const mounted = useExitTransition(open, DROPDOWN_MS)
+  const { mounted, shown } = useOverlayTransition(open, DROPDOWN_MS)
 
   return (
     <div className="relative" ref={ref}>
@@ -48,7 +48,7 @@ function LocaleSwitcher() {
       {mounted && (
         <ul
           role="listbox"
-          data-open={open}
+          data-open={shown}
           className="dropdown absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-white py-1 shadow-lg"
         >
           {LOCALES.map((code) => (
@@ -83,7 +83,7 @@ function NavMenu({ label, items, active, to }) {
   const refs = useRef([])
   refs.current = [triggerRef, menuRef]
   useDismiss(refs, open, setOpen)
-  const mounted = useExitTransition(open, DROPDOWN_MS)
+  const { mounted, shown } = useOverlayTransition(open, DROPDOWN_MS)
 
   useEffect(() => {
     setOpen(false)
@@ -135,19 +135,6 @@ function NavMenu({ label, items, active, to }) {
       window.removeEventListener('resize', place)
     }
   }, [mounted, items.length])
-
-  // The box is measured with the closed opacity still applied, so flipping to
-  // the open state has to wait a frame or there is nothing to transition from.
-  const [shown, setShown] = useState(false)
-
-  useEffect(() => {
-    if (!mounted) {
-      setShown(false)
-      return
-    }
-    const raf = requestAnimationFrame(() => setShown(open))
-    return () => cancelAnimationFrame(raf)
-  }, [mounted, open])
 
   if (!items.length) return null
 
@@ -263,7 +250,10 @@ function DrawerSection({ label, items }) {
         className={`accordion grid ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!open}
       >
-        <ul className="overflow-hidden space-y-2 pb-3 pe-2 text-sm normal-case text-stone-600">
+        {/* min-h-0 is what makes the collapse work: a grid item defaults to
+            min-height auto, so with a 0fr row it would refuse to shrink below
+            its content and the first link would stay poking out. */}
+        <ul className="min-h-0 overflow-hidden space-y-2 pb-3 pe-2 text-sm normal-case text-stone-600">
           {items.map((it) => (
             <li key={it.id}>
               <Link to={it.to} tabIndex={open ? undefined : -1} className="block py-0.5 hover:text-gold">
@@ -283,24 +273,41 @@ const DRAWER_MS = 300
 const DROPDOWN_MS = 180
 
 /**
- * Keeps a panel or menu mounted for the length of its exit transition.
- * Unmounting the instant `open` flips to false leaves no frame to animate,
- * which is why these menus used to snap in and out instead of easing.
+ * The two phases an animated panel or menu needs.
+ *
+ * `mounted` — keep the element in the document for the length of its exit
+ * transition. Unmounting the instant `open` flips to false leaves no frame to
+ * animate, which is why these menus used to snap in and out.
+ *
+ * `shown` — one frame behind `open` on the way in. An element that mounts
+ * already-open has its *final* computed style on the first paint, so the
+ * browser has nothing to transition from and it simply appears. Mounting it
+ * closed and flipping `shown` on the next frame gives the transition a
+ * starting position.
  */
-function useExitTransition(open, ms) {
+function useOverlayTransition(open, ms) {
   const [mounted, setMounted] = useState(open)
+  const [shown, setShown] = useState(false)
 
   useEffect(() => {
     if (open) {
       setMounted(true)
       return
     }
+    // Collapses straight away, then stays mounted long enough to slide out.
+    setShown(false)
     if (!mounted) return
     const timer = setTimeout(() => setMounted(false), ms)
     return () => clearTimeout(timer)
   }, [open, mounted, ms])
 
-  return mounted
+  useEffect(() => {
+    if (!open || !mounted) return
+    const raf = requestAnimationFrame(() => setShown(true))
+    return () => cancelAnimationFrame(raf)
+  }, [open, mounted])
+
+  return { mounted, shown }
 }
 
 function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRoute }) {
@@ -321,9 +328,10 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
     }
   }, [open])
 
-  // The panel stays mounted for the length of the exit transition, so it can
-  // finish sliding out instead of vanishing.
-  const mounted = useExitTransition(open, DRAWER_MS)
+  // The panel stays mounted for the length of the exit transition, and only
+  // reaches its open position a frame after mounting, so it slides in from the
+  // edge instead of appearing.
+  const { mounted, shown } = useOverlayTransition(open, DRAWER_MS)
 
   useEffect(() => {
     onClose()
@@ -341,7 +349,7 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         type="button"
         aria-label={t('common', 'close')}
         onClick={onClose}
-        style={{ opacity: open ? 1 : 0 }}
+        style={{ opacity: shown ? 1 : 0 }}
         className="drawer-backdrop absolute inset-0 bg-noir/40"
       />
 
@@ -350,7 +358,7 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         role="dialog"
         aria-modal="true"
         aria-label={t('common', 'menu')}
-        data-open={open}
+        data-open={shown}
         className="drawer absolute inset-y-0 start-0 flex w-[min(20rem,85vw)] flex-col overflow-y-auto bg-ivory shadow-xl"
       >
         <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
