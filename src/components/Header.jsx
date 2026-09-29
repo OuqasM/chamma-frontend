@@ -30,6 +30,7 @@ function LocaleSwitcher() {
   const refs = useRef([])
   refs.current = [ref]
   useDismiss(refs, open, setOpen)
+  const mounted = useExitTransition(open, DROPDOWN_MS)
 
   return (
     <div className="relative" ref={ref}>
@@ -44,10 +45,11 @@ function LocaleSwitcher() {
         <span aria-hidden="true" className="text-[10px]">▾</span>
       </button>
 
-      {open && (
+      {mounted && (
         <ul
           role="listbox"
-          className="absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-white py-1 shadow-lg"
+          data-open={open}
+          className="dropdown absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-white py-1 shadow-lg"
         >
           {LOCALES.map((code) => (
             <li key={code}>
@@ -81,6 +83,7 @@ function NavMenu({ label, items, active, to }) {
   const refs = useRef([])
   refs.current = [triggerRef, menuRef]
   useDismiss(refs, open, setOpen)
+  const mounted = useExitTransition(open, DROPDOWN_MS)
 
   useEffect(() => {
     setOpen(false)
@@ -88,8 +91,10 @@ function NavMenu({ label, items, active, to }) {
 
   // The nav is a horizontal scroll container, so an in-flow dropdown would be
   // clipped by it. Render into <body> and place it against the trigger instead.
+  // Placement follows `mounted` rather than `open`, so the box is still measured
+  // and anchored while it fades out.
   useLayoutEffect(() => {
-    if (!open) {
+    if (!mounted) {
       setStyle(null)
       return
     }
@@ -129,7 +134,20 @@ function NavMenu({ label, items, active, to }) {
       window.removeEventListener('scroll', place, true)
       window.removeEventListener('resize', place)
     }
-  }, [open, items.length])
+  }, [mounted, items.length])
+
+  // The box is measured with the closed opacity still applied, so flipping to
+  // the open state has to wait a frame or there is nothing to transition from.
+  const [shown, setShown] = useState(false)
+
+  useEffect(() => {
+    if (!mounted) {
+      setShown(false)
+      return
+    }
+    const raf = requestAnimationFrame(() => setShown(open))
+    return () => cancelAnimationFrame(raf)
+  }, [mounted, open])
 
   if (!items.length) return null
 
@@ -151,10 +169,11 @@ function NavMenu({ label, items, active, to }) {
         <span aria-hidden="true" className="ms-1 text-[9px] align-middle">▾</span>
       </button>
 
-      {open &&
+      {mounted &&
         createPortal(
           <ul
             ref={menuRef}
+            data-open={shown}
             style={{
               position: 'fixed',
               top: 0,
@@ -162,7 +181,7 @@ function NavMenu({ label, items, active, to }) {
               visibility: 'hidden',
               ...(style || {}),
             }}
-            className="z-50 mt-0 min-w-[200px] border border-stone-200 bg-white py-1 text-xs font-normal normal-case shadow-lg"
+            className="dropdown z-50 mt-0 min-w-[200px] border border-stone-200 bg-white py-1 text-xs font-normal normal-case shadow-lg"
           >
             {items.map((it) => (
               <li key={it.id}>
@@ -239,19 +258,49 @@ function DrawerSection({ label, items }) {
         </span>
       </button>
 
-      {open && (
-        <ul className="space-y-2 pb-3 pe-2 text-sm normal-case text-stone-600">
+      {/* Animating the row height keeps the links below it from jumping. */}
+      <div
+        className={`accordion grid ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+        aria-hidden={!open}
+      >
+        <ul className="overflow-hidden space-y-2 pb-3 pe-2 text-sm normal-case text-stone-600">
           {items.map((it) => (
             <li key={it.id}>
-              <Link to={it.to} className="block py-0.5 hover:text-gold">
+              <Link to={it.to} tabIndex={open ? undefined : -1} className="block py-0.5 hover:text-gold">
                 {it.name}
               </Link>
             </li>
           ))}
         </ul>
-      )}
+      </div>
     </div>
   )
+}
+
+// Matches the `transition` duration of `.drawer` in index.css.
+const DRAWER_MS = 300
+// Matches the `transition` duration of `.dropdown` in index.css.
+const DROPDOWN_MS = 180
+
+/**
+ * Keeps a panel or menu mounted for the length of its exit transition.
+ * Unmounting the instant `open` flips to false leaves no frame to animate,
+ * which is why these menus used to snap in and out instead of easing.
+ */
+function useExitTransition(open, ms) {
+  const [mounted, setMounted] = useState(open)
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true)
+      return
+    }
+    if (!mounted) return
+    const timer = setTimeout(() => setMounted(false), ms)
+    return () => clearTimeout(timer)
+  }, [open, mounted, ms])
+
+  return mounted
 }
 
 function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRoute }) {
@@ -272,12 +321,16 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
     }
   }, [open])
 
+  // The panel stays mounted for the length of the exit transition, so it can
+  // finish sliding out instead of vanishing.
+  const mounted = useExitTransition(open, DRAWER_MS)
+
   useEffect(() => {
     onClose()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname])
 
-  if (!open) return null
+  if (!mounted) return null
 
   // Portalled to <body>: the header carries `backdrop-blur`, and a filtered
   // ancestor becomes the containing block for `position: fixed`, which would
@@ -288,7 +341,8 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         type="button"
         aria-label={t('common', 'close')}
         onClick={onClose}
-        className="absolute inset-0 bg-noir/40"
+        style={{ opacity: open ? 1 : 0 }}
+        className="drawer-backdrop absolute inset-0 bg-noir/40"
       />
 
       <div
@@ -296,7 +350,8 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         role="dialog"
         aria-modal="true"
         aria-label={t('common', 'menu')}
-        className="absolute inset-y-0 start-0 flex w-[min(20rem,85vw)] flex-col overflow-y-auto bg-ivory shadow-xl"
+        data-open={open}
+        className="drawer absolute inset-y-0 start-0 flex w-[min(20rem,85vw)] flex-col overflow-y-auto bg-ivory shadow-xl"
       >
         <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
           <span className="text-xs uppercase tracking-[0.3em] text-noir">{t('common', 'menu')}</span>
@@ -441,10 +496,10 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-ivory/95 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center gap-x-5 gap-y-2 py-3 xl:gap-x-7">
-          <Link to={`/${locale}`} aria-label="Chamma Perfumes" className="flex shrink-0 items-center">
+          <Link to={`/${locale}`} aria-label="Chamma Store" className="flex shrink-0 items-center">
             <img
               src="/chamma-store-logo.png"
-              alt="Chamma Perfumes"
+              alt="Chamma Store"
               className="h-11 w-auto"
               width="44"
               height="44"

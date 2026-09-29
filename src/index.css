@@ -138,4 +138,59 @@
   .rich-text-sm > * + * {
     margin-top: 0.5rem;
   }
+
+  /* The mobile drawer slides in from the inline-start edge instead of popping.
+     Tailwind's translate-x-* is physical, so a single direction-aware variable
+     is what keeps the panel coming from the correct side in Arabic as well as
+     French — `start-0` already places it on the right when the page is RTL.
+
+     Keep this duration in step with DRAWER_MS in components/Header.jsx: the
+     panel is kept mounted for exactly that long so it can finish sliding out. */
+  .drawer {
+    --drawer-hidden: -100%;
+    transform: translateX(var(--drawer-hidden));
+    transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  [dir='rtl'] .drawer {
+    --drawer-hidden: 100%;
+  }
+
+  .drawer[data-open='true'] {
+    transform: translateX(0);
+  }
+
+  .drawer-backdrop {
+    transition: opacity 300ms ease;
+  }
+
+  /* Navbar dropdowns: a short fade with a few pixels of travel, so they read as
+     dropping out of the trigger rather than blinking. These are popups rather
+     than panels pinned to an edge, so a physical translateY reads the same in
+     both writing directions. */
+  .dropdown {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .dropdown[data-open='true'] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* The sidebar accordion pushes the rows below it down, so it animates height
+     rather than fading. */
+  .accordion {
+    transition: grid-template-rows 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drawer,
+    .drawer-backdrop,
+    .dropdown,
+    .accordion {
+      transition: none;
+    }
+  }
 }
