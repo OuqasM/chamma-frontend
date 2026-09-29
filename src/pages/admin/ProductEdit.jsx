@@ -88,7 +88,10 @@ export default function AdminProductEdit() {
   // honestly blank form rather than silently re-filling from a stale entry.
   const prefill = state?.prefill
 
-  const [form, setForm] = useState(() => (prefill ? { ...emptyForm(), ...prefill } : emptyForm))
+  // The lazy form has to be *called*: handing `useState` the function itself
+  // stores the function as the state value, and every `form.x` below then reads
+  // off a function and the page renders blank.
+  const [form, setForm] = useState(() => (prefill ? { ...emptyForm(), ...prefill } : emptyForm()))
   const [images, setImages] = useState([])
   const [removed, setRemoved] = useState([])
   const [taxonomies, setTaxonomies] = useState({ brands: [], categories: [] })
