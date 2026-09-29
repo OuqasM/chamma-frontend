@@ -146,7 +146,7 @@ function NavMenu({ label, items, active, to }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
-        className={`block whitespace-nowrap border-b pb-1 uppercase transition ${
+        className={`block whitespace-nowrap border-b pb-1 font-bold uppercase transition ${
           active || open
             ? 'border-gold text-gold'
             : 'border-transparent text-stone-600 hover:border-stone-300 hover:text-noir'
@@ -168,14 +168,14 @@ function NavMenu({ label, items, active, to }) {
               visibility: 'hidden',
               ...(style || {}),
             }}
-            className="dropdown z-50 mt-0 min-w-[200px] border border-stone-200 bg-white py-1 text-xs font-normal normal-case shadow-lg"
+            className="dropdown z-50 mt-0 min-w-[210px] border border-stone-200 bg-white py-1.5 text-[15px] font-bold normal-case shadow-lg"
           >
             {items.map((it) => (
               <li key={it.id}>
                 <Link
                   to={it.to}
                   onClick={() => setOpen(false)}
-                  className="block whitespace-nowrap px-3 py-2 text-xs normal-case text-noir transition hover:bg-ivory"
+                  className="block whitespace-nowrap px-3.5 py-2 text-[15px] font-bold normal-case text-noir transition hover:bg-ivory"
                 >
                   <span>{it.name}</span>
                 </Link>
@@ -267,7 +267,7 @@ function DrawerSection({ label, items }) {
               <Link
                 to={it.to}
                 tabIndex={open ? undefined : -1}
-                className="block border-s-2 border-transparent py-2 ps-3 text-sm font-semibold text-stone-600 transition hover:border-gold hover:text-noir"
+                className="block border-s-2 border-transparent py-2 ps-3 text-[15px] font-bold text-stone-600 transition hover:border-s-gold hover:text-noir"
               >
                 {it.name}
               </Link>
@@ -416,9 +416,14 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
                 const active = isActive && linkIsActive(l.key, isActive, isNewRoute)
                 return [
                   'flex items-center border-b border-stone-200/80 py-4 text-[15px] font-bold tracking-wide transition',
+                  // `border-s-gold`, not `border-gold`: the bare colour utility
+                  // sets every side, which recoloured the divider underneath and
+                  // left the active row boxed in gold along the bottom too. The
+                  // side utility is logical, so the bar sits on the left in
+                  // French and the right in Arabic.
                   active
-                    ? 'border-s-2 border-gold ps-3 text-noir'
-                    : 'border-s-2 border-transparent text-stone-600 hover:text-noir',
+                    ? 'border-s-2 border-s-gold ps-3 text-noir'
+                    : 'border-s-2 border-s-transparent text-stone-600 hover:text-noir',
                 ].join(' ')
               }}
             >
