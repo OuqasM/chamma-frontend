@@ -9,40 +9,30 @@ import { Select, TextInput, Toggle } from '../../components/admin/Form'
 import { Badge, Banner, GhostButton, PageHeader, Panel, PrimaryButton, buttonClass } from '../../components/admin/Ui'
 
 const GENDERS = ['women', 'men', 'unisex']
-const SHAPES = ['flacon', 'jar', 'mist', 'tube', 'dropper', 'carton']
-const TONES = ['blush', 'rose', 'amber', 'espresso', 'ivory', 'plum', 'jade', 'noir']
-// The values must match the API's allow-list; the dictionary keys for a few of
-// them carry a `Tone` suffix, so they cannot be looked up by value directly.
-const TONE_LABEL_KEYS = {
-  blush: 'blush',
-  rose: 'roseTone',
-  amber: 'amber',
-  espresso: 'espresso',
-  ivory: 'ivoryTone',
-  plum: 'plumTone',
-  jade: 'jadeTone',
-  noir: 'noirTone',
-}
 const MAX_IMAGES = 8
+
+/**
+ * The merchant never enters a stock count: one switch says whether the product
+ * is buyable. "Available" parks the unit count well clear of the low-stock
+ * threshold (<= 3) so the storefront only ever shows "En stock"; "not available"
+ * writes 0, which is the out-of-stock state everywhere.
+ */
+const IN_STOCK = 100
 
 const emptyForm = () => ({
   name: '',
   brand_id: '',
   category_id: '',
-  sku: '',
+  // Server-owned: the URL follows the name. Kept only to build the "view on
+  // store" link, refreshed from the response after every save.
   slug: '',
   price: '',
   cost_price: '',
-  stock: '',
-  size: '',
+  available: true,
   gender: '',
-  is_active: true,
-  is_featured: false,
   is_new: false,
   short_description: '',
   description: '',
-  meta_title: '',
-  meta_description: '',
 })
 
 const numberOrNull = (value) => (value === '' || value === null ? null : Number(value))
@@ -89,7 +79,6 @@ export default function AdminProductEdit() {
   const [images, setImages] = useState([])
   const [removed, setRemoved] = useState([])
   const [taxonomies, setTaxonomies] = useState({ brands: [], categories: [] })
-  const [artwork, setArtwork] = useState({ shape: 'flacon', tone: 'amber' })
   const [uploading, setUploading] = useState(false)
 
   const [loading, setLoading] = useState(!isNew)
@@ -132,7 +121,6 @@ export default function AdminProductEdit() {
           name: p.name || '',
           brand_id: p.brand_id ?? '',
           category_id: p.category_id ?? '',
-          sku: p.sku || '',
           slug: p.slug || '',
           // Form edits the full price; when discounted that is the struck
           // original, not the discounted amount the customer is charged.
@@ -140,16 +128,13 @@ export default function AdminProductEdit() {
           cost_price: p.cost_price ?? '',
           // UI-only: never sent as-is, converted to compare_at_price on submit.
           discount: p.discount_percent ?? '',
-          stock: p.stock ?? '',
-          size: p.size || '',
+          // One switch covers both halves of "can a shopper buy this": the
+          // product has to be published and to have units on hand.
+          available: Boolean(p.is_active) && Number(p.stock) > 0,
           gender: p.gender || '',
-          is_active: Boolean(p.is_active),
-          is_featured: Boolean(p.is_featured),
           is_new: Boolean(p.is_new),
           short_description: english.short_description || '',
           description: english.description || '',
-          meta_title: english.meta_title || '',
-          meta_description: english.meta_description || '',
         })
         setImages((p.images || []).map((img) => ({ id: img.id, path: img.path, url: img.url, is_primary: img.is_primary })))
         setError(null)
@@ -206,18 +191,6 @@ export default function AdminProductEdit() {
     }
   }
 
-  const generateArtwork = async () => {
-    setUploading(true)
-    setError(null)
-    try {
-      await addImage(await call(() => adminApi.artwork(locale, artwork)))
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setUploading(false)
-    }
-  }
-
   const removeImage = (index) => {
     setImages((list) => {
       const target = list[index]
@@ -239,21 +212,17 @@ export default function AdminProductEdit() {
       name: form.name,
       brand_id: form.brand_id === '' ? null : Number(form.brand_id),
       category_id: form.category_id === '' ? null : Number(form.category_id),
-      sku: form.sku,
-      slug: textOrNull(form.slug),
       price: pricing.final,
       cost_price: numberOrNull(form.cost_price),
       compare_at_price: pricing.original,
-      stock: form.stock,
-      size: textOrNull(form.size),
+      // The availability switch is the only stock input, so it drives both the
+      // published flag and the unit count.
+      is_active: form.available,
+      stock: form.available ? IN_STOCK : 0,
       gender: textOrNull(form.gender),
-      is_active: form.is_active,
-      is_featured: form.is_featured,
       is_new: form.is_new,
       short_description: textOrNull(form.short_description),
       description: form.description,
-      meta_title: textOrNull(form.meta_title),
-      meta_description: textOrNull(form.meta_description),
       images: images.map((img) => img.path),
       remove_images: removed,
     }
@@ -265,8 +234,14 @@ export default function AdminProductEdit() {
       } else {
         await call(() => adminApi.updateProduct(locale, id, body))
         // Re-read so server-normalised values (slug uniquifying, defaults) show.
+        // Availability is re-read too: an order placed while this page was open
+        // has already decremented the stock behind the toggle.
         const fresh = await call(() => adminApi.product(locale, id))
-        setForm((f) => ({ ...f, slug: fresh.product.slug }))
+        setForm((f) => ({
+          ...f,
+          slug: fresh.product.slug,
+          available: Boolean(fresh.product.is_active) && Number(fresh.product.stock) > 0,
+        }))
         setError(null)
       }
     } catch (err) {
@@ -306,13 +281,12 @@ export default function AdminProductEdit() {
     <form onSubmit={submit} className="space-y-6">
       <PageHeader
         title={isNew ? t('admin', 'new') : form.name || form.slug || t('admin', 'products')}
-        subtitle={isNew ? undefined : form.sku}
         actions={
           <>
             <Link to={`/${locale}/admin/products`} className={buttonClass('ghost')}>
               {t('admin', 'backToList')}
             </Link>
-            {!isNew && (
+            {!isNew && form.slug && (
               <a href={`/${locale}/products/${form.slug}`} target="_blank" rel="noreferrer">
                 <GhostButton type="button">{t('admin', 'viewOnStore')}</GhostButton>
               </a>
@@ -338,8 +312,6 @@ export default function AdminProductEdit() {
                 error={errors.name?.[0]}
                 hint={t('admin', 'nameOnceHint')}
               />
-              <TextInput label={t('admin', 'sku')} value={form.sku} onChange={setField('sku')} required error={errors.sku?.[0]} />
-              <TextInput label={t('admin', 'slug')} value={form.slug} onChange={setField('slug')} error={errors.slug?.[0]} />
               <TextInput label={t('admin', 'price')} type="number" step="0.01" min="0" value={form.price} onChange={setField('price')} required error={errors.price?.[0]} />
               <TextInput
                 label={t('admin', 'discount')}
@@ -362,8 +334,6 @@ export default function AdminProductEdit() {
                 error={errors.cost_price?.[0]}
                 hint={t('admin', 'costPriceHint')}
               />
-              <TextInput label={t('admin', 'stock')} type="number" min="0" value={form.stock} onChange={setField('stock')} required error={errors.stock?.[0]} />
-              <TextInput label={t('admin', 'size')} value={form.size} onChange={setField('size')} error={errors.size?.[0]} />
               <Select
                 label={t('admin', 'gender')}
                 value={form.gender}
@@ -389,9 +359,13 @@ export default function AdminProductEdit() {
               />
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <Toggle label={t('admin', 'active')} checked={form.is_active} onChange={setFlag('is_active')} />
-              <Toggle label={t('admin', 'featured')} checked={form.is_featured} onChange={setFlag('is_featured')} />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Toggle
+                label={t('admin', 'available')}
+                hint={t('admin', 'availableHint')}
+                checked={form.available}
+                onChange={setFlag('available')}
+              />
               <Toggle label={t('admin', 'isNew')} checked={form.is_new} onChange={setFlag('is_new')} />
             </div>
           </Panel>
@@ -412,10 +386,6 @@ export default function AdminProductEdit() {
               onChange={setCopy('description')}
               error={copyError('description')}
             />
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <TextInput label={t('admin', 'metaTitle')} value={form.meta_title} onChange={setCopy('meta_title')} error={copyError('meta_title')} />
-              <TextInput label={t('admin', 'metaDescription')} value={form.meta_description} onChange={setCopy('meta_description')} error={copyError('meta_description')} />
-            </div>
           </Panel>
         </div>
 
@@ -459,25 +429,6 @@ export default function AdminProductEdit() {
                   className="w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-white file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
                 />
               </label>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Select
-                  label={t('admin', 'shape')}
-                  value={artwork.shape}
-                  onChange={(e) => setArtwork((a) => ({ ...a, shape: e.target.value }))}
-                  options={SHAPES.map((s) => ({ value: s, label: t('admin', s) }))}
-                />
-                <Select
-                  label={t('admin', 'tone')}
-                  value={artwork.tone}
-                  onChange={(e) => setArtwork((a) => ({ ...a, tone: e.target.value }))}
-                  options={TONES.map((s) => ({ value: s, label: t('admin', TONE_LABEL_KEYS[s]) }))}
-                />
-              </div>
-              <GhostButton type="button" onClick={generateArtwork} disabled={uploading || images.length >= MAX_IMAGES} className="w-full">
-                {t('admin', 'generate')}
-              </GhostButton>
-              <p className="text-xs text-stone-500">{t('admin', 'artworkHint')}</p>
             </div>
           </Panel>
         </div>
