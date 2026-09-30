@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { api } from '../lib/api'
 import { useApp } from '../context/AppContext'
 
@@ -14,8 +14,13 @@ import { useApp } from '../context/AppContext'
  * returning customer (duplicate) gets the same calm message as a new one — the
  * "already on the list" text is not a failure, it is the same outcome.
  */
-export default function WaitlistForm({ product }) {
+export default function WaitlistForm({ product, compact = false }) {
   const { locale, t } = useApp()
+  // Generated rather than a fixed string: a product page shows this form, and a
+  // related product's card dialog can open over the top of it. Two elements with
+  // id="waitlist-phone" means the second form's <label for> points at the first
+  // form's input, so typing in the dialog labels and types into the page's box.
+  const fieldId = useId()
   const [phone, setPhone] = useState('')
   const [state, setState] = useState('idle') // idle | sending | success | duplicate | error
   const [error, setError] = useState('')
@@ -42,9 +47,11 @@ export default function WaitlistForm({ product }) {
 
   const disabled = state === 'sending' || state === 'success' || state === 'duplicate'
 
+  // The dialog supplies its own heading, so `compact` drops this component's own
+  // title and intro rather than saying the same thing twice in one small box.
   if (state === 'success') {
     return (
-      <div className="mt-6 rounded-md border border-jade/20 bg-jade/5 p-4 text-sm text-jade">
+      <div className={`rounded-md border border-jade/20 bg-jade/5 p-4 text-sm text-jade ${compact ? '' : 'mt-6'}`}>
         {t('product', 'waitlistDone')}
       </div>
     )
@@ -52,22 +59,22 @@ export default function WaitlistForm({ product }) {
 
   if (state === 'duplicate') {
     return (
-      <div className="mt-6 rounded-md border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+      <div className={`rounded-md border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600 ${compact ? '' : 'mt-6'}`}>
         {t('product', 'waitlistAgain')}
       </div>
     )
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 space-y-3 border-t border-stone-200 pt-6">
-      <h2 className="font-serif text-lg text-noir">{t('product', 'waitlistTitle')}</h2>
-      <p className="text-sm text-stone-600">{t('product', 'waitlistIntro')}</p>
+    <form onSubmit={submit} className={compact ? 'space-y-3' : 'mt-6 space-y-3 border-t border-stone-200 pt-6'}>
+      {!compact && <h2 className="font-serif text-lg text-noir">{t('product', 'waitlistTitle')}</h2>}
+      {!compact && <p className="text-sm text-stone-600">{t('product', 'waitlistIntro')}</p>}
 
-      <label htmlFor="waitlist-phone" className="sr-only">
+      <label htmlFor={fieldId} className="sr-only">
         {t('product', 'waitlistPhone')}
       </label>
       <input
-        id="waitlist-phone"
+        id={fieldId}
         type="tel"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
@@ -91,6 +98,9 @@ export default function WaitlistForm({ product }) {
         {state === 'sending' ? t('product', 'waitlistSending') : t('product', 'waitlistCta')}
       </button>
 
+      {/* Kept in the compact form too. A number field that does not say what the
+          number is for is how a shop ends up on a list it never agreed to, and a
+          dialog is a consent surface exactly as much as the product page is. */}
       <p className="text-xs text-stone-500">{t('product', 'waitlistConsent')}</p>
     </form>
   )

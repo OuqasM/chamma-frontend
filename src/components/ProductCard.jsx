@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { imageUrl, productHref } from '../lib/api'
 import { Price } from './Price'
 import AddToCartButton from './AddToCartButton'
+import WaitlistDialog from './WaitlistDialog'
 
 export function ProductCard({ product, showAdd = true }) {
   const { locale, t, toggleWishlist, inWishlist } = useApp()
+  const [asking, setAsking] = useState(false)
   const image = imageUrl(product.image?.url)
   const href = productHref(product.url, locale)
   const soldOut = !product.in_stock
@@ -102,7 +105,29 @@ export function ProductCard({ product, showAdd = true }) {
             activeClassName="border-gold text-gold hover:bg-gold hover:text-white"
           />
         )}
+
+        {/* A sold-out card used to end in nothing at all, where the add-to-cart
+            button sits on every card beside it. The button keeps the card's
+            footed look and its same slot, so a grid row does not step down
+            under the out-of-stock ones, and a shopper who wants a perfume that
+            is unavailable can say so from the listing rather than only after
+            clicking through to it.
+
+            Ghost styling rather than solid: an unavailable product is not
+            something to push, and the sold-out band on the photo already says
+            so. A filled button here would shout louder than the photograph. */}
+        {showAdd && soldOut && (
+          <button
+            type="button"
+            onClick={() => setAsking(true)}
+            className="mt-3 w-full border border-stone-300 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500 transition hover:border-gold hover:text-gold"
+          >
+            {t('product', 'waitlistCta')}
+          </button>
+        )}
       </div>
+
+      {asking && <WaitlistDialog product={product} onClose={() => setAsking(false)} />}
     </article>
   )
 }
