@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { imageUrl, productHref } from '../lib/api'
 import { Price } from './Price'
+import AddToCartButton from './AddToCartButton'
 
 export function ProductCard({ product, showAdd = true }) {
-  const { locale, t, addToCart, toggleWishlist, inWishlist } = useApp()
+  const { locale, t, toggleWishlist, inWishlist } = useApp()
   const image = imageUrl(product.image?.url)
   const href = productHref(product.url, locale)
   const soldOut = !product.in_stock
@@ -95,13 +96,11 @@ export function ProductCard({ product, showAdd = true }) {
         <Price product={product} className="mt-auto pt-3 text-sm font-medium" />
 
         {showAdd && !soldOut && (
-          <button
-            type="button"
-            onClick={() => addToCart(product)}
+          <AddToCartButton
+            product={product}
             className="mt-3 w-full border border-noir/20 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-noir transition hover:border-gold hover:bg-gold hover:text-white"
-          >
-            {t('common', 'addToCart')}
-          </button>
+            activeClassName="border-jade bg-jade text-white hover:border-jade hover:bg-noir"
+          />
         )}
       </div>
     </article>

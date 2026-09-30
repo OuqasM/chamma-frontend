@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import AddToCartButton from '../components/AddToCartButton'
 import { imageUrl } from '../lib/api'
 import { Price } from '../components/Price'
 import { EmptyState } from '../components/Spinner'
 
 export default function Wishlist() {
-  const { locale, t, wishlist, toggleWishlist, addToCart } = useApp()
+  const { locale, t, wishlist, toggleWishlist } = useApp()
 
   if (wishlist.length === 0) {
     return (
@@ -42,12 +43,11 @@ export default function Wishlist() {
             </h3>
             <Price product={item} className="mt-1 block text-sm" />
             <div className="mt-2 flex gap-2">
-              <button
-                onClick={() => addToCart({ ...item, stock: 20 })}
-                className="flex-1 border border-noir/20 py-1.5 text-xs uppercase tracking-widest hover:border-gold hover:bg-gold hover:text-white"
-              >
-                {t('common', 'addToCart')}
-              </button>
+              <AddToCartButton
+                product={item}
+                className="flex-1 border border-noir/20 py-1.5 text-center text-xs uppercase tracking-widest hover:border-gold hover:bg-gold hover:text-white"
+                activeClassName="border-jade bg-jade text-white hover:border-jade hover:bg-gold"
+              />
               <button
                 onClick={() => toggleWishlist(item)}
                 className="border border-stone-200 px-3 text-xs text-stone-400 hover:border-rose-300 hover:text-rose-600"

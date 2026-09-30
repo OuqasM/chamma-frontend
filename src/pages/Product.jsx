@@ -5,11 +5,12 @@ import { useApp } from '../context/AppContext'
 import { Price } from '../components/Price'
 import { ProductGrid } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
+import AddToCartButton from '../components/AddToCartButton'
 import { Spinner, ErrorState } from '../components/Spinner'
 
 export default function Product() {
   const { slug } = useParams()
-  const { locale, t, addToCart, toggleWishlist, inWishlist } = useApp()
+  const { locale, t, toggleWishlist, inWishlist } = useApp()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -177,12 +178,14 @@ export default function Product() {
                 </button>
               </div>
 
-              <button
-                onClick={() => addToCart(p, quantity)}
-                className="flex-1 bg-noir px-6 py-3 text-xs uppercase tracking-widest text-white transition hover:bg-gold"
-              >
-                {t('common', 'addToCart')}
-              </button>
+              {/* Same button, then a link to the cart in the same place — the
+                  shopper's next move after adding is the cart itself. */}
+              <AddToCartButton
+                product={p}
+                quantity={quantity}
+                className="flex-1 bg-noir px-6 py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-gold"
+                activeClassName="bg-jade hover:bg-gold"
+              />
 
               <button
                 onClick={() => toggleWishlist(p)}
