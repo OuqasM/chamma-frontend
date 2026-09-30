@@ -58,10 +58,18 @@ export function OrderConfirmation() {
       </dl>
 
       {instructions && (
-        <section className="mx-auto mt-8 max-w-sm border border-stone-200 bg-ivory p-5 text-start">
-          <h2 className="font-serif text-lg text-noir">{t('checkout', 'bank_transfer')}</h2>
+        // The third step of the transfer flow on the checkout page, now
+        // unlocked. The order exists, the reference is real, and the link
+        // carries it — so what arrives on WhatsApp is something the store can
+        // match to a row in its own orders list.
+        <section className="mx-auto mt-10 max-w-sm overflow-hidden border border-jade/40 bg-ivory text-start">
+          <header className="border-b border-jade/25 bg-jade/10 px-5 py-3">
+            <p className="text-xs uppercase tracking-widest text-jade">{t('checkout', 'transferBadge')}</p>
+            <h2 className="mt-1 font-serif text-lg text-noir">{t('checkout', 'bank_transfer')}</h2>
+          </header>
 
-          <dl className="mt-3 space-y-1 text-xs">
+          <div className="p-5">
+          <dl className="space-y-1 text-xs">
             {instructions.holder && (
               <div className="flex justify-between gap-3">
                 <dt className="text-stone-500">{t('checkout', 'bankHolder')}</dt>
@@ -94,11 +102,12 @@ export function OrderConfirmation() {
             href={instructions.whatsapp_url}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 block bg-jade py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-noir"
+            className="mt-4 flex items-center justify-center gap-2 bg-jade py-3.5 text-center text-xs uppercase tracking-widest text-white transition hover:bg-noir"
           >
             {t('checkout', 'sendReceipt')}
           </a>
           <p className="mt-2 text-[11px] leading-relaxed text-stone-400">{instructions.message}</p>
+          </div>
         </section>
       )}
 

@@ -21,6 +21,51 @@ const emptyForm = {
   payment_method: '',
 }
 
+/**
+ * The numbered circle beside each step of the bank transfer flow.
+ *
+ * `done` and `locked` are the two states that carry meaning: a checkmark for
+ * something already in hand, a padlock for the step that is not available yet.
+ * Without them the list reads as three equal instructions, which is what it is
+ * not — step 2 is the only thing to press.
+ */
+function StepMarker({ done = false, locked = false }) {
+  if (done) {
+    return (
+      <span
+        aria-hidden="true"
+        className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-jade text-white"
+      >
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3.5 w-3.5">
+          <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+    )
+  }
+
+  if (locked) {
+    return (
+      <span
+        aria-hidden="true"
+        className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-dashed border-stone-300 text-stone-400"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
+          <path d="M10 2a4 4 0 00-4 4v2H5a1 1 0 00-1 1v8a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8z" />
+        </svg>
+      </span>
+    )
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gold bg-gold/15 font-mono text-xs text-gold"
+    >
+      2
+    </span>
+  )
+}
+
 export default function Checkout() {
   const { locale, t, cart, cartSubtotal, clearCart } = useApp()
   const navigate = useNavigate()
@@ -150,31 +195,6 @@ export default function Checkout() {
   const hasBankDetails = Boolean(bank.iban || bank.rib || bank.bank || bank.holder)
   const canSubmit = cities.length > 0 && methods.length > 0 && Boolean(form.payment_method)
 
-  // Bank transfer leaves the store without a receipt, so the customer sends the
-  // order straight to WhatsApp: the number is the store's, the text is theirs.
-  const whatsappNumber = (options?.payment?.whatsapp || '').replace(/\D/g, '')
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        [
-          t('checkout', 'whatsappIntro'),
-          '',
-          ...[
-            ['name', form.name],
-            ['phone', form.phone],
-            ['city', form.city],
-            ['address', form.notes ? `${form.address} — ${form.notes}` : form.address],
-          ]
-            .filter(([, v]) => v)
-            .map(([k, v]) => `${t('checkout', k)} : ${v}`),
-          '',
-          `${t('checkout', 'whatsappItems')} :`,
-          ...cart.map((l) => `${l.quantity} × ${l.name} — ${formatPrice(l.price * l.quantity, locale)}`),
-          '',
-          `${t('cart', 'total')} : ${quote ? formatPrice(quote.total, locale) : formatPrice(cartSubtotal, locale)}`,
-        ].join('\n'),
-      )}`
-    : null
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="font-serif text-3xl text-noir">{t('checkout', 'title')}</h1>
@@ -264,46 +284,86 @@ export default function Checkout() {
           </fieldset>
 
           {isTransfer && hasBankDetails && (
-            <dl className="space-y-1 border border-stone-200 bg-ivory p-4 text-sm">
-              <p className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'bankDetails')}</p>
-              {bank.holder && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-stone-500">{t('checkout', 'bankHolder')}</dt>
-                  <dd className="text-end">{bank.holder}</dd>
-                </div>
-              )}
-              {bank.bank && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-stone-500">{t('checkout', 'bankName')}</dt>
-                  <dd className="text-end">{bank.bank}</dd>
-                </div>
-              )}
-              {bank.rib && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-stone-500">RIB</dt>
-                  <dd className="text-end font-mono">{bank.rib}</dd>
-                </div>
-              )}
-              {bank.iban && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-stone-500">IBAN</dt>
-                  <dd className="text-end break-all font-mono">{bank.iban}</dd>
-                </div>
-              )}
-            </dl>
-          )}
+            // Three steps rather than a form with a WhatsApp escape hatch on
+            // it. Handing out the WhatsApp link before the order exists meant
+            // the shop had a conversation about an order it could not see: no
+            // reference, no stock committed, nothing to reconcile against.
+            // The order comes first, the receipt link second.
+            <section className="overflow-hidden border border-gold/40 bg-ivory">
+              <header className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-3">
+                <span className="font-serif text-base text-noir">{t('checkout', 'transferTitle')}</span>
+                <span className="ms-auto text-[11px] uppercase tracking-widest text-stone-500">
+                  {t('checkout', 'transferBadge')}
+                </span>
+              </header>
 
-          {isTransfer && <BankSlipImage image={bank.image} />}
+              <ol className="divide-y divide-stone-200">
+                {/* 1 — the details. Already in hand, nothing to do. */}
+                <li className="flex gap-4 p-4">
+                  <StepMarker done />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-noir">{t('checkout', 'stepDetails')}</p>
+                    <dl className="mt-2 space-y-1 text-sm">
+                      {bank.holder && (
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-stone-500">{t('checkout', 'bankHolder')}</dt>
+                          <dd className="text-end">{bank.holder}</dd>
+                        </div>
+                      )}
+                      {bank.bank && (
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-stone-500">{t('checkout', 'bankName')}</dt>
+                          <dd className="text-end">{bank.bank}</dd>
+                        </div>
+                      )}
+                      {bank.rib && (
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-stone-500">RIB</dt>
+                          <dd className="text-end font-mono">{bank.rib}</dd>
+                        </div>
+                      )}
+                      {bank.iban && (
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-stone-500">IBAN</dt>
+                          <dd className="text-end break-all font-mono">{bank.iban}</dd>
+                        </div>
+                      )}
+                    </dl>
 
-          {isTransfer && whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 bg-jade py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-noir"
-            >
-              {t('checkout', 'whatsappOrder')}
-            </a>
+                    <BankSlipImage image={bank.image} />
+                  </div>
+                </li>
+
+                {/* 2 — place the order. The CTA lives here, not in the summary,
+                    so the button that commits sits next to the bank details
+                    that made it necessary. */}
+                <li className="flex gap-4 bg-white/60 p-4">
+                  <StepMarker />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-noir">{t('checkout', 'stepConfirm')}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-stone-500">{t('checkout', 'stepConfirmHint')}</p>
+
+                    <button
+                      type="submit"
+                      form="checkout-form"
+                      disabled={placing || !canSubmit}
+                      className="mt-3 flex w-full items-center justify-center gap-2 bg-noir px-4 py-3.5 text-xs uppercase tracking-widest text-white transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {placing ? t('common', 'loading') : t('checkout', 'placeOrderCta')}
+                    </button>
+                  </div>
+                </li>
+
+                {/* 3 — locked until the order exists. */}
+                <li className="flex gap-4 p-4">
+                  <StepMarker locked />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-stone-400">{t('checkout', 'stepWhatsapp')}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-stone-400">{t('checkout', 'stepWhatsappHint')}</p>
+                  </div>
+                </li>
+              </ol>
+            </section>
           )}
         </form>
 
