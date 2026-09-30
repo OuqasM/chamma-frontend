@@ -161,7 +161,7 @@ export default function Home() {
           <Carousel
             items={brandTiles}
             ariaLabel={t('home', 'shopByBrand')}
-            autoplay={6000}
+            autoplay={2500}
             perViewClass="[--pv:1] sm:[--pv:2] lg:[--pv:3]"
             renderItem={(b) => <BrandCard brand={b} discoverLabel={t('home', 'discover')} />}
           />

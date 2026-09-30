@@ -11,6 +11,10 @@ import { createRoot } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Tells React 18 it is under test control, so act() is not a no-op and state
+// updates are flushed deterministically instead of warning.
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
 const joinWaitlist = vi.fn(() => Promise.resolve({ waitlist: { created: true } }))
 
 vi.mock('../context/AppContext', () => ({
