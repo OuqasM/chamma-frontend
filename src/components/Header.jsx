@@ -307,20 +307,25 @@ function DrawerSection({ label, items }) {
   if (!items.length) return null
 
   return (
-    <div className="border-t border-stone-200/80">
+    /* The trigger is a nav row like every other one in the panel, so it carries
+       the same rule, padding and type. It previously led with a 10px gold
+       micro-cap, which read as a red annotation rather than as a destination. */
+    <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="group flex w-full items-center justify-between py-4 text-start"
+        className="nav-link group flex w-full items-center justify-between border-b border-stone-200/80 py-4 text-start"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold">{label}</span>
+        <span className="font-serif text-lg font-bold tracking-wide text-stone-600 transition group-hover:text-noir">
+          {label}
+        </span>
         <span
           aria-hidden="true"
           className={`flex h-6 w-6 items-center justify-center rounded-full border text-[9px] leading-none transition duration-300 ${
             open
-              ? 'rotate-180 border-gold bg-gold text-white'
-              : 'border-stone-300 text-stone-500 group-hover:border-gold group-hover:text-gold'
+              ? 'rotate-180 border-stone-400 text-noir'
+              : 'border-stone-300 text-stone-500 group-hover:border-stone-400 group-hover:text-noir'
           }`}
         >
           ▾
@@ -336,7 +341,7 @@ function DrawerSection({ label, items }) {
         className={`accordion grid ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!open}
       >
-        <ul className="min-h-0 overflow-hidden pb-4 pe-1">
+        <ul className="min-h-0 overflow-hidden pb-4 pe-1 ps-4">
           {items.map((it, i) => (
             <li key={it.id} className="accordion-item" style={{ '--i': i }}>
               <Link
