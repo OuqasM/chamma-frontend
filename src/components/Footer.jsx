@@ -20,10 +20,13 @@ export function Footer() {
     { to: `/${locale}/products?is_new=1`, label: t('nav', 'new') },
   ]
 
+  // Order lookup is deliberately absent here. The page still exists at
+  // /{locale}/order, so a customer with a saved confirmation link can reach it;
+  // it is just not advertised. Most orders arrive by WhatsApp rather than by
+  // the customer coming back to check, so promoting it is noise.
   const account = [
     { to: `/${locale}/wishlist`, label: t('common', 'wishlist') },
     { to: `/${locale}/cart`, label: t('common', 'cart') },
-    { to: `/${locale}/order`, label: t('order', 'lookup') },
   ]
 
   // Same two taxonomies the header's mega sheet is built from, so the footer
@@ -72,10 +75,10 @@ export function Footer() {
             </span>
           </Link>
 
-          {/* Only the madeIn credit and the follow row live here. The postal
-              address was removed: it is the one piece of contact data that says
-              nothing actionable, and the "Made in Morocco" line already sits in
-              the same place in the brand tier. */}
+          {/* Only the follow row lives here. Both the postal address and the
+              "Made in Morocco" credit were removed: the address is the one piece
+              of contact data that says nothing actionable, and the country of
+              manufacture is not something the store should be asserting. */}
           <div className="flex flex-col gap-6 sm:items-end sm:text-end">
             {/* Only the three networks the store actually uses, and only when the
                 API has a value for them: an unset env var must not leave a dead
@@ -120,8 +123,6 @@ export function Footer() {
                 </ul>
               </div>
             )}
-
-            <p className="text-sm leading-relaxed text-stone-500">{t('footer', 'madeIn')}</p>
           </div>
         </div>
 
