@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  // Tests are excluded from the scan. They are full of English prose, and a
+  // word like "invisible" in a comment is enough for Tailwind to emit a rule no
+  // component uses — dead CSS in the bundle that would otherwise go unnoticed.
+  content: ['./index.html', './src/**/*.{js,jsx}', '!./src/**/*.test.{js,jsx}'],
   theme: {
     extend: {
       colors: {

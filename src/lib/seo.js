@@ -82,6 +82,25 @@ export const ensureLink = (rel, attrs) => {
 }
 
 /**
+ * One link per rel, updated in place rather than matched on its own attributes.
+ *
+ * ensureLink finds a tag by every attribute it is given, which is fine for the
+ * hreflang set because those are removed and rebuilt each time, and wrong for
+ * anything whose href changes: matching on `href` means the second page fails
+ * to find the first page's tag and appends a second one. A document with two
+ * canonicals is treated as conflicting, and the one left over names a product
+ * the visitor is no longer on.
+ */
+const upsertLink = (rel, attrs) => {
+  const el = document.head.querySelector(`link[rel="${rel}"]:not([hreflang])`)
+    ?? document.createElement('link')
+  el.setAttribute('rel', rel)
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v)
+  if (!el.parentNode) document.head.appendChild(el)
+  return el
+}
+
+/**
  * Writes canonical and hreflang.
  *
  * The canonical is what stops the three locales competing: without it, /fr/,
@@ -93,7 +112,11 @@ export const ensureLink = (rel, attrs) => {
  * brand with no language preference should land on.
  */
 export function setCanonical({ canonical, alternates = {}, defaultLocale = 'fr' }) {
-  if (canonical) setLink('canonical', canonical)
+  // upsertLink, not setLink: setLink only rewrites a tag that already exists
+  // and returns silently otherwise, and no canonical ships in index.html, so
+  // the three locales of one product competed exactly as the comment below
+  // says they should not.
+  if (canonical) upsertLink('canonical', { href: canonical })
 
   // hreflang links are keyed by language, so they are matched and replaced as
   // a set rather than one by one: a page with fewer locales than the last one
