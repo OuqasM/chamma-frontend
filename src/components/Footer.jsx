@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { socialUrl } from '../lib/api'
+import { SOCIAL_ICONS } from './SocialIcons'
 
 /**
  * The footer speaks the same language as the header rather than inventing a
@@ -34,7 +35,9 @@ export function Footer() {
   // returns an empty string for it. The list stays explicit rather than mapping
   // over whatever the payload happens to contain, so a network added to
   // `StoreContactService` does not silently appear in the footer unreviewed.
-  // Platform names are proper nouns and are deliberately not translated.
+  // Platform names are proper nouns and are deliberately not translated. They
+  // are the accessible name of each icon link, not visible text — the glyph
+  // alone is the visible part, so these never reach the page as lettering.
   const socials = [
     { network: 'whatsapp', label: 'WhatsApp' },
     { network: 'instagram', label: 'Instagram' },
@@ -69,36 +72,53 @@ export function Footer() {
             </span>
           </Link>
 
-          {/* The address sits above the social row on wide screens and below it
-              on narrow ones. Neither is given a heading: they are one cluster of
-              ways to reach the store, and four ruled columns plus a fifth headed
-              one would tip the grid back into busyness. */}
+          {/* Only the madeIn credit and the follow row live here. The postal
+              address was removed: it is the one piece of contact data that says
+              nothing actionable, and the "Made in Morocco" line already sits in
+              the same place in the brand tier. */}
           <div className="flex flex-col gap-6 sm:items-end sm:text-end">
-            {contact?.address && (
-              <p className="max-w-sm text-sm leading-relaxed text-stone-500">{contact.address}</p>
-            )}
-
-            {/* Only the three networks the store actually uses, and only when
-                the API has a value for them: an unset env var must not leave a
-                dead link to a bare host. `socialUrl` also strips the tracking
+            {/* Only the three networks the store actually uses, and only when the
+                API has a value for them: an unset env var must not leave a dead
+                link to a bare host. `socialUrl` also strips the tracking
                 parameters that come with a handle pasted out of a QR code. */}
             {socials.length > 0 && (
-              <nav aria-label={t('footer', 'follow')}>
-                <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <div>
+                {/* The heading sits outside the <nav> so the landmark is named
+                    "Instagram TikTok" rather than repeating the label, and the
+                    wording reads as an invitation rather than a column title. */}
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+                  {t('footer', 'followUsOn')}
+                </p>
+                <ul className="mt-4 flex items-center gap-3">
                   {socials.map((s) => (
                     <li key={s.network}>
                       <a
                         href={s.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="nav-link inline-block text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500 transition hover:text-noir"
+                        aria-label={s.label}
+                        className="group flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition hover:border-gold hover:text-gold"
                       >
-                        {s.label}
+                        {/* Decorative: the link's own aria-label is the
+                            accessible name, so the glyph is hidden from the
+                            accessibility tree to avoid "Instagram, graphic". */}
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-[18px] w-[18px]"
+                          aria-hidden="true"
+                        >
+                          {SOCIAL_ICONS[s.network]}
+                        </svg>
                       </a>
                     </li>
                   ))}
                 </ul>
-              </nav>
+              </div>
             )}
 
             <p className="text-sm leading-relaxed text-stone-500">{t('footer', 'madeIn')}</p>
