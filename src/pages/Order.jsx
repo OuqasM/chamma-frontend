@@ -58,55 +58,68 @@ export function OrderConfirmation() {
       </dl>
 
       {instructions && (
-        // The third step of the transfer flow on the checkout page, now
-        // unlocked. The order exists, the reference is real, and the link
-        // carries it — so what arrives on WhatsApp is something the store can
-        // match to a row in its own orders list.
-        <section className="mx-auto mt-10 max-w-sm overflow-hidden border border-jade/40 bg-ivory text-start">
-          <header className="border-b border-jade/25 bg-jade/10 px-5 py-3">
-            <p className="text-xs uppercase tracking-widest text-jade">{t('checkout', 'transferBadge')}</p>
-            <h2 className="mt-1 font-serif text-lg text-noir">{t('checkout', 'bank_transfer')}</h2>
+        // Step 3 of the checkout's three-step panel, now unlocked — and drawn
+        // to match step 2 exactly, so the button the customer pressed becomes
+        // the button they are offered. Same slot, same full-width block, same
+        // weight. A different-looking panel here read as a second, separate
+        // thing to do rather than the step they had just reached.
+        <section className="mx-auto mt-10 max-w-sm overflow-hidden border border-gold/40 bg-ivory text-start">
+          <header className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-3">
+            <span className="font-serif text-base text-noir">{t('checkout', 'transferTitle')}</span>
+            <span className="ms-auto text-[11px] uppercase tracking-widest text-jade">{t('checkout', 'stepDone')}</span>
           </header>
 
-          <div className="p-5">
-          <dl className="space-y-1 text-xs">
-            {instructions.holder && (
-              <div className="flex justify-between gap-3">
-                <dt className="text-stone-500">{t('checkout', 'bankHolder')}</dt>
-                <dd className="text-end">{instructions.holder}</dd>
-              </div>
-            )}
-            {instructions.bank && (
-              <div className="flex justify-between gap-3">
-                <dt className="text-stone-500">{t('checkout', 'bankName')}</dt>
-                <dd className="text-end">{instructions.bank}</dd>
-              </div>
-            )}
-            {instructions.rib && (
-              <div className="flex justify-between gap-3">
-                <dt className="text-stone-500">RIB</dt>
-                <dd className="text-end font-mono">{instructions.rib}</dd>
-              </div>
-            )}
-            {instructions.iban && (
-              <div className="flex justify-between gap-3">
-                <dt className="text-stone-500">IBAN</dt>
-                <dd className="text-end break-all font-mono">{instructions.iban}</dd>
-              </div>
-            )}
-          </dl>
+          <div className="bg-white/60 p-4">
+            <p className="text-sm font-semibold text-noir">{t('checkout', 'stepWhatsapp')}</p>
+            <p className="mt-1 text-xs leading-relaxed text-stone-500">{t('checkout', 'stepWhatsappReady')}</p>
 
-          <BankSlipImage image={instructions.image} />
+            <a
+              href={instructions.whatsapp_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex w-full items-center justify-center gap-2 bg-jade px-4 py-3.5 text-xs uppercase tracking-widest text-white transition hover:bg-noir"
+            >
+              {t('checkout', 'sendReceipt')}
+            </a>
+            <p className="mt-2 text-[11px] leading-relaxed text-stone-400">{instructions.message}</p>
 
-          <a
-            href={instructions.whatsapp_url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 flex items-center justify-center gap-2 bg-jade py-3.5 text-center text-xs uppercase tracking-widest text-white transition hover:bg-noir"
-          >
-            {t('checkout', 'sendReceipt')}
-          </a>
-          <p className="mt-2 text-[11px] leading-relaxed text-stone-400">{instructions.message}</p>
+            {/* The details were already on the checkout page, so they are here
+                for the customer who reloads this page and needs the RIB again,
+                not as the first thing in their face once the order is in. */}
+            <details className="mt-4 border-t border-stone-200 pt-3 text-start">
+              <summary className="cursor-pointer text-xs uppercase tracking-widest text-stone-500 hover:text-noir">
+                {t('checkout', 'bankDetails')}
+              </summary>
+
+              <dl className="mt-3 space-y-1 text-xs">
+                {instructions.holder && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-stone-500">{t('checkout', 'bankHolder')}</dt>
+                    <dd className="text-end">{instructions.holder}</dd>
+                  </div>
+                )}
+                {instructions.bank && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-stone-500">{t('checkout', 'bankName')}</dt>
+                    <dd className="text-end">{instructions.bank}</dd>
+                  </div>
+                )}
+                {instructions.rib && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-stone-500">RIB</dt>
+                    <dd className="text-end font-mono">{instructions.rib}</dd>
+                  </div>
+                )}
+                {instructions.iban && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-stone-500">IBAN</dt>
+                    <dd className="text-end break-all font-mono">{instructions.iban}</dd>
+                  </div>
+                )}
+              </dl>
+
+              <BankSlipImage image={instructions.image} />
+            </details>
           </div>
         </section>
       )}
