@@ -106,26 +106,39 @@ describe('ProductCard sold-out', () => {
     expect(dialog.getAttribute('aria-label')).toBe('Oud Impérial')
   })
 
-  it('submits the number and shows the confirmation', async () => {
+  it('submits the name and the number, and shows the confirmation', async () => {
     await renderCard()
     const notify = [...container.querySelectorAll('button')].find(
       (b) => b.textContent.trim() === 'waitlistCta',
     )
     await act(async () => notify.click())
 
-    const input = document.body.querySelector('[role="dialog"] input')
-    await act(async () => {
+    // Selected by type rather than position: the form has a name field and a
+    // phone field, and a test that fills `querySelector('input')` would quietly
+    // start typing the customer's name into the telephone box.
+    const dialog = () => document.body.querySelector('[role="dialog"]')
+
+    const fill = async (selector, value) => {
+      const field = dialog().querySelector(selector)
       const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
-      setter.call(input, '0612345678')
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+      await act(async () => {
+        setter.call(field, value)
+        field.dispatchEvent(new Event('input', { bubbles: true }))
+      })
+    }
+
+    await fill('input[type="text"]', 'Amina Benali')
+    await fill('input[type="tel"]', '0612345678')
 
     await act(async () => {
-      document.body.querySelector('[role="dialog"] form').requestSubmit()
+      dialog().querySelector('form').requestSubmit()
     })
 
-    expect(joinWaitlist).toHaveBeenCalledWith('fr', 'oud', { phone: '0612345678' })
-    expect(document.body.querySelector('[role="dialog"]').textContent).toContain('waitlistDone')
+    expect(joinWaitlist).toHaveBeenCalledWith('fr', 'oud', {
+      name: 'Amina Benali',
+      phone: '0612345678',
+    })
+    expect(dialog().textContent).toContain('waitlistDone')
   })
 
   it('closes on Escape', async () => {

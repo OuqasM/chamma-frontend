@@ -40,7 +40,7 @@ export default function AdminWaitlist() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [manual, setManual] = useState({ product_id: '', phone: '' })
+  const [manual, setManual] = useState({ product_id: '', name: '', phone: '' })
 
   useEffect(() => {
     let alive = true
@@ -119,11 +119,11 @@ export default function AdminWaitlist() {
 
   const addManual = async (e) => {
     e.preventDefault()
-    if (!manual.product_id || !manual.phone) return
+    if (!manual.product_id || !manual.name.trim() || !manual.phone) return
     setError(null)
     try {
       await call((signal) => adminApi.addToWaitlist(locale, manual))
-      setManual({ product_id: '', phone: '' })
+      setManual({ product_id: '', name: '', phone: '' })
       refresh()
     } catch (err) {
       setError(err.message)
@@ -210,6 +210,7 @@ export default function AdminWaitlist() {
         ) : (
           <Table
             head={[
+              t('admin', 'name'),
               t('admin', 'phone'),
               t('admin', 'product'),
               t('admin', 'waitlistSince'),
@@ -220,7 +221,11 @@ export default function AdminWaitlist() {
             {entries.map((entry) => (
               <tr key={entry.id} className="transition hover:bg-stone-50">
                 <Td>
-                  <span className="font-mono text-sm text-stone-800" dir="ltr">
+                  {/* Name first: it is what the owner says when the phone
+                      answers, and reading it off the row is the whole point of
+                      collecting it. */}
+                  <span className="text-sm font-medium text-stone-900">{entry.name}</span>
+                  <span className="block font-mono text-sm text-stone-700" dir="ltr">
                     {entry.phone}
                   </span>
                 </Td>
@@ -267,9 +272,9 @@ export default function AdminWaitlist() {
 
       <Pagination meta={meta} onPage={(page) => setFilters((f) => ({ ...f, page }))} />
 
-      {/* A number taken over the phone, or written down in the shop. It goes
-          through the same API as the online form, so the same person entered
-          both ways stays one row. */}
+      {/* Somebody who called, or who stood at the counter. Goes through the same
+          API as the online form, so the same person entered both ways stays one
+          row rather than being called twice. */}
       <Panel title={t('admin', 'waitlistAddTitle')}>
         <form onSubmit={addManual} className="flex flex-wrap items-end gap-3">
           <div className="w-64">
@@ -286,7 +291,15 @@ export default function AdminWaitlist() {
               ))}
             </Select>
           </div>
-          <div className="w-56">
+          <div className="w-48">
+            <TextInput
+              label={t('admin', 'name')}
+              value={manual.name}
+              onChange={(e) => setManual({ ...manual, name: e.target.value })}
+              placeholder="Amina Benali"
+            />
+          </div>
+          <div className="w-48">
             <TextInput
               label={t('admin', 'phone')}
               value={manual.phone}
@@ -296,7 +309,7 @@ export default function AdminWaitlist() {
           </div>
           <PrimaryButton
             type="submit"
-            disabled={!manual.product_id || !manual.phone}
+            disabled={!manual.product_id || !manual.name.trim() || !manual.phone}
           >
             {t('admin', 'waitlistAdd')}
           </PrimaryButton>

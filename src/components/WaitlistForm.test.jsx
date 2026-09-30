@@ -26,11 +26,12 @@ const inputIds = (markup) => [...markup.matchAll(/<input[^>]*\sid="([^"]+)"/g)].
 const labelTargets = (markup) => [...markup.matchAll(/<label[^>]*\sfor="([^"]+)"/g)].map((m) => m[1])
 
 describe('WaitlistForm', () => {
-  it('gives each rendered form its own input id', () => {
+  it('gives each rendered form its own input ids', () => {
     // This is the regression. A fixed id meant a card dialog opened over a
     // product page shipped two elements with the same id, so the dialog's label
     // pointed at the page's input and typing in the dialog filled in the form
-    // behind it.
+    // behind it. Two fields per form makes it four ids to keep apart, which is
+    // exactly the case a single shared id would get wrong twice.
     const product = { id: 1, slug: 'oud' }
     const markup = renderToStaticMarkup(
       <div>
@@ -40,8 +41,8 @@ describe('WaitlistForm', () => {
     )
 
     const ids = inputIds(markup)
-    expect(ids).toHaveLength(2)
-    expect(new Set(ids).size).toBe(2)
+    expect(ids).toHaveLength(4)
+    expect(new Set(ids).size).toBe(4)
   })
 
   it('points every label at an input that exists in the same tree', () => {
@@ -57,7 +58,22 @@ describe('WaitlistForm', () => {
     for (const target of labelTargets(markup)) {
       expect(ids).toContain(target)
     }
-    expect(labelTargets(markup)).toHaveLength(2)
+    // Two labels per form: the name and the phone.
+    expect(labelTargets(markup)).toHaveLength(4)
+  })
+
+  it('asks for a name as well as a number', () => {
+    // The name is required, so the browser enforces it without a round trip and
+    // the customer is told up front why the store wants it.
+    const markup = renderToStaticMarkup(<WaitlistForm product={{ id: 1, slug: 'oud' }} />)
+
+    expect(markup).toContain('waitlistNameHint')
+    expect(markup).toContain('waitlistPhoneHint')
+    // Both inputs carry `required`; the static markup spells the attribute bare.
+    expect(markup.match(/required/g)).toHaveLength(2)
+    // Name autocomplete, so a returning customer is not retyping what the
+    // browser already knows.
+    expect(markup).toContain('autoComplete="name"')
   })
 
   it('keeps the title and intro on the product page', () => {

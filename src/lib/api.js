@@ -158,8 +158,11 @@ export const adminApi = {
   updateCategory: (l, id, body) => admin(l, `/admin/categories/${id}`, { method: 'PUT', body }),
   deleteCategory: (l, id) => admin(l, `/admin/categories/${id}`, { method: 'DELETE' }),
 
-  // Orders.
+  // Orders. `createOrder` records one the owner took over the phone or at the
+  // counter. It is the same endpoint the storefront uses internally, so a typed
+  // order is an order in every later read — there is no second kind to remember.
   orders: (l, params, opts) => admin(l, '/admin/orders', { ...opts, params }),
+  createOrder: (l, body, opts) => admin(l, '/admin/orders', { ...opts, method: 'POST', body }),
   // Visitor tracking. Read-only — the backend writes these rows from the
   // storefront middleware, so there is no create/update/delete here.
   visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),
