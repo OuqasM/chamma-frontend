@@ -223,8 +223,15 @@ export default function AdminWaitlist() {
                 <Td>
                   {/* Name first: it is what the owner says when the phone
                       answers, and reading it off the row is the whole point of
-                      collecting it. */}
-                  <span className="text-sm font-medium text-stone-900">{entry.name}</span>
+                      collecting it.
+
+                      A dash, not a blank, for the entries that predate the name
+                      column being added: an empty cell reads as a rendering bug
+                      and sends the owner looking for one, whereas a dash says
+                      plainly that this row simply has no name yet. */}
+                  <span className="text-sm font-medium text-stone-900">
+                    {entry.name || <span className="text-stone-400">—</span>}
+                  </span>
                   <span className="block font-mono text-sm text-stone-700" dir="ltr">
                     {entry.phone}
                   </span>
