@@ -107,6 +107,13 @@ export const api = {
   quote: (l, body) => request(`/${l}/checkout/quote`, { method: 'POST', body }),
   checkout: (l, body) => request(`/${l}/checkout`, { method: 'POST', body }),
   order: (l, reference, phone) => request(`/${l}/orders/${encodeURIComponent(reference)}`, { params: { phone } }),
+
+  // Back-in-stock waiting list. A phone number and nothing else: the store can
+  // only call, so there is nothing to send an email or a name to. The locale
+  // travels in the path because it decides the language the store replies in,
+  // and the API resolves it there rather than from a body field.
+  joinWaitlist: (l, slug, body) =>
+    request(`/${l}/products/${encodeURIComponent(slug)}/waitlist`, { method: 'POST', body }),
 }
 
 /**
@@ -156,6 +163,12 @@ export const adminApi = {
   // Visitor tracking. Read-only — the backend writes these rows from the
   // storefront middleware, so there is no create/update/delete here.
   visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),
+
+  // Waiting list. There is no delete: a number here is a person who gave it,
+  // and the panel marks people as contacted rather than erasing them.
+  waitlist: (l, params, opts) => admin(l, '/admin/waitlist', { ...opts, params }),
+  addToWaitlist: (l, body) => admin(l, '/admin/waitlist', { method: 'POST', body }),
+  markWaitlistNotified: (l, body) => admin(l, '/admin/waitlist/notified', { method: 'PATCH', body }),
 
   // Settings. Where order alerts go is edited here rather than in .env because
   // who is on duty changes without a deploy.

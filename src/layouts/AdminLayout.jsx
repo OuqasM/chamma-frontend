@@ -10,6 +10,7 @@ const NAV = [
   { to: 'categories', key: 'categories' },
   { to: 'brands', key: 'brands' },
   { to: 'orders', key: 'orders' },
+  { to: 'waitlist', key: 'waitlist' },
   { to: 'visits', key: 'visits' },
   { to: 'settings', key: 'settings' },
 ]

@@ -8,6 +8,7 @@ import Carousel from '../components/Carousel'
 import AddToCartButton from '../components/AddToCartButton'
 import useSeo from '../hooks/useSeo'
 import { Spinner, ErrorState } from '../components/Spinner'
+import WaitlistForm from '../components/WaitlistForm'
 
 export default function Product() {
   const { slug } = useParams()
@@ -208,6 +209,12 @@ export default function Product() {
               </button>
             </div>
           )}
+
+          {/* Replaces the buy row when there is nothing to buy. The waiting
+              list is the only useful action on a sold-out page, so it takes
+              the place rather than sitting below a disabled button nobody can
+              press. */}
+          {soldOut && <WaitlistForm product={p} />}
 
           {p.description_html && (
             <div className="mt-8">

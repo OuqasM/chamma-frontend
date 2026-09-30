@@ -23,6 +23,7 @@ import AdminOrders from './pages/admin/Orders'
 import AdminOrderDetail from './pages/admin/OrderDetail'
 import AdminSettings from './pages/admin/Settings'
 import AdminVisits from './pages/admin/Visits'
+import AdminWaitlist from './pages/admin/Waitlist'
 
 /**
  * Every storefront page lives under the locale prefix, so the locale is a
@@ -145,6 +146,7 @@ export default function App() {
               <Route path="brands" element={<AdminBrands />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
+              <Route path="waitlist" element={<AdminWaitlist />} />
               <Route path="visits" element={<AdminVisits />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route index element={<Navigate to="dashboard" replace />} />
