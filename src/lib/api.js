@@ -153,6 +153,9 @@ export const adminApi = {
 
   // Orders.
   orders: (l, params, opts) => admin(l, '/admin/orders', { ...opts, params }),
+  // Visitor tracking. Read-only — the backend writes these rows from the
+  // storefront middleware, so there is no create/update/delete here.
+  visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),
   order: (l, id, opts) => admin(l, `/admin/orders/${id}`, opts),
   updateOrderStatus: (l, id, status) =>
     admin(l, `/admin/orders/${id}/status`, { method: 'PATCH', body: { status } }),

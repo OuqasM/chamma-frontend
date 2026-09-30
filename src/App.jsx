@@ -21,6 +21,7 @@ import AdminCategories from './pages/admin/Categories'
 import AdminBrands from './pages/admin/Brands'
 import AdminOrders from './pages/admin/Orders'
 import AdminOrderDetail from './pages/admin/OrderDetail'
+import AdminVisits from './pages/admin/Visits'
 
 /**
  * Every storefront page lives under the locale prefix, so the locale is a
@@ -143,6 +144,7 @@ export default function App() {
               <Route path="brands" element={<AdminBrands />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
+              <Route path="visits" element={<AdminVisits />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
           </Route>
