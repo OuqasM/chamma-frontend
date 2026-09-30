@@ -34,7 +34,6 @@ const emptyForm = () => ({
   is_available: true,
   stock: DEFAULT_STOCK,
   gender: '',
-  is_new: false,
   // One short and one long description per language, each optional: a language
   // left blank is simply not written, and the storefront then shows the copy of
   // a language that is filled rather than an empty block.
@@ -148,7 +147,6 @@ export default function AdminProductEdit() {
           is_available: Boolean(p.is_available ?? true),
           stock: p.stock ?? 0,
           gender: p.gender || '',
-          is_new: Boolean(p.is_new),
           short_descriptions: copyFromTranslations(p.translations, 'short_description'),
           descriptions: copyFromTranslations(p.translations, 'description'),
         })
@@ -249,7 +247,6 @@ export default function AdminProductEdit() {
       is_available: form.is_available,
       stock: Number(form.stock) || 0,
       gender: textOrNull(form.gender),
-      is_new: form.is_new,
       // Keyed by language, so the API can tell "French is blank" from "French
       // was not submitted": only a submitted key is written.
       short_descriptions: form.short_descriptions,
@@ -396,7 +393,6 @@ export default function AdminProductEdit() {
                 onChange={setField('stock')}
                 error={errors.stock?.[0]}
               />
-              <Toggle label={t('admin', 'isNew')} checked={form.is_new} onChange={setFlag('is_new')} />
             </div>
 
             {/* The two are deliberately separate: unpublishing takes the product

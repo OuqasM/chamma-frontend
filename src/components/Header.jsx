@@ -624,13 +624,13 @@ export function Header() {
 
   const isNewRoute =
     location.pathname === `/${locale}/products` &&
-    new URLSearchParams(location.search).get('is_new') === '1'
+    new URLSearchParams(location.search).get('sort') === 'newest'
 
   const links = [
     { key: 'home', to: `/${locale}`, label: t('nav', 'home'), end: true },
     { key: 'shop', to: `/${locale}/products`, label: t('nav', 'shop') },
     { key: 'offers', to: `/${locale}/offers`, label: t('nav', 'offers') },
-    { key: 'new', to: `/${locale}/products?is_new=1`, label: t('nav', 'new') },
+    { key: 'new', to: `/${locale}/products?sort=newest`, label: t('nav', 'new') },
   ]
 
   // The drawer needs the same two taxonomies, without the imagery and taglines

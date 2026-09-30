@@ -234,7 +234,6 @@ export default function AdminProducts() {
                           {p.preview?.name || p.slug}
                         </Link>
                         <span className="mt-0.5 flex flex-wrap gap-1">
-                          {p.is_new && <Badge tone="jade">{t('admin', 'newFlag')}</Badge>}
                           {p.is_featured && <Badge tone="accent">{t('admin', 'featuredFlag')}</Badge>}
                         </span>
                       </span>

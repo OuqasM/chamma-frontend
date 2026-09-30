@@ -119,7 +119,7 @@ export default function App() {
             <Route path="categories/:slug" element={<Taxonomy kind="categories" />} />
             <Route path="offers" element={<Catalogue mode="offers" />} />
             <Route path="search" element={<Catalogue mode="search" />} />
-            <Route path="new" element={<Navigate to="products?is_new=1" replace />} />
+            <Route path="new" element={<Navigate to="products?sort=newest" replace />} />
             <Route path="cart" element={<Cart />} />
             <Route path="wishlist" element={<Wishlist />} />
             <Route path="checkout" element={<Checkout />} />

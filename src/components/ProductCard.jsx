@@ -45,11 +45,6 @@ export function ProductCard({ product, showAdd = true }) {
               -{product.discount_percent}%
             </span>
           )}
-          {product.is_new && product.discount_percent <= 0 && (
-            <span className="absolute start-0 top-3 bg-jade px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
-              {t('nav', 'new')}
-            </span>
-          )}
           {soldOut && (
             <span className="absolute inset-x-0 bottom-0 bg-noir/85 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-white">
               {t('product', 'outOfStock')}

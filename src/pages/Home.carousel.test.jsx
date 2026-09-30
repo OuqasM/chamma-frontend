@@ -49,7 +49,14 @@ vi.mock('../lib/seo', () => ({
 
 vi.mock('../hooks/useSeo', () => ({ default: () => {} }))
 
-vi.mock('../components/ProductCard', () => ({ ProductGrid: () => null }))
+// Home's product shelves now use `ProductCard`, not `ProductGrid`. The shelves
+// stay empty in this file (see BRANDS note above), so neither is ever called —
+// but leaving `ProductGrid` here would make the mock quietly wrong for the next
+// person who adds a product to the fixture.
+vi.mock('../components/ProductCard', () => ({
+  ProductCard: () => null,
+  ProductGrid: () => null,
+}))
 vi.mock('../components/Spinner', () => ({
   Spinner: () => <p>loading</p>,
   ErrorState: () => <p>error</p>,

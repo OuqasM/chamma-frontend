@@ -146,7 +146,6 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
       q: params.get('q') || undefined,
       category: fixedCategory || params.get('category') || undefined,
       brand: fixedBrand || params.get('brand') || undefined,
-      is_new: params.get('is_new') || undefined,
       min_price: params.get('min_price') || undefined,
       max_price: params.get('max_price') || undefined,
     }
@@ -215,7 +214,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
       ? t('nav', 'offers')
       : mode === 'search'
         ? `${t('nav', 'search')}: ${params.get('q') || ''}`
-        : query.is_new
+        : query.sort === 'newest'
           ? t('nav', 'new')
           : t('nav', 'shop')
 

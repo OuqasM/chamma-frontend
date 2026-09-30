@@ -20,6 +20,14 @@ import { useApp } from '../context/AppContext'
  * unitless `--pv` custom property at each breakpoint (e.g. `[--pv:2]
  * sm:[--pv:3] lg:[--pv:4]`). Slide width is derived from `--pv`, and the arrow
  * step and dot count follow the live value so they stay correct on resize.
+ *
+ * `autoplayBelow` autoplays only *under* that viewport width, in px. It exists
+ * because the same carousel is wanted in two moods: on a phone there is nothing
+ * else on screen and a shelf that advances on its own gets looked at, while on a
+ * desktop the shopper is reading and comparing products and cards sliding past
+ * under the cursor are a distraction they cannot pause without noticing they
+ * were moving. Pass a number to get the second behaviour, omit it for autoplay
+ * everywhere, and pass 0 for none.
  */
 export default function Carousel({
   items = [],
@@ -27,6 +35,7 @@ export default function Carousel({
   ariaLabel,
   perViewClass = '[--pv:2] sm:[--pv:3] lg:[--pv:4]',
   autoplay = 0,
+  autoplayBelow = 0,
   className = '',
 }) {
   const { dir, t } = useApp()
@@ -36,10 +45,25 @@ export default function Carousel({
   const [pages, setPages] = useState(1)
   const [perView, setPerView] = useState(2)
   const [paused, setPaused] = useState(false)
+  const [wide, setWide] = useState(false)
   const pageRef = useRef(0)
 
   const count = items.length
   const rtl = dir === 'rtl'
+
+  // Tracked live rather than read once: a phone rotated to landscape, or a window
+  // dragged from narrow to wide, has to stop or start moving on its own.
+  useEffect(() => {
+    if (!autoplayBelow || typeof window.matchMedia !== 'function') return undefined
+
+    const mq = window.matchMedia(`(min-width: ${autoplayBelow}px)`)
+    const sync = () => setWide(mq.matches)
+
+    sync()
+    mq.addEventListener('change', sync)
+
+    return () => mq.removeEventListener('change', sync)
+  }, [autoplayBelow])
 
   const prefersReduced =
     typeof window !== 'undefined' &&
@@ -124,15 +148,20 @@ export default function Carousel({
     }
   }, [rtl, pages, perView, setPageBoth])
 
-  // Opt-in autoplay. Pauses on hover/focus and never runs for reduced motion.
+  // Opt-in autoplay. Pauses on hover/focus, never runs for reduced motion, and
+  // `autoplayBelow` switches it off entirely once the viewport is wide enough.
   useEffect(() => {
-    if (!autoplay || paused || prefersReduced || count === 0 || pages < 2) return undefined
+    if (!autoplay || paused || prefersReduced || wide || count === 0 || pages < 2) {
+      return undefined
+    }
+
     const id = setInterval(() => {
       const next = pageRef.current + 1 >= pages ? 0 : pageRef.current + 1
       scrollToIndex(next, 'smooth')
     }, autoplay)
+
     return () => clearInterval(id)
-  }, [autoplay, paused, prefersReduced, pages, count, scrollToIndex])
+  }, [autoplay, paused, prefersReduced, wide, pages, count, scrollToIndex])
 
   if (count === 0) return null
 

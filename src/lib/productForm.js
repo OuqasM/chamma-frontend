@@ -59,7 +59,6 @@ export const prefillFromProduct = (product) => ({
   is_available: true,
   stock: 100,
   gender: product.gender || '',
-  is_new: Boolean(product.is_new),
   short_descriptions: copyFromTranslations(product.translations, 'short_description'),
   descriptions: copyFromTranslations(product.translations, 'description'),
 })

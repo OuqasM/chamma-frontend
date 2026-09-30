@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
-import { ProductGrid } from '../components/ProductCard'
+import { ProductCard } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
 import { Spinner, ErrorState } from '../components/Spinner'
 import useSeo from '../hooks/useSeo'
@@ -60,6 +60,29 @@ function BrandCard({ brand, discoverLabel }) {
         </div>
       </div>
     </Link>
+  )
+}
+
+/** A row of products that scrolls sideways instead of wrapping.
+ *
+ *  The home page sends exactly four products per shelf, and this is the same
+ *  treatment "Parfumez par marque" gets, so the page reads as one set of rules
+ *  rather than a grid that changed halfway down.
+ *
+ *  It autoplays on a phone, where a single card on screen that moves by itself
+ *  is the only signal that there is another one, and stands still from `lg` up,
+ *  where four cards already fit on screen and moving them under a shopper
+ *  comparing prices is just in the way. */
+function ProductShelf({ products, label }) {
+  return (
+    <Carousel
+      items={products}
+      ariaLabel={label}
+      autoplay={2500}
+      autoplayBelow={1024}
+      perViewClass="[--pv:1] sm:[--pv:2] lg:[--pv:4]"
+      renderItem={(p) => <ProductCard product={p} />}
+    />
   )
 }
 
@@ -177,13 +200,13 @@ export default function Home() {
             </Link>
           }
         >
-          <ProductGrid products={data.best_sellers} />
+          <ProductShelf products={data.best_sellers} label={t('home', 'topSellers')} />
         </Section>
       )}
 
       {data.new_arrivals?.length > 0 && (
         <Section title={t('home', 'newArrivals')}>
-          <ProductGrid products={data.new_arrivals} />
+          <ProductShelf products={data.new_arrivals} label={t('home', 'newArrivals')} />
         </Section>
       )}
 
@@ -196,7 +219,7 @@ export default function Home() {
             </Link>
           }
         >
-          <ProductGrid products={data.offers} />
+          <ProductShelf products={data.offers} label={t('home', 'offers')} />
         </Section>
       )}
     </>

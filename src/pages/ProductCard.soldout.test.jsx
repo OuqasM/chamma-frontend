@@ -45,7 +45,6 @@ const soldOutProduct = {
   name: 'Oud Impérial',
   url: '/products/oud',
   in_stock: false,
-  is_new: false,
   discount_percent: 0,
   brand: { name: 'Chamma' },
 }
