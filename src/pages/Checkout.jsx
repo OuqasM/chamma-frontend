@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext'
 import { formatPrice } from '../lib/format'
 import { EmptyState } from '../components/Spinner'
 import BankSlipImage from '../components/BankSlipImage'
+import CityPicker from '../components/CityPicker'
 
 const emptyForm = {
   name: '',
@@ -129,6 +130,10 @@ export default function Checkout() {
   )
 
   const cities = options?.cities || []
+  // The chosen city's carrier fee and delay, for the summary. The authoritative
+  // total is still `quote.shipping_cost`, computed server-side; this is only for
+  // the delay, which the quote does not carry.
+  const selectedCity = cities.find((c) => c.value === form.city) || null
   const methods = options?.payment_methods || []
   const isTransfer = form.payment_method === 'bank_transfer'
   const bank = options?.payment?.bank || {}
@@ -176,34 +181,29 @@ export default function Checkout() {
           {field('name', t('checkout', 'name'), { autoComplete: 'name' })}
           {field('phone', t('checkout', 'phone'), { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: '0612345678' })}
 
-          <label className="block">
-            <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'city')}</span>
-            {optionsError ? (
+          {optionsError ? (
+            <div>
+              <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'city')}</span>
               <p className="mt-1.5 border border-rose-300 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">
                 {t('checkout', 'cityError')}
               </p>
-            ) : (
-              <select
-                value={form.city}
-                onChange={update('city')}
-                required
-                aria-label={t('checkout', 'city')}
-                className={`mt-1.5 w-full appearance-none border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
-                  errors.city ? 'border-rose-400' : 'border-stone-200'
-                }`}
-              >
-                <option value="" disabled>
-                  {cities.length ? t('checkout', 'cityPlaceholder') : t('checkout', 'cityLoading')}
-                </option>
-                {cities.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            )}
-            {errors.city && <span className="mt-1 block text-xs text-rose-600">{errors.city[0]}</span>}
-          </label>
+            </div>
+          ) : (
+            // A combobox rather than a <select>: there are 444 deliverable
+            // cities, which no native dropdown can usefully present. The chosen
+            // city's fee is shown under the field as soon as it is picked.
+            <CityPicker
+              cities={cities}
+              value={form.city}
+              onChange={(city) => {
+                update('city')({ target: { value: city } })
+              }}
+              locale={locale}
+              t={t}
+              invalid={Boolean(errors.city)}
+            />
+          )}
+          {errors.city && <span className="mt-1 block text-xs text-rose-600">{errors.city[0]}</span>}
 
           {field('address', t('checkout', 'address'), { autoComplete: 'street-address' })}
 
@@ -320,6 +320,11 @@ export default function Checkout() {
                       ? t('common', 'free')
                       : formatPrice(quote.shipping_cost, locale)
                     : '…'}
+                {/* The carrier's delay for the chosen city, which the summary
+                    otherwise never showed even though the API has it. */}
+                {form.city && selectedCity?.delay && (
+                  <span className="block text-xs text-stone-400">{selectedCity.delay}</span>
+                )}
               </dd>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-2 font-medium">
