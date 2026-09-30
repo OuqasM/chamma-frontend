@@ -37,7 +37,7 @@ export function ProductCard({ product, showAdd = true }) {
           )}
 
           {product.discount_percent > 0 && (
-            <span className="absolute start-0 top-3 bg-plum px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
+            <span className="absolute start-0 top-3 bg-sale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
               -{product.discount_percent}%
             </span>
           )}
