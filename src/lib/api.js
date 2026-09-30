@@ -181,6 +181,51 @@ export function productHref(url, locale) {
  * looks for them on the storefront and gets a 404; with a shared origin the
  * API origin is stripped so everything resolves through this host.
  */
+/**
+ * Builds a social profile URL from whatever the API has for that network.
+ *
+ * The API stores bare handles (`chamma_store_`, `angelofheaven88`) rather than
+ * URLs, so the tracking parameters that come with a link pasted out of a QR code
+ * or a share sheet — `?stkn=…`, `?utm_source=qr`, `?_r=1&_t=…` — never reach a
+ * committed file, and the same value still works if it is later typed into an
+ * env file as a handle, an `@handle` or a whole profile URL.
+ *
+ * Returns an empty string when there is nothing usable, so a caller can skip
+ * rendering a link instead of producing a dead "https://www.instagram.com/"
+ * button for an env var that was never set.
+ */
+export function socialUrl(network, value) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+
+  const known = ['instagram', 'tiktok', 'whatsapp', 'facebook']
+
+  // Already a full URL: pass it through, but only for a network we recognise, so
+  // a bad value cannot turn into an arbitrary link in the footer.
+  if (/^https?:\/\//i.test(raw)) return known.includes(network) ? raw : ''
+
+  // `javascript:` and `data:` are deliberately not treated as URLs: a config
+  // value is not trusted to be a URL just because it has a colon.
+  if (raw.includes(':')) return ''
+
+  if (network === 'whatsapp') {
+    // wa.me takes digits only, so a number pasted as "+212 773 214 703" gets
+    // the same treatment as the bare one. A value with no digits at all is a
+    // handle, not a number, so it is rejected rather than sent to wa.me.
+    const digits = raw.replace(/\D+/g, '')
+    return digits ? `https://wa.me/${digits}` : ''
+  }
+
+  if (!known.includes(network)) return ''
+
+  const handle = raw.replace(/^@+/, '').replace(/\/+$/, '')
+  if (!handle) return ''
+
+  if (network === 'instagram') return `https://www.instagram.com/${handle}/`
+  if (network === 'tiktok') return `https://www.tiktok.com/@${handle}`
+  return `https://www.facebook.com/${handle}`
+}
+
 export function imageUrl(url) {
   if (!url) return null
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { socialUrl } from '../lib/api'
 
 /**
  * The footer speaks the same language as the header rather than inventing a
@@ -10,7 +11,7 @@ import { useApp } from '../context/AppContext'
  * edge in Arabic.
  */
 export function Footer() {
-  const { locale, t, nav } = useApp()
+  const { locale, t, nav, contact } = useApp()
 
   const shop = [
     { to: `/${locale}/products`, label: t('nav', 'shop') },
@@ -28,6 +29,19 @@ export function Footer() {
   // never lists a category the navigation does not have.
   const categories = (nav?.categories || []).slice(0, 6)
   const brands = (nav?.brands || []).slice(0, 6)
+
+  // Facebook is left out on purpose: the store has no page for it, and the API
+  // returns an empty string for it. The list stays explicit rather than mapping
+  // over whatever the payload happens to contain, so a network added to
+  // `StoreContactService` does not silently appear in the footer unreviewed.
+  // Platform names are proper nouns and are deliberately not translated.
+  const socials = [
+    { network: 'whatsapp', label: 'WhatsApp' },
+    { network: 'instagram', label: 'Instagram' },
+    { network: 'tiktok', label: 'TikTok' },
+  ]
+    .map((s) => ({ ...s, href: socialUrl(s.network, contact?.[s.network]) }))
+    .filter((s) => s.href)
 
   const year = new Date().getFullYear()
 
@@ -55,9 +69,40 @@ export function Footer() {
             </span>
           </Link>
 
-          <p className="max-w-sm text-sm leading-relaxed text-stone-500 sm:text-end">
-            {t('footer', 'madeIn')}
-          </p>
+          {/* The address sits above the social row on wide screens and below it
+              on narrow ones. Neither is given a heading: they are one cluster of
+              ways to reach the store, and four ruled columns plus a fifth headed
+              one would tip the grid back into busyness. */}
+          <div className="flex flex-col gap-6 sm:items-end sm:text-end">
+            {contact?.address && (
+              <p className="max-w-sm text-sm leading-relaxed text-stone-500">{contact.address}</p>
+            )}
+
+            {/* Only the three networks the store actually uses, and only when
+                the API has a value for them: an unset env var must not leave a
+                dead link to a bare host. `socialUrl` also strips the tracking
+                parameters that come with a handle pasted out of a QR code. */}
+            {socials.length > 0 && (
+              <nav aria-label={t('footer', 'follow')}>
+                <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  {socials.map((s) => (
+                    <li key={s.network}>
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="nav-link inline-block text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500 transition hover:text-noir"
+                      >
+                        {s.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+
+            <p className="text-sm leading-relaxed text-stone-500">{t('footer', 'madeIn')}</p>
+          </div>
         </div>
 
         <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">

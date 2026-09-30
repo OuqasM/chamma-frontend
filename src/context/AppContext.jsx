@@ -31,6 +31,10 @@ export function AppProvider({ children }) {
   const [cart, setCart] = useState(readCart)
   const [wishlist, setWishlist] = useState(readWishlist)
   const [nav, setNav] = useState(null)
+  // The footer's social links and contact details. They arrive in the same
+  // navigation response rather than in a request of their own, so the footer
+  // costs no extra round trip on first paint.
+  const [contact, setContact] = useState(null)
 
   const t = useCallback(
     (group, key, vars) => {
@@ -61,8 +65,18 @@ export function AppProvider({ children }) {
     let alive = true
     api
       .navigation(locale)
-      .then((data) => alive && setNav(data))
-      .catch(() => alive && setNav(null))
+      .then((data) => {
+        if (!alive) return
+        setNav(data)
+        setContact(data?.contact ?? null)
+      })
+      // A failed bootstrap leaves `nav` null and the header hides its mega
+      // menu; the footer must not render a column of links to nowhere either.
+      .catch(() => {
+        if (!alive) return
+        setNav(null)
+        setContact(null)
+      })
     return () => {
       alive = false
     }
@@ -135,6 +149,7 @@ export function AppProvider({ children }) {
       t,
       dir: dirFor(locale),
       nav,
+      contact,
       cart,
       addToCart,
       setQuantity,
@@ -149,7 +164,7 @@ export function AppProvider({ children }) {
       cartCount: cart.reduce((n, l) => n + l.quantity, 0),
       cartSubtotal: cart.reduce((n, l) => n + Number(l.price) * l.quantity, 0),
     }),
-    [locale, t, nav, cart, addToCart, setQuantity, removeFromCart, clearCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
+    [locale, t, nav, contact, cart, addToCart, setQuantity, removeFromCart, clearCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
