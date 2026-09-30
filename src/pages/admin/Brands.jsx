@@ -246,7 +246,7 @@ export default function AdminBrands() {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/svg+xml"
               onChange={uploadLogo}
-              className="mt-2 w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-white file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
+              className="mt-2 w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
             />
           </div>
 

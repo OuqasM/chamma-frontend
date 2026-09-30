@@ -55,7 +55,7 @@ export function StatusBadge({ label, color }) {
  */
 export function Panel({ title, actions, children, className = '', bodyClassName = 'px-5 py-4' }) {
   return (
-    <section className={`border border-stone-200 bg-white ${className}`}>
+    <section className={`border border-stone-200 bg-ivory ${className}`}>
       {(title || actions) && (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
           {title && <h2 className="text-[13px] uppercase tracking-widest text-stone-500 sm:text-xs">{title}</h2>}
@@ -344,7 +344,7 @@ export function ActionMenu({ label, items = [] }) {
             role="menu"
             aria-label={label}
             style={style}
-            className="fixed z-50 w-52 border border-stone-200 bg-white py-1 shadow-lg"
+            className="fixed z-50 w-52 border border-stone-200 bg-ivory py-1 shadow-lg"
           >
             {items.map((item, index) => {
               const armed = armedKey === item.key

@@ -161,13 +161,13 @@ export default function AdminProducts() {
             onChange={(e) => setParam('search', e.target.value)}
             placeholder={t('admin', 'searchPlaceholder')}
             aria-label={t('admin', 'search')}
-            className="w-full border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gold"
+            className="w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold"
           />
           <select
             value={params.get('brand') || ''}
             onChange={(e) => setParam('brand', e.target.value)}
             aria-label={t('admin', 'brand')}
-            className="border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
           >
             <option value="">{t('admin', 'brand')}</option>
             {taxonomies.brands.map((b) => (
@@ -180,7 +180,7 @@ export default function AdminProducts() {
             value={params.get('category') || ''}
             onChange={(e) => setParam('category', e.target.value)}
             aria-label={t('admin', 'category')}
-            className="border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
           >
             <option value="">{t('admin', 'category')}</option>
             {taxonomies.categories.map((c) => (
@@ -193,7 +193,7 @@ export default function AdminProducts() {
             value={params.get('active') || ''}
             onChange={(e) => setParam('active', e.target.value)}
             aria-label={t('admin', 'active')}
-            className="border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
           >
             <option value="">{t('admin', 'all')}</option>
             <option value="1">{t('admin', 'active')}</option>

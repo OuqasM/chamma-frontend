@@ -58,7 +58,7 @@ export function OrderConfirmation() {
       </dl>
 
       {instructions && (
-        <section className="mx-auto mt-8 max-w-sm border border-stone-200 bg-white p-5 text-start">
+        <section className="mx-auto mt-8 max-w-sm border border-stone-200 bg-ivory p-5 text-start">
           <h2 className="font-serif text-lg text-noir">{t('checkout', 'bank_transfer')}</h2>
 
           <dl className="mt-3 space-y-1 text-xs">
@@ -147,7 +147,7 @@ export function OrderLookup() {
             onChange={(e) => setReference(e.target.value)}
             required
             placeholder="CP-0000-0000"
-            className="mt-1.5 w-full border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="mt-1.5 w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>
         <label className="block">
@@ -157,7 +157,7 @@ export function OrderLookup() {
             onChange={(e) => setPhone(e.target.value)}
             required
             inputMode="tel"
-            className="mt-1.5 w-full border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="mt-1.5 w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>
 
@@ -173,7 +173,7 @@ export function OrderLookup() {
       </form>
 
       {order && (
-        <div className="mt-10 border border-stone-200 bg-white p-6">
+        <div className="mt-10 border border-stone-200 bg-ivory p-6">
           <p className="font-mono text-sm text-gold">{order.reference}</p>
           <p className="mt-1 font-serif text-lg text-noir">{order.status_label}</p>
           <p className="mt-3 text-sm text-stone-600">

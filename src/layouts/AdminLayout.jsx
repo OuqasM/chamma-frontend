@@ -39,7 +39,7 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-ivory">
-      <header className="border-b border-stone-200 bg-white">
+      <header className="border-b border-stone-200 bg-ivory">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
             <span className="text-base font-semibold tracking-wide text-noir sm:text-lg">Chamma</span>
@@ -51,7 +51,7 @@ export function AdminLayout() {
               value={locale}
               onChange={(e) => setLocale(e.target.value)}
               aria-label={t('admin', 'locale')}
-              className="min-h-11 border border-stone-200 bg-white px-2 text-sm outline-none focus:border-gold"
+              className="min-h-11 border border-stone-200 bg-ivory px-2 text-sm outline-none focus:border-gold"
             >
               {LOCALES.map((code) => (
                 <option key={code} value={code}>

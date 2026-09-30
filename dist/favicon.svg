@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Chamma Perfumes">
-  <rect width="64" height="64" rx="14" fill="#fdf7f5"/>
-  <g fill="#b8506b">
+  <rect width="64" height="64" rx="14" fill="#fdf7f6"/>
+  <g fill="#c83c74">
     <circle cx="32" cy="18" r="9"/>
     <circle cx="45.5" cy="27" r="9"/>
     <circle cx="40" cy="41" r="9"/>
     <circle cx="24" cy="41" r="9"/>
     <circle cx="18.5" cy="27" r="9"/>
   </g>
-  <circle cx="32" cy="30" r="8.5" fill="#8a5568"/>
-  <circle cx="32" cy="30" r="4" fill="#3d1f2b"/>
+  <circle cx="32" cy="30" r="8.5" fill="#804261"/>
+  <circle cx="32" cy="30" r="4" fill="#3a1d27"/>
 </svg>

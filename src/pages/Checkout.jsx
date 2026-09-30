@@ -120,7 +120,7 @@ export default function Checkout() {
         value={form[key]}
         onChange={update(key)}
         {...props}
-        className={`mt-1.5 w-full border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
+        className={`mt-1.5 w-full border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
           errors[key] ? 'border-rose-400' : 'border-stone-200'
         }`}
       />
@@ -188,7 +188,7 @@ export default function Checkout() {
                 onChange={update('city')}
                 required
                 aria-label={t('checkout', 'city')}
-                className={`mt-1.5 w-full appearance-none border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
+                className={`mt-1.5 w-full appearance-none border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
                   errors.city ? 'border-rose-400' : 'border-stone-200'
                 }`}
               >
@@ -213,7 +213,7 @@ export default function Checkout() {
               value={form.notes}
               onChange={update('notes')}
               rows={3}
-              className="mt-1.5 w-full border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gold"
+              className="mt-1.5 w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold"
             />
           </label>
 
@@ -223,7 +223,7 @@ export default function Checkout() {
               {methods.map((m) => (
                 <label
                   key={m.code}
-                  className={`flex cursor-pointer items-start gap-3 border bg-white px-4 py-3 text-sm transition ${
+                  className={`flex cursor-pointer items-start gap-3 border bg-ivory px-4 py-3 text-sm transition ${
                     form.payment_method === m.code ? 'border-gold' : 'border-stone-200 hover:border-stone-300'
                   }`}
                 >
@@ -233,7 +233,7 @@ export default function Checkout() {
                     value={m.code}
                     checked={form.payment_method === m.code}
                     onChange={update('payment_method')}
-                    className="mt-0.5 accent-[#b8506b]"
+                    className="mt-0.5 accent-gold"
                   />
                   <span>
                     <span className="block text-noir">{m.label}</span>
@@ -248,7 +248,7 @@ export default function Checkout() {
           </fieldset>
 
           {isTransfer && hasBankDetails && (
-            <dl className="space-y-1 border border-stone-200 bg-white p-4 text-sm">
+            <dl className="space-y-1 border border-stone-200 bg-ivory p-4 text-sm">
               <p className="text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'bankDetails')}</p>
               {bank.holder && (
                 <div className="flex justify-between gap-4">
@@ -291,7 +291,7 @@ export default function Checkout() {
           )}
         </form>
 
-        <aside className="h-fit border border-stone-200 bg-white p-6">
+        <aside className="h-fit border border-stone-200 bg-ivory p-6">
           <p className="mb-3 text-xs uppercase tracking-widest text-stone-400">{t('checkout', 'orderSummary')}</p>
 
           <ul className="space-y-2 border-b border-stone-200 pb-4 text-sm">

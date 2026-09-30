@@ -69,7 +69,7 @@ export default function Cart() {
           ))}
         </ul>
 
-        <aside className="h-fit border border-stone-200 bg-white p-6">
+        <aside className="h-fit border border-stone-200 bg-ivory p-6">
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-stone-500">{t('cart', 'subtotal')}</dt>

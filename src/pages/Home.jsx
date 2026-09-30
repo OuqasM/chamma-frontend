@@ -49,7 +49,7 @@ function BrandCard({ brand, discoverLabel }) {
           <h3 className="font-serif text-lg leading-snug text-white sm:text-xl">
             {brand.name}
           </h3>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white px-5 py-2 text-[11px] uppercase tracking-widest text-white transition group-hover:bg-white group-hover:text-noir">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white px-5 py-2 text-[11px] uppercase tracking-widest text-white transition group-hover:bg-ivory group-hover:text-noir">
             {discoverLabel}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5" aria-hidden="true">
               <path d={arrow} strokeLinecap="round" strokeLinejoin="round" />
@@ -120,7 +120,7 @@ export default function Home() {
             <div className="mt-7 flex gap-3">
               <Link
                 to={`/${locale}/products`}
-                className="bg-white px-7 py-3 text-xs uppercase tracking-widest text-noir transition hover:bg-gold hover:text-white"
+                className="bg-ivory px-7 py-3 text-xs uppercase tracking-widest text-noir transition hover:bg-gold hover:text-white"
               >
                 {t('nav', 'shop')}
               </Link>

@@ -489,7 +489,7 @@ export default function AdminProductEdit() {
                   accept="image/jpeg,image/png,image/webp,image/svg+xml"
                   onChange={upload}
                   disabled={uploading || images.length >= MAX_IMAGES}
-                  className="w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-white file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
+                  className="w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
                 />
               </label>
             </div>

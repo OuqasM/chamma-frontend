@@ -6,7 +6,7 @@
  * API returns in `ApiError.errors`.
  */
 function control(invalid, extra = '') {
-  return `mt-1.5 w-full border bg-white px-3 py-2.5 text-base outline-none transition focus:border-gold sm:text-sm ${
+  return `mt-1.5 w-full border bg-ivory px-3 py-2.5 text-base outline-none transition focus:border-gold sm:text-sm ${
     invalid ? 'border-rose-400' : 'border-stone-200'
   } ${extra}`
 }
@@ -81,7 +81,7 @@ export function MultiSelect({ label, error, hint, className = '', options = [], 
       )}
 
       <div
-        className={`mt-1.5 max-h-56 overflow-y-auto border bg-white ${
+        className={`mt-1.5 max-h-56 overflow-y-auto border bg-ivory ${
           error ? 'border-rose-400' : 'border-stone-200'
         }`}
       >
@@ -122,7 +122,7 @@ export function MultiSelect({ label, error, hint, className = '', options = [], 
 /** Checkbox styled as a switchable row; `checked` drives the admin boolean. */
 export function Toggle({ label, checked, onChange, hint, disabled = false }) {
   return (
-    <label className={`flex items-start gap-3 border border-stone-200 bg-white px-3 py-2.5 ${disabled ? 'opacity-50' : ''}`}>
+    <label className={`flex items-start gap-3 border border-stone-200 bg-ivory px-3 py-2.5 ${disabled ? 'opacity-50' : ''}`}>
       <input
         type="checkbox"
         checked={Boolean(checked)}

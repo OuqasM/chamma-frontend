@@ -93,7 +93,7 @@
   }
 
   .rich-text a {
-    @apply text-rose-700 underline underline-offset-2 hover:text-gold;
+    @apply text-plum underline underline-offset-2 hover:text-gold;
   }
 
   .rich-text code {

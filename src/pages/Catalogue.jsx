@@ -86,7 +86,7 @@ function Filters({ category, brand, minPrice, maxPrice, bounds, onSelect, onClea
             onChange={(e) => setMin(e.target.value)}
             placeholder={bounds ? String(Math.floor(bounds.min)) : '0'}
             aria-label={`${t('product', 'price')} min`}
-            className="w-full border border-stone-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-gold"
+            className="w-full border border-stone-200 bg-ivory px-2 py-1.5 text-xs outline-none focus:border-gold"
           />
           <span aria-hidden="true" className="text-stone-400">–</span>
           <input
@@ -97,7 +97,7 @@ function Filters({ category, brand, minPrice, maxPrice, bounds, onSelect, onClea
             onChange={(e) => setMax(e.target.value)}
             placeholder={bounds ? String(Math.ceil(bounds.max)) : '0'}
             aria-label={`${t('product', 'price')} max`}
-            className="w-full border border-stone-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-gold"
+            className="w-full border border-stone-200 bg-ivory px-2 py-1.5 text-xs outline-none focus:border-gold"
           />
         </div>
         {bounds && (
@@ -262,7 +262,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
               <select
                 value={params.get('sort') || 'featured'}
                 onChange={(e) => setParam('sort', e.target.value)}
-                className="border border-stone-200 bg-white px-2 py-1 outline-none focus:border-gold"
+                className="border border-stone-200 bg-ivory px-2 py-1 outline-none focus:border-gold"
               >
                 {SORTS.map((s) => (
                   <option key={s} value={s}>{s.replace('_', ' ')}</option>
@@ -281,7 +281,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
                   <button
                     key={i}
                     onClick={() => setParam(i === 0 ? 'category' : 'brand', '')}
-                    className="flex items-center gap-1.5 border border-stone-200 bg-white px-2.5 py-1 text-[11px] text-stone-600"
+                    className="flex items-center gap-1.5 border border-stone-200 bg-ivory px-2.5 py-1 text-[11px] text-stone-600"
                   >
                     {label} <span aria-hidden="true">✕</span>
                   </button>
@@ -290,7 +290,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
               {query.min_price && (
                 <button
                   onClick={() => setParam('min_price', '')}
-                  className="border border-stone-200 bg-white px-2.5 py-1 text-[11px] text-stone-600"
+                  className="border border-stone-200 bg-ivory px-2.5 py-1 text-[11px] text-stone-600"
                 >
                   ≥ {query.min_price} ✕
                 </button>
@@ -298,7 +298,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
               {query.max_price && (
                 <button
                   onClick={() => setParam('max_price', '')}
-                  className="border border-stone-200 bg-white px-2.5 py-1 text-[11px] text-stone-600"
+                  className="border border-stone-200 bg-ivory px-2.5 py-1 text-[11px] text-stone-600"
                 >
                   ≤ {query.max_price} ✕
                 </button>

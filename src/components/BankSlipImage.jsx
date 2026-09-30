@@ -14,7 +14,7 @@ export default function BankSlipImage({ image, className = '' }) {
     <a
       href={image}
       download
-      className={`mt-4 flex items-center gap-3 border border-stone-200 bg-white p-2.5 transition hover:border-gold ${className}`}
+      className={`mt-4 flex items-center gap-3 border border-stone-200 bg-ivory p-2.5 transition hover:border-gold ${className}`}
     >
       <img
         src={image}

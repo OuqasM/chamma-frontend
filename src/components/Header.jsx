@@ -49,7 +49,7 @@ function LocaleSwitcher() {
         <ul
           role="listbox"
           data-open={shown}
-          className="dropdown absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-white py-1 shadow-lg"
+          className="dropdown absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-ivory py-1 shadow-lg"
         >
           {LOCALES.map((code) => (
             <li key={code}>
@@ -458,13 +458,26 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         <div className="shrink-0 border-b border-stone-200 bg-ivory px-7 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
           <div className="flex items-start justify-between gap-3">
             {/* The same lockup as the header, so the drawer reads as the site
-                rather than a separate widget. */}
-            <Link to={`/${locale}`} onClick={onClose} className="group flex flex-col">
-              <span className="font-serif text-xl font-bold uppercase leading-none tracking-[0.3em] text-noir transition group-hover:text-gold">
-                Chamma
+                rather than as a separate widget. The mark leads here and the
+                wordmark follows it: the drawer is the only place the storefront
+                shows its logo on a screen too narrow to carry both at full
+                size. */}
+            <Link to={`/${locale}`} onClick={onClose} className="group flex items-center gap-3">
+              <img
+                src="/chamma-store-logo.png"
+                alt="Chamma"
+                width="44"
+                height="44"
+                className="h-11 w-11 shrink-0 transition group-hover:opacity-80"
+              />
+              <span className="flex flex-col">
+                <span className="font-serif text-xl font-bold uppercase leading-none tracking-[0.3em] text-noir transition group-hover:text-gold">
+                  Chamma
+                </span>
+                <span aria-hidden="true" className="mt-1.5 block h-px w-full bg-gold/50" />
               </span>
-              <span aria-hidden="true" className="mt-1.5 block h-px w-full bg-gold/50" />
             </Link>
+
 
             {/* The language list drops below the trigger, so it lives up here
                 rather than at the foot of the panel, where the scroll area would
@@ -563,7 +576,7 @@ function SearchBar({ onNavigate, block = false }) {
         aria-label={t('nav', 'search')}
         className={
           block
-            ? 'w-full border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-noir outline-none transition placeholder:font-normal placeholder:text-stone-400 focus:border-gold'
+            ? 'w-full border border-stone-300 bg-ivory px-4 py-3 text-sm font-semibold text-noir outline-none transition placeholder:font-normal placeholder:text-stone-400 focus:border-gold'
             : 'w-32 border-b border-noir/20 bg-transparent py-1 text-xs outline-none transition focus:w-44 focus:border-gold md:w-44 md:focus:w-56'
         }
       />

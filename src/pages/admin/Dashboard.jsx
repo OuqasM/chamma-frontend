@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         {CARDS.map(({ key, label }) => {
           const card = cards[key]
           return (
-            <div key={key} className="bg-white px-5 py-4">
+            <div key={key} className="bg-ivory px-5 py-4">
               <p className="text-[11px] uppercase tracking-widest text-stone-500 sm:text-xs">{t('admin', label)}</p>
               <p className="mt-1.5 text-2xl font-semibold text-noir">
                 {card ? (card.currency ? formatPrice(card.value, locale) : card.value) : '—'}
