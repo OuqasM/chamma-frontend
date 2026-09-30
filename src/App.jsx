@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import { AdminProvider } from './context/AdminContext'
 import { Layout } from './layouts/Layout'
@@ -28,9 +29,52 @@ import AdminOrderDetail from './pages/admin/OrderDetail'
 function LocaleShell() {
   return (
     <Layout>
+      <ScrollToTop />
       <Outlet />
     </Layout>
   )
+}
+
+/**
+ * Resets the window scroll to the top when the route path changes.
+ *
+ * React Router does not touch the scroll position on navigation, and this app
+ * uses `<Routes>` rather than the data router, so there is no `ScrollRestoration`
+ * either. The browser therefore keeps the offset it had on the previous page and
+ * simply re-renders the new page at that offset. When the new page is shorter
+ * than the old scroll depth the browser clamps to the maximum, so opening a
+ * product or a brand from a scrolled catalogue landed the shopper at the *bottom*
+ * of the new page with its header out of sight.
+ *
+ * Deliberate details:
+ *
+ * - Keyed on `pathname` only. The catalogue drives its filters and pagination
+ *   through the query string, and resetting on those would yank the page to the
+ *   top every time a filter chip is toggled.
+ * - Skipped on the first render, so a reload keeps the position the browser
+ *   restored and Back still lands where it left. Without the ref, arriving at a
+ *   deep link would jump to the top of an already-restored page.
+ * - `behavior: 'instant'`. A smooth scroll between pages reads as lag, not as
+ *   polish, and it also fights the smooth `scrollBy` inside `Carousel`.
+ * - `left: 0` alongside `top: 0`, since a horizontally scrolled page carries that
+ *   over too.
+ *
+ * A `hash` is left to the browser's own anchor handling rather than being
+ * scrolled to here.
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  const first = useRef(true)
+
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+
+  return null
 }
 
 /** Sends an unsupported or missing locale to a supported one, once. */
