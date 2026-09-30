@@ -4,6 +4,7 @@ import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { Price } from '../components/Price'
 import { ProductGrid } from '../components/ProductCard'
+import Carousel from '../components/Carousel'
 import { Spinner, ErrorState } from '../components/Spinner'
 
 export default function Product() {
@@ -12,14 +13,12 @@ export default function Product() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
-  const [active, setActive] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
     setData(null)
     setError(null)
     setQuantity(1)
-    setActive(0)
 
     api
       .product(locale, slug, { signal: controller.signal })
@@ -61,31 +60,45 @@ export default function Product() {
 
       <div className="grid gap-10 md:grid-cols-2">
         <div>
-          <div className="overflow-hidden bg-ivory">
-            {gallery[active] ? (
+          {/*
+            A multi-image product gets the shared Carousel rather than a second
+            hand-rolled pager: it already does scroll-snap, touch swipe, RTL
+            chevrons, dots and reduced-motion, and the home page's "related
+            products" rail uses the same component, so a shopper gets identical
+            paging behaviour in both places. `--pv: 1` puts one image per page,
+            which makes the arrow step and dot count equal the image count.
+
+            Below two images it is not a carousel, so it is not rendered as one:
+            `aria-roledescription="carousel"` over a single slide would be a lie,
+            and the scroll viewport would be a pointless element around one img.
+          */}
+          {gallery.length > 1 ? (
+            <Carousel
+              items={gallery}
+              perViewClass="[--pv:1]"
+              ariaLabel={t('product', 'gallery')}
+              renderItem={(img, i) => (
+                <img
+                  src={imageUrl(img.url)}
+                  alt={img.alt || p.name}
+                  // The first image is the page's LCP element, so it must not be
+                  // lazy; the rest can be. The component renders every slide up
+                  // front, which would otherwise fetch the whole gallery at once.
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              )}
+            />
+          ) : gallery.length === 1 ? (
+            <div className="overflow-hidden">
               <img
-                src={imageUrl(gallery[active].url)}
-                alt={gallery[active].alt || p.name}
+                src={imageUrl(gallery[0].url)}
+                alt={gallery[0].alt || p.name}
                 className="aspect-[4/5] w-full object-cover"
               />
-            ) : (
-              <div className="flex aspect-[4/5] items-center justify-center text-stone-300">Chamma</div>
-            )}
-          </div>
-
-          {gallery.length > 1 && (
-            <div className="mt-3 flex gap-2">
-              {gallery.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`w-16 overflow-hidden border ${i === active ? 'border-gold' : 'border-transparent'}`}
-                  aria-label={`${t('product', 'details')} ${i + 1}`}
-                >
-                  <img src={imageUrl(img.url)} alt="" className="aspect-[4/5] w-full object-cover" />
-                </button>
-              ))}
             </div>
+          ) : (
+            <div className="flex aspect-[4/5] items-center justify-center bg-ivory text-stone-300">Chamma</div>
           )}
         </div>
 
