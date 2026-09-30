@@ -184,7 +184,7 @@ export default function Product() {
                 product={p}
                 quantity={quantity}
                 className="flex-1 bg-noir px-6 py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-gold"
-                activeClassName="bg-jade hover:bg-gold"
+                activeClassName="bg-gold hover:bg-noir"
               />
 
               <button

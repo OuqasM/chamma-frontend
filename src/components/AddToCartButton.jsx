@@ -19,6 +19,7 @@ export default function AddToCartButton({
   quantity = 1,
   className = '',
   activeClassName = '',
+  activeIconClassName = '',
   onAdd,
   children,
   disabled = false,
@@ -33,10 +34,26 @@ export default function AddToCartButton({
     return (
       <Link
         to={`/${locale}/cart`}
-        className={`${className} ${activeClassName}`}
+        // A link is inline, so the w-full every caller passes would be ignored
+        // and the label would sit hard against the start edge. Forcing the
+        // block-level box the button had keeps the label centred and the
+        // footprint identical to what the shopper just pressed.
+        className={`flex items-center justify-center text-center ${className} ${activeClassName}`}
         {...props}
       >
         {t('common', 'goToCart')}
+        {/* Points somewhere, so it should look like it does. The arrow flips
+            with the reading direction rather than pointing backwards in Arabic. */}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+          className={`ms-2 h-3.5 w-3.5 rtl:-scale-x-100 ${activeIconClassName}`}
+        >
+          <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </Link>
     )
   }

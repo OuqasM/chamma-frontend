@@ -99,7 +99,7 @@ export function ProductCard({ product, showAdd = true }) {
           <AddToCartButton
             product={product}
             className="mt-3 w-full border border-noir/20 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-noir transition hover:border-gold hover:bg-gold hover:text-white"
-            activeClassName="border-jade bg-jade text-white hover:border-jade hover:bg-noir"
+            activeClassName="border-gold text-gold hover:bg-gold hover:text-white"
           />
         )}
       </div>

@@ -46,7 +46,7 @@ export default function Wishlist() {
               <AddToCartButton
                 product={item}
                 className="flex-1 border border-noir/20 py-1.5 text-center text-xs uppercase tracking-widest hover:border-gold hover:bg-gold hover:text-white"
-                activeClassName="border-jade bg-jade text-white hover:border-jade hover:bg-gold"
+                activeClassName="border-gold text-gold hover:bg-gold hover:text-white"
               />
               <button
                 onClick={() => toggleWishlist(item)}
