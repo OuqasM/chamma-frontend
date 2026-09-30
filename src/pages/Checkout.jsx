@@ -10,6 +10,10 @@ import CityPicker from '../components/CityPicker'
 const emptyForm = {
   name: '',
   phone: '',
+  // Optional. Collected only so the store can email a receipt or reply to its
+  // own order alert; the WhatsApp handover is how most orders actually reach
+  // the owner, so this must never be required.
+  email: '',
   city: '',
   address: '',
   notes: '',
@@ -114,20 +118,26 @@ export default function Checkout() {
     )
   }
 
-  const field = (key, label, props = {}) => (
-    <label className="block">
-      <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{label}</span>
-      <input
-        value={form[key]}
-        onChange={update(key)}
-        {...props}
-        className={`mt-1.5 w-full border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
-          errors[key] ? 'border-rose-400' : 'border-stone-200'
-        }`}
-      />
-      {errors[key] && <span className="mt-1 block text-xs text-rose-600">{errors[key][0]}</span>}
-    </label>
-  )
+  const field = (key, label, props = {}) => {
+    const { hint, ...rest } = props
+
+    return (
+      <label className="block">
+        <span className="font-semibold text-xs uppercase tracking-widest text-stone-400">{label}</span>
+        <input
+          value={form[key]}
+          onChange={update(key)}
+          {...rest}
+          dir={key === 'email' ? 'ltr' : undefined}
+          className={`mt-1.5 w-full border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
+            errors[key] ? 'border-rose-400' : 'border-stone-200'
+          }`}
+        />
+        {hint && <span className="mt-1 block text-xs text-stone-400">{hint}</span>}
+        {errors[key] && <span className="mt-1 block text-xs text-rose-600">{errors[key][0]}</span>}
+      </label>
+    )
+  }
 
   const cities = options?.cities || []
   // The chosen city's carrier fee and delay, for the summary. The authoritative
@@ -180,6 +190,12 @@ export default function Checkout() {
         <form id="checkout-form" onSubmit={submit} noValidate className="space-y-5">
           {field('name', t('checkout', 'name'), { autoComplete: 'name' })}
           {field('phone', t('checkout', 'phone'), { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: '0612345678' })}
+          {field('email', t('checkout', 'email'), {
+            type: 'email',
+            autoComplete: 'email',
+            placeholder: 'you@example.com',
+            hint: t('checkout', 'emailHint'),
+          })}
 
           {optionsError ? (
             <div>

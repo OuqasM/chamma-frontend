@@ -21,6 +21,7 @@ import AdminCategories from './pages/admin/Categories'
 import AdminBrands from './pages/admin/Brands'
 import AdminOrders from './pages/admin/Orders'
 import AdminOrderDetail from './pages/admin/OrderDetail'
+import AdminSettings from './pages/admin/Settings'
 import AdminVisits from './pages/admin/Visits'
 
 /**
@@ -145,6 +146,7 @@ export default function App() {
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="visits" element={<AdminVisits />} />
+              <Route path="settings" element={<AdminSettings />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
           </Route>

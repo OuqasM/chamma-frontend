@@ -11,6 +11,7 @@ const NAV = [
   { to: 'brands', key: 'brands' },
   { to: 'orders', key: 'orders' },
   { to: 'visits', key: 'visits' },
+  { to: 'settings', key: 'settings' },
 ]
 
 /** Gate for every authenticated admin screen; bounces to login when signed out. */

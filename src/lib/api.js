@@ -156,6 +156,11 @@ export const adminApi = {
   // Visitor tracking. Read-only — the backend writes these rows from the
   // storefront middleware, so there is no create/update/delete here.
   visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),
+
+  // Settings. Where order alerts go is edited here rather than in .env because
+  // who is on duty changes without a deploy.
+  settings: (l, opts) => admin(l, '/admin/settings', opts),
+  updateSettings: (l, body) => admin(l, '/admin/settings', { method: 'PUT', body }),
   order: (l, id, opts) => admin(l, `/admin/orders/${id}`, opts),
   updateOrderStatus: (l, id, status) =>
     admin(l, `/admin/orders/${id}/status`, { method: 'PATCH', body: { status } }),
