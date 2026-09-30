@@ -320,9 +320,14 @@ function HeaderMenus({ onNavigate }) {
 /**
  * The same two menus, folded into the drawer on small screens: a portal
  * dropdown would be clipped by the panel, so they collapse in place instead.
+ *
+ * `defaultOpen` starts the section expanded. Categories use it: they are the
+ * route most shoppers in the drawer are heading for, and the panel scrolls, so
+ * an open list costs nothing. Brands stay collapsed — fewer of them, and they
+ * are the more deliberate choice.
  */
-function DrawerSection({ label, items }) {
-  const [open, setOpen] = useState(false)
+function DrawerSection({ label, items, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen)
 
   if (!items.length) return null
 
@@ -540,8 +545,9 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
             </NavLink>
           ))}
 
-          <DrawerSection label={t('nav', 'categories')} items={categoryItems} />
+          {/* Brands lead, categories follow and categories start open. */}
           <DrawerSection label={t('nav', 'brands')} items={brandItems} />
+          <DrawerSection label={t('nav', 'categories')} items={categoryItems} defaultOpen />
         </nav>
 
         <div className="shrink-0 border-t border-stone-200 bg-ivory px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">

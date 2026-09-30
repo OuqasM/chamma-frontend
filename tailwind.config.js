@@ -4,13 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // "Blush rose" palette.
+        // "Blush rose" palette on white.
         //
-        // The names are historical; the values are a soft pink-and-cream theme:
+        // The names are historical; the values are a soft pink theme:
         //   noir  - deep plum, body and heading ink
-        //   ivory - the page background, a warm cream
+        //   ivory - the page background, white
         //   gold  - blush pink, the primary accent
-        //   sand  - warm neutral for panels and badges
+        //   sand  - neutral grey for panels and badges
         //   plum  - deeper mauve, the second accent
         //   jade  - muted sage, the one cool accent, kept so the "new" badge
         //           stays distinct from the pink accent and the error reds
@@ -18,31 +18,35 @@ export default {
         // `gold` sits at hue 336, not the 344 the old accent used. At 344 the
         // accent lands in red-rose territory and reads as red rather than pink;
         // 336 is the same lightness and saturation but unmistakably pink. It is
-        // the one value that has to work three ways — link text on cream, white
-        // text on a `bg-gold` fill, and a hairline — and it clears AA (4.55 on
-        // cream, 4.82 for white on fill) in all three.
+        // the one value that has to work three ways — link text, white text on a
+        // `bg-gold` fill, and a hairline — and it clears AA in all three.
+        //
+        // A cream ground was tried and reverted. The product photography is shot
+        // on white, so a warm page put a visible white rectangle inside every
+        // card, and the photos are the point. The ground is white again; the
+        // accent stays pink, which is what "reads as red" was actually about.
         noir: '#3a1d27',
-        ivory: '#fdf7f6',
-        sand: '#f3ece7',
+        ivory: '#ffffff',
+        sand: '#e6e6e6',
         gold: '#c83c74',
         plum: '#804261',
         jade: '#48793e',
 
-        // The page is cream rather than white, so the light end of the `stone`
-        // scale is warm too: a true grey next to a warm ground reads as a cold
-        // patch rather than as a neutral. These are the large painted areas —
-        // page sections, table stripes, input fills, the 1px rules on ~90 borders.
+        // The light end of the `stone` scale is plain neutral grey. These are the
+        // large painted areas — page sections, table stripes, input fills, the
+        // 1px rules on ~90 borders — and across that much screen area a rose
+        // tint reads as a pink cast rather than as brand. Each value keeps the
+        // lightness of the rose one it replaces, so no contrast ratio moves.
         //
         // 400 and darker stay rose: they are body and muted text, not surface.
         // 400/500/600 carry real text in this UI (51 `text-stone-400` calls on
-        // their own), so all three clear WCAG AA (4.5:1) on **both** `ivory` and
-        // white, since a few surfaces are still `bg-white`. 300 is decorative
-        // only (spinner track, empty-image placeholder).
+        // their own), so all three clear WCAG AA (4.5:1) on white. 300 is
+        // decorative only (spinner track, empty-image placeholder).
         stone: {
-          50: '#fbf5f4',
-          100: '#f7edec',
-          200: '#efe2e1',
-          300: '#dcc7c8',
+          50: '#f9f9f9',
+          100: '#f1f1f1',
+          200: '#e3e3e3',
+          300: '#b6b6b6',
           400: '#986170',
           500: '#8f5b69',
           600: '#80525e',
