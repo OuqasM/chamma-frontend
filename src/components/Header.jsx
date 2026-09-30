@@ -87,6 +87,12 @@ function LocaleSwitcher() {
  * Hover opens it, but on a short delay and with a matching grace period on the
  * way out, so sweeping the cursor across the bar to reach a link does not flash
  * every menu open in turn. Escape and a click outside both close it.
+ *
+ * The sheet is capped to the space between the header and the bottom of the
+ * viewport and scrolls inside that cap. It is `position: fixed` and full width,
+ * so anything past the fold used to be unreachable: the page underneath cannot
+ * scroll under the sheet, and the sheet itself did not scroll. Capping it makes
+ * every category reachable at any window height or taxonomy size.
  */
 function MegaMenu({ label, items, kind, active, to, onNavigate }) {
   const [open, setOpen] = useState(false)
@@ -186,17 +192,31 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
             onMouseEnter={show}
             onMouseLeave={hide}
             data-open={shown}
-            style={{ position: 'fixed', top, left: 0, right: 0, pointerEvents: shown ? 'auto' : 'none' }}
-            className="mega z-30 hidden border-b border-stone-200 bg-ivory shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] xl:block"
+            style={{
+              position: 'fixed',
+              top,
+              left: 0,
+              right: 0,
+              // Whatever is left under the header. `top` is the header's own
+              // measured bottom, so this tracks the real gap on any window.
+              maxHeight: `calc(100vh - ${top}px)`,
+              pointerEvents: shown ? 'auto' : 'none',
+            }}
+            className="mega z-30 hidden overflow-y-auto overscroll-contain border-b border-stone-200 bg-ivory shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] xl:block"
           >
-            <div className="mx-auto max-w-7xl px-8 py-10">
+            <div className="mx-auto max-w-7xl px-8 py-6">
               <div className="flex items-baseline gap-4">
-                <h2 className="font-serif text-2xl font-bold uppercase tracking-[0.18em] text-noir">{label}</h2>
+                <h2 className="font-serif text-xl font-bold uppercase tracking-[0.18em] text-noir">{label}</h2>
                 <span aria-hidden="true" className="h-px flex-1 bg-stone-200" />
               </div>
 
               {kind === 'categories' ? (
-                <ul className="mt-7 grid grid-cols-3 gap-x-8 gap-y-7">
+                /* Four columns, and a fixed-height letterbox crop rather than a
+                   4/3 frame. A 4/3 image in three columns is ~225px tall, which
+                   put eight categories at ~950px — past the fold on any laptop.
+                   The crop keeps the photograph, which is the point of the sheet,
+                   and drops the row to ~130px. */
+                <ul className="mt-5 grid grid-cols-4 gap-x-6 gap-y-5">
                   {items.map((it) => (
                     <li key={it.id}>
                       <Link
@@ -208,7 +228,7 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
                         className="group block"
                       >
                         {it.image && (
-                          <span className="block aspect-[4/3] overflow-hidden bg-stone-100">
+                          <span className="block h-24 overflow-hidden bg-stone-100">
                             <img
                               src={it.image}
                               alt=""
@@ -217,7 +237,7 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
                             />
                           </span>
                         )}
-                        <span className="mt-3 block font-serif text-lg font-bold text-noir transition group-hover:text-gold">
+                        <span className="mt-2.5 block font-serif text-base font-bold text-noir transition group-hover:text-gold">
                           {it.name}
                         </span>
                       </Link>
@@ -225,7 +245,7 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
                   ))}
                 </ul>
               ) : (
-                <ul className="mt-7 grid grid-cols-3 gap-x-8 gap-y-6">
+                <ul className="mt-5 grid grid-cols-4 gap-x-6 gap-y-4">
                   {items.map((it) => (
                     <li key={it.id}>
                       <Link
@@ -234,13 +254,13 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
                           setOpen(false)
                           onNavigate?.()
                         }}
-                        className="group block border-t border-stone-200 pt-3"
+                        className="group block border-t border-stone-200 pt-2.5"
                       >
-                        <span className="block font-serif text-lg font-bold text-noir transition group-hover:text-gold">
+                        <span className="block font-serif text-base font-bold text-noir transition group-hover:text-gold">
                           {it.name}
                         </span>
                         {it.tagline && (
-                          <span className="mt-1 block text-xs leading-relaxed text-stone-500">{it.tagline}</span>
+                          <span className="mt-1 block text-[11px] leading-relaxed text-stone-500">{it.tagline}</span>
                         )}
                       </Link>
                     </li>
