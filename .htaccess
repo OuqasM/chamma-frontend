@@ -1,13 +1,26 @@
 # Serves the built Vite application on chammastore.com.
-#
-# The bundle is a single page app: React Router owns every path that is not a
-# file on disk, so a refresh or a shared link on /checkout or /product/... has
-# to return index.html instead of a 404. Without this rule the storefront only
-# works on the home page and breaks on every client side navigation that is
-# reloaded.
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # One host, one set of URLs.
+    #
+    # chammastore.com, www.chammastore.com and http:// all serve this same
+    # application, and each answers 200 with the same content. A crawler reads
+    # that as three copies of the shop competing with one another, and the
+    # canonical tags cannot fix it because the duplicates disagree about which
+    # one is canonical.
+    #
+    # This has to run *before* the SPA fallback below: that rule ends with [L],
+    # so anything placed after it would never be reached.
+    RewriteCond %{HTTPS} !=on [OR]
+    RewriteCond %{HTTP_HOST} !=chammastore.com [NC]
+    RewriteRule ^ https://chammastore.com%{REQUEST_URI} [R=301,L]
+
+    # The bundle is a single page app: React Router owns every path that is not
+    # a file on disk, so a refresh or a shared link on /checkout or /product/...
+    # has to return index.html instead of a 404. Without this rule the
+    # storefront only works on the home page and breaks on every client side
+    # navigation that is reloaded.
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ /index.html [L]

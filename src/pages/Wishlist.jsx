@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import useSeo from '../hooks/useSeo'
 import AddToCartButton from '../components/AddToCartButton'
 import { imageUrl } from '../lib/api'
 import { Price } from '../components/Price'
@@ -7,6 +8,8 @@ import { EmptyState } from '../components/Spinner'
 
 export default function Wishlist() {
   const { locale, t, wishlist, toggleWishlist } = useApp()
+
+  useSeo({ title: `${t('common', 'wishlist')} | Chamma Store`, noindex: true })
 
   if (wishlist.length === 0) {
     return (

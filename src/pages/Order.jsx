@@ -5,6 +5,7 @@ import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { formatPrice } from '../lib/format'
 import { Spinner, ErrorState } from '../components/Spinner'
+import useSeo from '../hooks/useSeo'
 
 export function OrderConfirmation() {
   const { reference } = useParams()
@@ -26,6 +27,15 @@ export function OrderConfirmation() {
       .then((d) => setOrder(d.order))
       .catch((e) => setError(e.message))
   }, [order, reference, params, locale])
+
+  // Reference in the title bar is convenient for the customer and a record for
+  // them, but the page is noindex: the URL is guessable enough to try, and a
+  // confirmation has nothing worth ranking.
+  useSeo({
+    title: `${t('checkout', 'success', { reference: order?.reference ?? '' })} | Chamma Store`,
+    noindex: true,
+    jsonLd: order ? orderJsonLd(order) : null,
+  })
 
   if (error) return <ErrorState message={error} />
   if (!order) return <Spinner label={t('common', 'loading')} />
@@ -136,6 +146,9 @@ export function OrderConfirmation() {
 
 export function OrderLookup() {
   const { locale, t } = useApp()
+
+  useSeo({ title: `${t('order', 'lookup')} | Chamma Store`, noindex: true })
+
   const [reference, setReference] = useState('')
   const [phone, setPhone] = useState('')
   const [order, setOrder] = useState(null)
@@ -220,6 +233,8 @@ export function OrderLookup() {
 
 export function NotFound() {
   const { locale, t } = useApp()
+
+  useSeo({ title: t('seo', 'notFoundTitle'), noindex: true })
   return (
     <div className="mx-auto max-w-lg px-4 py-24 text-center">
       <p className="font-serif text-6xl text-sand">404</p>
@@ -233,4 +248,33 @@ export function NotFound() {
       </Link>
     </div>
   )
+}
+
+/**
+ * The placed order as schema.org Order.
+ *
+ * Only the commercial facts: what was bought, at what price, in what currency.
+ * The customer's name, phone and address stay out of the markup on purpose —
+ * an order confirmation is a page Google should never surface in a result, and
+ * anything personal published there would outlive the need for it.
+ */
+function orderJsonLd(order) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Order',
+    orderNumber: order.reference,
+    orderStatus: 'https://schema.org/OrderProcessing',
+    priceCurrency: order.currency || 'MAD',
+    price: Number(order.total).toFixed(2),
+    ...(order.items?.length
+      ? {
+          itemListElement: order.items.map((item, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: item.name,
+            ...(item.quantity ? { quantity: item.quantity } : {}),
+          })),
+        }
+      : {}),
+  }
 }

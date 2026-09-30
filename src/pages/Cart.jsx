@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import useSeo from '../hooks/useSeo'
 import { imageUrl } from '../lib/api'
 import { formatPrice } from '../lib/format'
 import { EmptyState } from '../components/Spinner'
 
 export default function Cart() {
   const { locale, t, cart, setQuantity, removeFromCart, cartSubtotal } = useApp()
+
+  useSeo({ title: `${t('cart', 'title')} | Chamma Store`, noindex: true })
 
   if (cart.length === 0) {
     return (

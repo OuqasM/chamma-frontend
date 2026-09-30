@@ -4,6 +4,8 @@ import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { ProductGrid } from '../components/ProductCard'
 import { Spinner, ErrorState } from '../components/Spinner'
+import useSeo from '../hooks/useSeo'
+import { absolute } from '../lib/seo'
 
 export default function Taxonomy({ kind }) {
   const { slug } = useParams()
@@ -26,11 +28,21 @@ export default function Taxonomy({ kind }) {
     return () => controller.abort()
   }, [locale, slug, kind])
 
+  const entity = data?.meta?.[kind === 'brands' ? 'brand' : 'category']
+
+  useSeo({
+    title: entity ? `${entity.seo?.title || entity.name} | Chamma Store` : 'Chamma Store',
+    description: entity?.seo?.description || entity?.description,
+    image: entity?.image?.url,
+    canonical: entity?.canonical,
+    alternates: entity?.alternates,
+    jsonLd: entity ? breadcrumbJsonLd(entity, kind, locale) : null,
+  })
+
   if (error) return <ErrorState message={error} />
   if (!data) return <Spinner label={t('common', 'loading')} />
 
   // The paginator carries the entity alongside the product rows.
-  const entity = data.meta?.[kind === 'brands' ? 'brand' : 'category']
   const products = data.data || []
   const hero = imageUrl(entity?.image?.url)
 
@@ -87,4 +99,16 @@ export default function Taxonomy({ kind }) {
       </div>
     </div>
   )
+}
+
+/** Home → the listing itself, which is what a category result should show. */
+function breadcrumbJsonLd(entity, kind, locale) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Chamma Store', item: absolute(`/${locale}`) },
+      { '@type': 'ListItem', position: 2, name: entity.name, item: entity.canonical },
+    ],
+  }
 }

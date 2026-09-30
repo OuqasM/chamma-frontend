@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useApp } from '../context/AppContext'
+import useSeo from '../hooks/useSeo'
 import { formatPrice } from '../lib/format'
 import { EmptyState } from '../components/Spinner'
 import BankSlipImage from '../components/BankSlipImage'
@@ -68,6 +69,8 @@ function StepMarker({ done = false, locked = false }) {
 
 export default function Checkout() {
   const { locale, t, cart, cartSubtotal, clearCart } = useApp()
+
+  useSeo({ title: `${t('cart', 'checkout')} | Chamma Store`, noindex: true })
   const navigate = useNavigate()
 
   const [form, setForm] = useState(emptyForm)

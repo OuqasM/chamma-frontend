@@ -5,6 +5,8 @@ import { useApp } from '../context/AppContext'
 import { ProductGrid } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
 import { Spinner, ErrorState } from '../components/Spinner'
+import useSeo from '../hooks/useSeo'
+import { absolute, organisationJsonLd } from '../lib/seo'
 
 function Section({ title, action, children }) {
   return (
@@ -78,6 +80,17 @@ export default function Home() {
       alive = false
     }
   }, [locale])
+
+  useSeo({
+    title: t('seo', 'homeTitle'),
+    description: t('seo', 'homeDescription'),
+    image: data?.hero?.image,
+    // Home has no alternates of its own: it is the x-default target, so all
+    // three locales point back here rather than at each other.
+    alternates: { fr: absolute('/fr'), ar: absolute('/ar'), en: absolute('/en') },
+    canonical: absolute(`/${locale}`),
+    jsonLd: data ? organisationJsonLd(data, locale) : null,
+  })
 
   if (error) return <ErrorState message={error} />
   if (!data) return <Spinner label={t('common', 'loading')} />

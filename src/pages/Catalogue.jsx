@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useApp } from '../context/AppContext'
+import { absolute } from '../lib/seo'
 import { ProductGrid } from '../components/ProductCard'
 import { Spinner, ErrorState, EmptyState } from '../components/Spinner'
+import useSeo from '../hooks/useSeo'
 
 const SORTS = ['featured', 'newest', 'price_asc', 'price_desc', 'name']
 
@@ -216,6 +218,25 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
         : query.is_new
           ? t('nav', 'new')
           : t('nav', 'shop')
+
+  const isSearch = mode === 'search'
+
+  // Every listing view of the same products is one page as far as a crawler is
+  // concerned. Search is the exception: it is noindex because the result set
+  // changes with every query and there is nothing stable to rank.
+  useSeo({
+    title: `${title} | Chamma Store`,
+    description: isSearch ? undefined : t('seo', mode === 'offers' ? 'offersDescription' : 'shopDescription'),
+    canonical: absolute(isSearch ? `/${locale}/products` : `/${locale}/${mode === 'offers' ? 'offers' : 'products'}`),
+    alternates: isSearch
+      ? undefined
+      : {
+          fr: absolute(`/fr/${mode === 'offers' ? 'offers' : 'products'}`),
+          ar: absolute(`/ar/${mode === 'offers' ? 'offers' : 'products'}`),
+          en: absolute(`/en/${mode === 'offers' ? 'offers' : 'products'}`),
+        },
+    noindex: isSearch,
+  })
 
   const filterProps = {
     category: query.category || '',

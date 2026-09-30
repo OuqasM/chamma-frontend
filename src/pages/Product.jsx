@@ -6,6 +6,7 @@ import { Price } from '../components/Price'
 import { ProductGrid } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
 import AddToCartButton from '../components/AddToCartButton'
+import useSeo from '../hooks/useSeo'
 import { Spinner, ErrorState } from '../components/Spinner'
 
 export default function Product() {
@@ -31,10 +32,21 @@ export default function Product() {
     return () => controller.abort()
   }, [locale, slug])
 
+  const p = data?.product
+
+  useSeo({
+    title: p ? `${p.seo?.title || p.name} | Chamma Store` : 'Chamma Store',
+    description: p?.seo?.description,
+    image: p?.image?.url,
+    canonical: p?.canonical,
+    alternates: p?.alternates,
+    type: 'product',
+    jsonLd: p ? productJsonLd(p) : null,
+  })
+
   if (error) return <ErrorState message={error} />
   if (!data) return <Spinner label={t('common', 'loading')} />
 
-  const p = data.product
   const gallery = p.images?.length ? p.images : p.image ? [p.image] : []
   const soldOut = !p.in_stock
   const wished = inWishlist(p.id)
@@ -222,4 +234,69 @@ export default function Product() {
       )}
     </div>
   )
+}
+
+/**
+ * schema.org Product, so the price and availability can surface in results
+ * instead of only on the page.
+ *
+ * `canonical` comes from the API as an absolute storefront URL, which is what
+ * makes the @id stable — an id relative to the current host would point at a
+ * different product on the API domain.
+ */
+function productJsonLd(p) {
+  const graph = [
+    {
+      '@type': 'Product',
+      '@id': `${p.canonical}#product`,
+      name: p.name,
+      description: p.seo?.description,
+      sku: p.sku || undefined,
+      image: p.image?.url,
+      brand: p.brand ? { '@type': 'Brand', name: p.brand.name } : undefined,
+      offers: {
+        '@type': 'Offer',
+        url: p.canonical,
+        priceCurrency: 'MAD',
+        price: Number(p.price).toFixed(2),
+        availability: p.in_stock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+      },
+      ...(Number(p.rating_count) > 0
+        ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: Number(p.rating).toFixed(1),
+              reviewCount: Number(p.rating_count),
+            },
+          }
+        : {}),
+    },
+  ]
+
+  // The breadcrumb is already on the page above the gallery; serialising it
+  // means the category path can appear under the result rather than only
+  // inside the site.
+  const categories = p.categories ?? [];
+  if (categories.length) {
+    graph.unshift({
+      '@type': 'BreadcrumbList',
+      '@id': `${p.canonical}#breadcrumb`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: categories[0].name, item: categories[0].canonical },
+        ...categories.slice(1).map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 2,
+          name: c.name,
+          ...(c.canonical ? { item: c.canonical } : {}),
+        })),
+        { '@type': 'ListItem', position: categories.length + 1, name: p.name, item: p.canonical },
+      ],
+    })
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': graph,
+  }
 }
