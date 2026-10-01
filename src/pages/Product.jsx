@@ -227,16 +227,16 @@ export default function Product() {
               press. */}
           {soldOut && <WaitlistForm product={p} />}
 
-          {/* One section, with the language buttons on its heading. The two
-              branches it replaces — rendered HTML, or the plain-text fallback
-              with nothing in between — are handled inside, so a product whose
-              description has no formatting still gets the same heading row
-              rather than a bare paragraph with no way to switch it. */}
-          <ProductDescription
-            description={p.description}
-            description_html={p.description_html}
-            translations={p.description_translations}
-          />
+          {/* One section, and one source of truth for the copy. The language
+              buttons sit on its heading and swap the paragraph underneath, and
+              the API marks which language the page is actually showing — which
+              is not always the language in the URL, because the page's
+              description resolves through a fallback chain. So the component
+              reads from `description_translations` alone rather than also
+              taking `description`/`description_html`, which would be the same
+              text under a second name with no way to tell which button it
+              belongs to. */}
+          <ProductDescription translations={p.description_translations} />
 
         </div>
       </div>
