@@ -7,6 +7,7 @@ import { ProductGrid } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
 import AddToCartButton from '../components/AddToCartButton'
 import useSeo from '../hooks/useSeo'
+import { absolute } from '../lib/seo'
 import { Spinner, ErrorState } from '../components/Spinner'
 import WaitlistForm from '../components/WaitlistForm'
 
@@ -42,7 +43,7 @@ export default function Product() {
     canonical: p?.canonical,
     alternates: p?.alternates,
     type: 'product',
-    jsonLd: p ? productJsonLd(p) : null,
+    jsonLd: p ? productJsonLd(p, locale) : null,
   })
 
   if (error) return <ErrorState message={error} />
@@ -251,7 +252,12 @@ export default function Product() {
  * makes the @id stable — an id relative to the current host would point at a
  * different product on the API domain.
  */
-function productJsonLd(p) {
+function productJsonLd(p, locale) {
+  // A product's categories arrive as {id, slug, name} with no canonical, so a
+  // breadcrumb built from that field alone ships a ListItem with no `item` — an
+  // entry a crawler is meant to reject. The slug rebuilds the same URL.
+  const categoryUrl = (c) => c.canonical || absolute(`/${locale}/categories/${c.slug}`)
+
   const graph = [
     {
       '@type': 'Product',
@@ -290,12 +296,12 @@ function productJsonLd(p) {
       '@type': 'BreadcrumbList',
       '@id': `${p.canonical}#breadcrumb`,
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: categories[0].name, item: categories[0].canonical },
+        { '@type': 'ListItem', position: 1, name: categories[0].name, item: categoryUrl(categories[0]) },
         ...categories.slice(1).map((c, i) => ({
           '@type': 'ListItem',
           position: i + 2,
           name: c.name,
-          ...(c.canonical ? { item: c.canonical } : {}),
+          item: categoryUrl(c),
         })),
         { '@type': 'ListItem', position: categories.length + 1, name: p.name, item: p.canonical },
       ],
