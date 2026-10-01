@@ -89,9 +89,17 @@ export function ProductCard({ product, showAdd = true }) {
           </Link>
         </h3>
         {product.size && <p className="mt-1 truncate text-xs text-stone-400">{product.size}</p>}
-        {/* mt-auto pins price and button to the bottom, so cards line up even
-            when a brand or size line is missing. */}
-        <Price product={product} className="mt-auto pt-3 text-sm font-medium" />
+        {/* `mt-auto` pins the price and the button to the card's foot, so cards
+            line up even when a brand or size line is missing from one of them.
+            But 14px medium was the same weight as the size line under the name,
+            and the button below it was 10px — so the one number on the card a
+            shopper is actually scanning for was the quietest of the three. 15px
+            semibold in `noir`, which is the weight and colour the card's name
+            is set at, so the two things you read to decide line up with each
+            other. `text-noir` is stated rather than left to inheritance: the
+            card's ambient text is the lighter body ink, and inheriting it is
+            what made the price quiet in the first place. */}
+        <Price product={product} className="mt-auto pt-3 text-[15px] font-semibold text-noir" />
 
         {showAdd && !soldOut && (
           <AddToCartButton

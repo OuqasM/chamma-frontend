@@ -19,6 +19,14 @@ const readStored = (key) => {
 
 const readCart = () => readStored('chamma_cart')
 
+// Walks a dotted key so a group can hold a table of related strings —
+// `t('common', 'sortOptions.price_asc')` — without every caller reaching for
+// the dictionary itself. Returns undefined on any missing step rather than
+// throwing on a partially present path, so one missing translation inside a
+// nested group falls back like any other. Module scope: it holds no state and
+// `t` is memoised, so rebuilding it on every render would buy nothing.
+const lookup = (dict, path) => path.reduce((node, step) => (node == null ? undefined : node[step]), dict)
+
 const readWishlist = () => readStored('chamma_wishlist')
 
 export function AppProvider({ children }) {
@@ -38,7 +46,11 @@ export function AppProvider({ children }) {
 
   const t = useCallback(
     (group, key, vars) => {
-      const raw = dictionaries[locale]?.[group]?.[key] ?? dictionaries[DEFAULT_LOCALE]?.[group]?.[key] ?? key
+      const path = String(key).split('.')
+      const raw =
+        lookup(dictionaries[locale]?.[group], path) ??
+        lookup(dictionaries[DEFAULT_LOCALE]?.[group], path) ??
+        key
       if (!vars) return raw
       return Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, v), raw)
     },

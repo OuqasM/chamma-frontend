@@ -10,7 +10,7 @@ import useSeo from '../hooks/useSeo'
 import { absolute } from '../lib/seo'
 import { Spinner, ErrorState } from '../components/Spinner'
 import WaitlistForm from '../components/WaitlistForm'
-import TranslatedDescription from '../components/TranslatedDescription'
+import ProductDescription from '../components/ProductDescription'
 
 export default function Product() {
   const { slug } = useParams()
@@ -142,7 +142,16 @@ export default function Product() {
             )
           )}
 
-          <Price product={p} className="mt-5 text-xl" />
+          {/* The price is the answer to the question the shopper came with, and
+              at `text-xl` regular weight it was the same visual weight as the
+              short description directly above it — two blocks of body text with
+              the number in neither. Now 2xl at semibold in the ink colour, so
+              the eye lands on it before the prose. `noir` rather than `gold`:
+              gold is the accent for the cart state and the "in wishlist" heart,
+              and a gold price would read as a discount badge sitting next to
+              the real one. A discounted price still goes `sale` red from
+              inside `Price`, so the two states stay distinguishable. */}
+          <Price product={p} className="mt-5 text-2xl font-semibold tracking-tight text-noir" />
 
           <p className="mt-3 text-xs">
             {soldOut ? (
@@ -218,23 +227,16 @@ export default function Product() {
               press. */}
           {soldOut && <WaitlistForm product={p} />}
 
-          {p.description_html && (
-            <div className="mt-8">
-              <h2 className="text-xs uppercase tracking-widest text-stone-400">{t('product', 'description')}</h2>
-              <div className="rich-text mt-2" dangerouslySetInnerHTML={{ __html: p.description_html }} />
-            </div>
-          )}
-
-          {!p.description_html && p.description && (
-            <div className="mt-8">
-              <h2 className="text-xs uppercase tracking-widest text-stone-400">{t('product', 'description')}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-stone-700">{p.description}</p>
-            </div>
-          )}
-
-          {/* Only rendered when the API says a description exists in another
-              language, so this is either a real choice or nothing at all. */}
-          <TranslatedDescription translations={p.description_translations} />
+          {/* One section, with the language buttons on its heading. The two
+              branches it replaces — rendered HTML, or the plain-text fallback
+              with nothing in between — are handled inside, so a product whose
+              description has no formatting still gets the same heading row
+              rather than a bare paragraph with no way to switch it. */}
+          <ProductDescription
+            description={p.description}
+            description_html={p.description_html}
+            translations={p.description_translations}
+          />
 
         </div>
       </div>
