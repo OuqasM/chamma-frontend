@@ -10,6 +10,7 @@ import useSeo from '../hooks/useSeo'
 import { absolute } from '../lib/seo'
 import { Spinner, ErrorState } from '../components/Spinner'
 import WaitlistForm from '../components/WaitlistForm'
+import TranslatedDescription from '../components/TranslatedDescription'
 
 export default function Product() {
   const { slug } = useParams()
@@ -230,6 +231,10 @@ export default function Product() {
               <p className="mt-2 text-sm leading-relaxed text-stone-700">{p.description}</p>
             </div>
           )}
+
+          {/* Only rendered when the API says a description exists in another
+              language, so this is either a real choice or nothing at all. */}
+          <TranslatedDescription translations={p.description_translations} />
 
         </div>
       </div>

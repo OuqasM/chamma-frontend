@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { adminApi, imageUrl } from '../../lib/api'
 import { formatPrice } from '../../lib/format'
 import { useApp } from '../../context/AppContext'
@@ -8,6 +8,7 @@ import { ErrorState, Spinner } from '../../components/Spinner'
 import { MultiSelect, Select, TextInput, Toggle } from '../../components/admin/Form'
 import { dictionaries } from '../../lib/i18n'
 import { COPY_LOCALES, copyFromTranslations, emptyCopy } from '../../lib/productForm'
+import { listReturnQuery } from '../../lib/listReturn'
 import { Badge, Banner, GhostButton, PageHeader, Panel, PrimaryButton, buttonClass } from '../../components/admin/Ui'
 
 const GENDERS = ['women', 'men', 'unisex']
@@ -77,6 +78,11 @@ export default function AdminProductEdit() {
   const { call } = useAdmin()
   const navigate = useNavigate()
   const { state } = useLocation()
+  // Filters the list was showing, carried in the URL when it linked here.
+  const [listParams] = useSearchParams()
+
+  // The list's own filters, so coming back lands where the admin left off.
+  const listQuery = listReturnQuery(listParams)
 
   // `/admin/products/new` is its own route, so it arrives with no `:id` at all;
   // `new` is still accepted in case the path is ever reached as `products/:id`.
@@ -267,7 +273,7 @@ export default function AdminProductEdit() {
       // that is now redundant only costs a trip. `replace` keeps the saved
       // product out of the history, so Back returns to wherever the admin came
       // from rather than re-opening a form they have already submitted.
-      navigate(`/${locale}/admin/products`, { replace: true })
+      navigate(`/${locale}/admin/products${listQuery}`, { replace: true })
     } catch (err) {
       setErrors(err.errors || {})
       setError(err.message)
@@ -307,7 +313,7 @@ export default function AdminProductEdit() {
         title={isNew ? t('admin', 'new') : form.name || form.slug || t('admin', 'products')}
         actions={
           <>
-            <Link to={`/${locale}/admin/products`} className={buttonClass('ghost')}>
+            <Link to={`/${locale}/admin/products${listQuery}`} className={buttonClass('ghost')}>
               {t('admin', 'backToList')}
             </Link>
             {!isNew && form.slug && (
