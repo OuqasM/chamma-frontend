@@ -80,13 +80,13 @@ export default function AdminVisits() {
 
       {error && <Banner>{error}</Banner>}
 
-      {/* Two numbers, because the gap between them is the interesting part:
-          "total" counts people, "pageViews" counts pages they looked at. */}
+      {/* One row per IP address, so "addresses" and "visitors" rarely match:
+          several people behind the same address collapse into a single row. */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stat(t('admin', 'visitors'), summary.total ?? 0)}
+        {stat(t('admin', 'visitors'), summary.visitors ?? 0)}
+        {stat(t('admin', 'addresses'), summary.total ?? 0)}
         {stat(t('admin', 'pageViews'), summary.page_views ?? 0)}
         {stat(t('admin', 'visitorsLast24h'), summary.last_24h ?? 0)}
-        {stat(t('admin', 'visitorsLast30d'), summary.last_30d ?? 0)}
       </div>
 
       <Panel>
@@ -115,31 +115,25 @@ export default function AdminVisits() {
         ) : (
           <Table
             head={[
-              t('admin', 'visitor'),
+              t('admin', 'ipAddress'),
               t('admin', 'device'),
               t('admin', 'browser'),
-              t('admin', 'page'),
+              t('admin', 'visitors'),
               t('admin', 'visitsCount'),
-              t('admin', 'firstSeen'),
               t('admin', 'lastSeen'),
             ]}
           >
             {visits.map((v) => (
-              <tr key={v.id} className="transition hover:bg-stone-50">
+              <tr key={v.ip ?? 'unknown'} className="transition hover:bg-stone-50">
                 <Td>
-                  <span className="font-mono text-xs text-stone-600" dir="ltr">{v.visitor_id}</span>
-                  <span className="block text-xs text-stone-400" dir="ltr">{v.ip}</span>
+                  <span className="font-mono text-xs text-stone-600" dir="ltr">{v.ip || '—'}</span>
                 </Td>
                 <Td>
                   <Badge tone={DEVICE_TONES[v.device] || 'neutral'}>{t('admin', `device_${v.device}`)}</Badge>
                 </Td>
-                <Td className="whitespace-nowrap text-stone-600">
-                  {v.browser || '—'}
-                  <span className="block text-xs text-stone-400">{v.os || '—'}</span>
-                </Td>
-                <Td className="font-mono text-xs text-stone-600" dir="ltr">{v.path}</Td>
-                <Td className="whitespace-nowrap font-semibold">{v.visits_count}</Td>
-                <Td className="whitespace-nowrap text-stone-600">{v.first_seen ? new Date(v.first_seen).toLocaleString(locale) : '—'}</Td>
+                <Td className="whitespace-nowrap text-stone-600">{v.browser || '—'}</Td>
+                <Td className="whitespace-nowrap font-semibold">{v.visitors ?? 0}</Td>
+                <Td className="whitespace-nowrap font-semibold">{v.visits_count ?? 0}</Td>
                 <Td className="whitespace-nowrap text-stone-600">{v.last_seen ? new Date(v.last_seen).toLocaleString(locale) : '—'}</Td>
               </tr>
             ))}
