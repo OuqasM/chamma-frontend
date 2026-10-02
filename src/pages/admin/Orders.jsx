@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi, api } from '../../lib/api'
-import { LOCALES } from '../../lib/i18n'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState } from '../../components/Spinner'
@@ -30,7 +29,6 @@ const emptyDraft = () => ({
   notes: '',
   payment_method: '',
   payment_status: 'pending',
-  locale: '',
   items: [],
 })
 
@@ -54,6 +52,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
   const [search, setSearch] = useState('')
   const [matches, setMatches] = useState([])
   const [looking, setLooking] = useState(false)
+  const [quote, setQuote] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -126,6 +125,32 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     }
   }, [search, open, locale])
 
+  // Shipping is priced by the same server endpoint checkout uses, so a phone
+  // order is charged the city's carrier fee and the free-delivery threshold
+  // exactly like an online one. The client never decides the fee.
+  useEffect(() => {
+    if (!open) return
+    if (draft.items.length === 0) {
+      setQuote(null)
+      return
+    }
+    let alive = true
+    api
+      .quote(locale, {
+        city: draft.city,
+        items: draft.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+      })
+      .then((d) => {
+        if (alive) setQuote(d)
+      })
+      .catch(() => {
+        if (alive) setQuote(null)
+      })
+    return () => {
+      alive = false
+    }
+  }, [open, locale, draft.city, draft.items])
+
   const addItem = (product) => {
     setDraft((d) => {
       // Adding the same product twice should raise its quantity, not create two
@@ -194,7 +219,6 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         notes: draft.notes || null,
         payment_method: draft.payment_method,
         payment_status: draft.payment_status,
-        locale: draft.locale || null,
         // Only the two fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
@@ -388,10 +412,28 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             </ul>
           )}
 
-          <p className="text-right text-sm text-stone-700">
-            <span className="text-stone-500">{t('checkout', 'orderSummary')}: </span>
-            <strong>{money(estimate)}</strong>
-          </p>
+          <dl className="space-y-1.5 rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-stone-500">{t('cart', 'subtotal')}</dt>
+              <dd>{money(quote ? quote.subtotal : estimate)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-stone-500">{t('cart', 'shipping')}</dt>
+              <dd>
+                {!draft.city
+                  ? '—'
+                  : quote
+                    ? quote.shipping_cost === 0
+                      ? t('common', 'free')
+                      : money(quote.shipping_cost)
+                    : '…'}
+              </dd>
+            </div>
+            <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
+              <dt>{t('cart', 'total')}</dt>
+              <dd>{quote ? money(quote.total) : '…'}</dd>
+            </div>
+          </dl>
         </fieldset>
 
         <fieldset className="space-y-3">
@@ -399,34 +441,19 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             {t('admin', 'newOrderPaymentMethod')}
           </legend>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Select
-              label={t('admin', 'method')}
-              name="payment_method"
-              value={draft.payment_method}
-              onChange={(e) => set({ payment_method: e.target.value })}
-              required
-            >
-              {(options?.payment_methods || []).map((m) => (
-                <option key={m.code} value={m.code}>
-                  {m.label}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              label={t('admin', 'locale')}
-              value={draft.locale}
-              onChange={(e) => set({ locale: e.target.value })}
-            >
-              <option value="">{t('admin', 'orderLocale')}</option>
-              {LOCALES.map((l) => (
-                <option key={l} value={l}>
-                  {l.toUpperCase()}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <Select
+            label={t('admin', 'method')}
+            name="payment_method"
+            value={draft.payment_method}
+            onChange={(e) => set({ payment_method: e.target.value })}
+            required
+          >
+            {(options?.payment_methods || []).map((m) => (
+              <option key={m.code} value={m.code}>
+                {m.label}
+              </option>
+            ))}
+          </Select>
 
           <label className="flex items-start gap-2.5 rounded-xl border border-stone-200 px-3.5 py-3 text-sm text-stone-700 transition hover:border-stone-300">
             <input

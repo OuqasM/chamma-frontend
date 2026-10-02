@@ -44,6 +44,15 @@ vi.mock('../../lib/api', () => ({
         payment_methods: [{ code: 'cod', label: 'Paiement à la livraison' }],
         payment: { default: 'cod' },
       }),
+    // The panel prices shipping through the same quote endpoint checkout uses,
+    // so the mock has to answer it as well.
+    quote: () =>
+      Promise.resolve({
+        subtotal: 890,
+        shipping_cost: 35,
+        total: 925,
+        currency: 'MAD',
+      }),
   },
 }))
 
