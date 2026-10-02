@@ -5,7 +5,7 @@ import { formatPrice } from '../../lib/format'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState, ErrorState, Spinner } from '../../components/Spinner'
-import { Badge, PageHeader, Panel, StatusBadge, Table, Td } from '../../components/admin/Ui'
+import { Badge, PageHeader, Panel, StatCard, StatusBadge, Table, Td } from '../../components/admin/Ui'
 
 /** Card keys the dashboard reports, mapped to their labels. */
 const CARDS = [
@@ -63,16 +63,16 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <PageHeader title={t('admin', 'dashboard')} subtitle={t('admin', 'last30')} />
 
-      <div className="grid gap-px border border-stone-200 bg-stone-200 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {CARDS.map(({ key, label }) => {
           const card = cards[key]
           return (
-            <div key={key} className="bg-ivory px-5 py-4">
-              <p className="text-[11px] uppercase tracking-widest text-stone-500 sm:text-xs">{t('admin', label)}</p>
-              <p className="mt-1.5 text-2xl font-semibold text-noir">
-                {card ? (card.currency ? formatPrice(card.value, locale) : card.value) : '—'}
-              </p>
-            </div>
+            <StatCard
+              key={key}
+              label={t('admin', label)}
+              value={card ? (card.currency ? formatPrice(card.value, locale) : card.value) : '—'}
+              tone={key === 'revenue' ? 'accent' : 'default'}
+            />
           )
         })}
       </div>
@@ -82,7 +82,10 @@ export default function AdminDashboard() {
         className="overflow-hidden"
         bodyClassName=""
         actions={
-          <Link to={`/${locale}/admin/orders`} className="text-xs uppercase tracking-widest text-stone-500 hover:text-gold">
+          <Link
+            to={`/${locale}/admin/orders`}
+            className="text-xs font-medium uppercase tracking-widest text-stone-500 transition hover:text-plum"
+          >
             {t('home', 'viewAll')}
           </Link>
         }
@@ -94,19 +97,22 @@ export default function AdminDashboard() {
             {recentOrders.map((o) => (
               <tr key={o.id} className="transition hover:bg-stone-50">
                 <Td>
-                  <Link to={`/${locale}/admin/orders/${o.id}`} className="font-mono text-xs hover:text-gold">
+                  <Link to={`/${locale}/admin/orders/${o.id}`} className="font-mono text-xs transition hover:text-plum">
                     {o.reference}
                   </Link>
                 </Td>
                 <Td>{o.customer_name}</Td>
                 <Td className="text-stone-600">{o.city}</Td>
                 <Td className="whitespace-nowrap text-stone-600">{formatDate(o.created_at, locale)}</Td>
-                <Td className="whitespace-nowrap">{formatPrice(o.total, locale)}</Td>
+                <Td className="whitespace-nowrap font-medium">{formatPrice(o.total, locale)}</Td>
                 <Td>
                   <StatusBadge label={o.status_label} color={o.status_color} />
                 </Td>
                 <Td>
-                  <Link to={`/${locale}/admin/orders/${o.id}`} className="text-xs uppercase tracking-widest text-stone-500 hover:text-gold">
+                  <Link
+                    to={`/${locale}/admin/orders/${o.id}`}
+                    className="text-xs font-medium uppercase tracking-widest text-stone-500 transition hover:text-plum"
+                  >
                     {t('admin', 'edit')}
                   </Link>
                 </Td>
@@ -120,16 +126,16 @@ export default function AdminDashboard() {
         {lowStock.length === 0 ? (
           <EmptyState title={t('admin', 'noResults')} />
         ) : (
-          <ul className="divide-y divide-stone-200">
+          <ul className="divide-y divide-stone-100">
             {lowStock.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 px-5 py-3">
-                <span className="h-11 w-11 shrink-0 overflow-hidden bg-stone-100">
+              <li key={p.id} className="flex items-center gap-3 px-6 py-3.5">
+                <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   {p.image ? (
                     <img src={imageUrl(p.image)} alt="" className="h-full w-full object-cover" loading="lazy" />
                   ) : null}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <Link to={`/${locale}/admin/products/${p.id}`} className="block truncate text-sm hover:text-gold">
+                  <Link to={`/${locale}/admin/products/${p.id}`} className="block truncate text-sm transition hover:text-plum">
                     {p.name}
                   </Link>
                   <span className="font-mono text-xs text-stone-500">{p.sku}</span>
@@ -137,9 +143,7 @@ export default function AdminDashboard() {
                 {p.stock === 0 ? (
                   <Badge tone="danger">{t('admin', 'outOfStock')}</Badge>
                 ) : (
-                  <Badge tone="accent">
-                    {t('product', 'lowStock', { n: p.stock })}
-                  </Badge>
+                  <Badge tone="accent">{t('product', 'lowStock', { n: p.stock })}</Badge>
                 )}
               </li>
             ))}

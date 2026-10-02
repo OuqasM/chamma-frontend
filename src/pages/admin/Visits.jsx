@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState } from '../../components/Spinner'
 import { Select } from '../../components/admin/Form'
-import { Badge, Banner, PageHeader, Panel, Pagination, Table, Td } from '../../components/admin/Ui'
+import { Badge, Banner, PageHeader, Panel, Pagination, StatCard, Table, Td } from '../../components/admin/Ui'
 
 const blank = () => ({ device: '', page: 1 })
 
@@ -64,13 +64,6 @@ export default function AdminVisits() {
   const devices = data?.filters?.devices || []
   const byDevice = summary.by_device || {}
 
-  const stat = (label, value) => (
-    <div className="border border-stone-200 bg-ivory px-5 py-4">
-      <p className="text-[11px] uppercase tracking-widest text-stone-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-noir">{value}</p>
-    </div>
-  )
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -82,11 +75,11 @@ export default function AdminVisits() {
 
       {/* One row per IP address, so "addresses" and "visitors" rarely match:
           several people behind the same address collapse into a single row. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stat(t('admin', 'visitors'), summary.visitors ?? 0)}
-        {stat(t('admin', 'addresses'), summary.total ?? 0)}
-        {stat(t('admin', 'pageViews'), summary.page_views ?? 0)}
-        {stat(t('admin', 'visitorsLast24h'), summary.last_24h ?? 0)}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label={t('admin', 'visitors')} value={summary.visitors ?? 0} tone="accent" />
+        <StatCard label={t('admin', 'addresses')} value={summary.total ?? 0} />
+        <StatCard label={t('admin', 'pageViews')} value={summary.page_views ?? 0} />
+        <StatCard label={t('admin', 'visitorsLast24h')} value={summary.last_24h ?? 0} />
       </div>
 
       <Panel>
@@ -105,7 +98,7 @@ export default function AdminVisits() {
               ))}
             </Select>
           </div>
-          {loading && <span className="pb-2 text-xs uppercase tracking-widest text-stone-400">{t('common', 'loading')}</span>}
+          {loading && <span className="pb-2 text-xs font-medium uppercase tracking-widest text-stone-400">{t('common', 'loading')}</span>}
         </div>
       </Panel>
 

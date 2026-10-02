@@ -14,6 +14,7 @@ import {
   PrimaryButton,
   Table,
   Td,
+  StatCard,
 } from '../../components/admin/Ui'
 
 const blank = () => ({ product: '', status: 'pending', page: 1 })
@@ -130,13 +131,6 @@ export default function AdminWaitlist() {
     }
   }
 
-  const stat = (label, value) => (
-    <div className="border border-stone-200 bg-ivory px-5 py-4">
-      <p className="text-[11px] uppercase tracking-widest text-stone-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-noir">{value}</p>
-    </div>
-  )
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -146,10 +140,10 @@ export default function AdminWaitlist() {
 
       {error && <Banner>{error}</Banner>}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {stat(t('admin', 'waitlistPending'), summary.pending_total ?? 0)}
-        {stat(t('admin', 'waitlistProducts'), summary.pending_products ?? 0)}
-        {stat(t('admin', 'waitlistNotified'), summary.notified_total ?? 0)}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label={t('admin', 'waitlistPending')} value={summary.pending_total ?? 0} tone="accent" />
+        <StatCard label={t('admin', 'waitlistProducts')} value={summary.pending_products ?? 0} />
+        <StatCard label={t('admin', 'waitlistNotified')} value={summary.notified_total ?? 0} />
       </div>
 
       <Panel>
@@ -197,7 +191,7 @@ export default function AdminWaitlist() {
             </GhostButton>
           )}
           {loading && (
-            <span className="pb-2 text-xs uppercase tracking-widest text-stone-400">
+            <span className="pb-2 text-xs font-medium uppercase tracking-widest text-stone-400">
               {t('common', 'loading')}
             </span>
           )}
@@ -260,7 +254,7 @@ export default function AdminWaitlist() {
                       href={entry.whatsapp_url}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="text-xs uppercase tracking-widest text-gold hover:underline"
+                      className="text-xs font-medium uppercase tracking-widest text-plum transition hover:text-noir hover:underline"
                     >
                       {t('admin', 'waitlistWhatsapp')}
                     </a>

@@ -250,7 +250,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         {error && <Banner>{error}</Banner>}
 
         <fieldset className="space-y-3">
-          <legend className="text-xs uppercase tracking-widest text-stone-400">
+          <legend className="text-[13px] font-semibold text-noir">
             {t('admin', 'newOrderCustomer')}
           </legend>
 
@@ -315,7 +315,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         </fieldset>
 
         <fieldset className="space-y-3">
-          <legend className="text-xs uppercase tracking-widest text-stone-400">
+          <legend className="text-[13px] font-semibold text-noir">
             {t('admin', 'newOrderItems')}
           </legend>
 
@@ -329,13 +329,13 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             />
             {looking && <p className="mt-1 text-xs text-stone-400">{t('common', 'loading')}</p>}
             {!looking && matches.length > 0 && (
-              <ul className="mt-1 max-h-56 overflow-auto border border-stone-200 bg-white">
+              <ul className="mt-1 max-h-56 overflow-auto rounded-xl border border-stone-200 bg-ivory">
                 {matches.map((p) => (
                   <li key={p.id}>
                     <button
                       type="button"
                       onClick={() => addItem(p)}
-                      className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-stone-50"
+                      className="flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-sm transition hover:bg-stone-50"
                     >
                       <span className="truncate text-stone-800">{p.name}</span>
                       <span className="whitespace-nowrap text-xs text-stone-500">
@@ -354,9 +354,9 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
           {draft.items.length === 0 ? (
             <p className="text-sm text-stone-500">{t('admin', 'newOrderEmptyItems')}</p>
           ) : (
-            <ul className="divide-y divide-stone-100 border border-stone-200">
+            <ul className="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200">
               {draft.items.map((item) => (
-                <li key={item.product_id} className="flex flex-wrap items-center gap-3 px-3 py-2">
+                <li key={item.product_id} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
                   <span className="min-w-40 flex-1 truncate text-sm text-stone-800">{item.name}</span>
 
                   {tooMany(item) && (
@@ -371,7 +371,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
                     value={item.quantity}
                     onChange={(e) => setQuantity(item.product_id, e.target.value)}
                     aria-label={t('admin', 'quantity')}
-                    className="w-20 border border-stone-300 px-2 py-1 text-sm focus:border-gold focus:outline-none"
+                    className="w-20 rounded-lg border border-stone-200 px-2 py-1.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/15"
                   />
                   <span className="w-24 text-right text-sm text-stone-600">
                     {money((Number(item.price) || 0) * item.quantity)}
@@ -379,7 +379,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
                   <button
                     type="button"
                     onClick={() => removeItem(item.product_id)}
-                    className="text-xs uppercase tracking-widest text-stone-400 hover:text-rose-700"
+                    className="text-xs font-medium text-stone-400 transition hover:text-rose-700"
                   >
                     {t('admin', 'newOrderRemoveItem')}
                   </button>
@@ -395,7 +395,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         </fieldset>
 
         <fieldset className="space-y-3">
-          <legend className="text-xs uppercase tracking-widest text-stone-400">
+          <legend className="text-[13px] font-semibold text-noir">
             {t('admin', 'newOrderPaymentMethod')}
           </legend>
 
@@ -428,14 +428,14 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             </Select>
           </div>
 
-          <label className="flex items-start gap-2 text-sm text-stone-700">
+          <label className="flex items-start gap-2.5 rounded-xl border border-stone-200 px-3.5 py-3 text-sm text-stone-700 transition hover:border-stone-300">
             <input
               type="checkbox"
               checked={draft.payment_status === 'paid'}
               onChange={(e) =>
                 set({ payment_status: e.target.checked ? 'paid' : 'pending' })
               }
-              className="mt-1"
+              className="mt-0.5 h-4 w-4 accent-gold"
             />
             <span>
               {t('admin', 'newOrderMarkPaid')}
@@ -454,7 +454,7 @@ function Ghostish({ onClick, label }) {
     <button
       type="button"
       onClick={onClick}
-      className="px-4 py-2 text-xs uppercase tracking-widest text-stone-500 hover:text-stone-800"
+      className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-noir"
     >
       {label}
     </button>
@@ -553,7 +553,7 @@ export default function AdminOrders() {
               ))}
             </Select>
           </div>
-          {loading && <span className="pb-2 text-xs uppercase tracking-widest text-stone-400">{t('common', 'loading')}</span>}
+          {loading && <span className="pb-2 text-xs font-medium uppercase tracking-widest text-stone-400">{t('common', 'loading')}</span>}
         </div>
       </Panel>
 
@@ -579,7 +579,7 @@ export default function AdminOrders() {
                 </Td>
                 <Td className="whitespace-nowrap text-stone-600">
                   {new Date(o.created_at).toLocaleString(locale)}
-                  <span className="block text-xs uppercase tracking-widest text-stone-400">{o.locale}</span>
+                  <span className="block text-[11px] font-medium uppercase tracking-wider text-stone-400">{o.locale}</span>
                 </Td>
                 <Td>
                   <Badge tone={o.status_color}>{o.status_label}</Badge>

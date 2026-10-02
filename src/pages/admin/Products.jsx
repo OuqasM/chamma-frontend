@@ -154,20 +154,20 @@ export default function AdminProducts() {
       {notice && <Banner tone="success">{notice}</Banner>}
       {error && <Banner>{error}</Banner>}
 
-      <Panel bodyClassName="p-4">
+      <Panel>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <input
             value={params.get('search') || ''}
             onChange={(e) => setParam('search', e.target.value)}
             placeholder={t('admin', 'searchPlaceholder')}
             aria-label={t('admin', 'search')}
-            className="w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold"
+            className="w-full rounded-xl border border-stone-200 bg-ivory px-3.5 py-2.5 text-sm text-noir outline-none transition placeholder:text-stone-400 focus:border-gold focus:ring-2 focus:ring-gold/15"
           />
           <select
             value={params.get('brand') || ''}
             onChange={(e) => setParam('brand', e.target.value)}
             aria-label={t('admin', 'brand')}
-            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="rounded-xl border border-stone-200 bg-ivory px-3.5 py-2.5 text-sm text-noir outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/15"
           >
             <option value="">{t('admin', 'brand')}</option>
             {taxonomies.brands.map((b) => (
@@ -180,7 +180,7 @@ export default function AdminProducts() {
             value={params.get('category') || ''}
             onChange={(e) => setParam('category', e.target.value)}
             aria-label={t('admin', 'category')}
-            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="rounded-xl border border-stone-200 bg-ivory px-3.5 py-2.5 text-sm text-noir outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/15"
           >
             <option value="">{t('admin', 'category')}</option>
             {taxonomies.categories.map((c) => (
@@ -193,7 +193,7 @@ export default function AdminProducts() {
             value={params.get('active') || ''}
             onChange={(e) => setParam('active', e.target.value)}
             aria-label={t('admin', 'active')}
-            className="border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="rounded-xl border border-stone-200 bg-ivory px-3.5 py-2.5 text-sm text-noir outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/15"
           >
             <option value="">{t('admin', 'all')}</option>
             <option value="1">{t('admin', 'active')}</option>
@@ -224,13 +224,13 @@ export default function AdminProducts() {
                 <tr key={p.id} className="transition hover:bg-stone-50">
                   <Td>
                     <div className="flex items-center gap-3">
-                      <span className="h-11 w-11 shrink-0 overflow-hidden bg-stone-100">
+                      <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                         {p.preview?.url && (
                           <img src={imageUrl(p.preview.url)} alt="" className="h-full w-full object-cover" loading="lazy" />
                         )}
                       </span>
                       <span className="min-w-0">
-                        <Link to={`/${locale}/admin/products/${p.id}`} className="block max-w-[16rem] truncate hover:text-gold">
+                        <Link to={`/${locale}/admin/products/${p.id}`} className="block max-w-[16rem] truncate transition hover:text-plum">
                           {p.preview?.name || p.slug}
                         </Link>
                         <span className="mt-0.5 flex flex-wrap gap-1">
@@ -248,7 +248,7 @@ export default function AdminProducts() {
                     )}
                   </Td>
                   <Td>
-                    <span className={p.stock === 0 ? 'text-rose-600' : p.stock <= 3 ? 'text-gold' : ''}>{p.stock}</span>
+                    <span className={p.stock === 0 ? 'font-medium text-rose-600' : p.stock <= 3 ? 'font-medium text-amber-600' : ''}>{p.stock}</span>
                   </Td>
                   <Td>
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -289,7 +289,7 @@ export default function AdminProducts() {
                 </tr>
               ))}
             </Table>
-            <div className="px-5 py-4">
+            <div className="px-6 py-4">
               <Pagination meta={meta} onPage={(page) => setParam('page', page)} />
             </div>
           </>

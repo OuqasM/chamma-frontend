@@ -15,24 +15,25 @@ import { Link } from 'react-router-dom'
  * here in full.
  */
 const STATUS_TONES = {
-  amber: 'border-amber-200 bg-amber-50 text-amber-800',
-  sky: 'border-sky-200 bg-sky-50 text-sky-800',
-  violet: 'border-violet-200 bg-violet-50 text-violet-800',
-  indigo: 'border-indigo-200 bg-indigo-50 text-indigo-800',
-  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  rose: 'border-rose-200 bg-rose-50 text-rose-800',
+  amber: 'border-amber-200/80 bg-amber-50 text-amber-700',
+  sky: 'border-sky-200/80 bg-sky-50 text-sky-700',
+  violet: 'border-violet-200/80 bg-violet-50 text-violet-700',
+  indigo: 'border-indigo-200/80 bg-indigo-50 text-indigo-700',
+  emerald: 'border-emerald-200/80 bg-emerald-50 text-emerald-700',
+  rose: 'border-rose-200/80 bg-rose-50 text-rose-700',
 }
 
 const BADGE_TONES = {
-  neutral: 'border-stone-200 bg-stone-50 text-stone-600',
-  accent: 'border-gold/30 bg-sand text-noir',
-  jade: 'border-jade/30 bg-jade/10 text-jade',
+  neutral: 'border-stone-200 bg-stone-100 text-stone-600',
+  accent: 'border-gold/25 bg-gold/10 text-plum',
+  jade: 'border-jade/25 bg-jade/10 text-jade',
   danger: 'border-rose-200 bg-rose-50 text-rose-700',
 }
 
+/** A soft pill; sentence-case so status words read rather than shout. */
 export function Badge({ children, tone = 'neutral', className = '' }) {
   return (
-    <span className={`inline-block border px-2 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs ${BADGE_TONES[tone] || BADGE_TONES.neutral} ${className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${BADGE_TONES[tone] || BADGE_TONES.neutral} ${className}`}>
       {children}
     </span>
   )
@@ -40,7 +41,8 @@ export function Badge({ children, tone = 'neutral', className = '' }) {
 
 export function StatusBadge({ label, color }) {
   return (
-    <span className={`inline-block border px-2 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs ${STATUS_TONES[color] || STATUS_TONES.indigo}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${STATUS_TONES[color] || STATUS_TONES.indigo}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
       {label}
     </span>
   )
@@ -53,12 +55,15 @@ export function StatusBadge({ label, color }) {
  * override; table bodies pass an empty string to stay edge-to-edge, since
  * `Table` already pads its own cells.
  */
-export function Panel({ title, actions, children, className = '', bodyClassName = 'px-5 py-4' }) {
+export function Panel({ title, actions, children, className = '', bodyClassName = 'px-6 py-5' }) {
   return (
-    <section className={`border border-stone-200 bg-ivory ${className}`}>
+    <section className={`overflow-hidden rounded-2xl border border-stone-200/80 bg-ivory shadow-[0_1px_2px_rgba(58,29,39,0.04),0_16px_40px_-28px_rgba(58,29,39,0.35)] ${className}`}>
       {(title || actions) && (
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
-          {title && <h2 className="text-[13px] uppercase tracking-widest text-stone-500 sm:text-xs">{title}</h2>}
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="h-4 w-1 rounded-full bg-gold" aria-hidden="true" />
+            {title && <h2 className="text-sm font-semibold text-noir">{title}</h2>}
+          </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>
       )}
@@ -71,33 +76,48 @@ export function PageHeader({ title, subtitle, actions }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold text-noir sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-stone-500">{subtitle}</p>}
+        <h1 className="text-2xl font-semibold tracking-tight text-noir sm:text-[28px]">{title}</h1>
+        {subtitle && <p className="mt-1.5 text-sm text-stone-500">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
   )
 }
 
+/**
+ * A single number on a soft card. Two `<p>` children on purpose: the label
+ * first, the value second, which the visits dashboard test reads positionally.
+ */
+export function StatCard({ label, value, hint, tone = 'default' }) {
+  return (
+    <div className="rounded-2xl border border-stone-200/80 bg-ivory px-5 py-4 shadow-[0_1px_2px_rgba(58,29,39,0.04),0_16px_40px_-30px_rgba(58,29,39,0.4)]">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-stone-400">{label}</p>
+      <p className={`mt-1.5 text-2xl font-semibold tracking-tight ${tone === 'accent' ? 'text-plum' : 'text-noir'}`}>{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-stone-400">{hint}</p>}
+    </div>
+  )
+}
+
 export function Banner({ children, tone = 'error' }) {
   if (!children) return null
   const tones = {
-    error: 'border-rose-300 bg-rose-50 text-rose-800',
-    success: 'border-jade/30 bg-jade/10 text-jade',
-    info: 'border-stone-200 bg-sand/60 text-noir',
+    error: 'border-rose-200 bg-rose-50 text-rose-700',
+    success: 'border-jade/25 bg-jade/10 text-jade',
+    warning: 'border-amber-200 bg-amber-50 text-amber-700',
+    info: 'border-stone-200 bg-stone-50 text-noir',
   }
   return (
-    <div role="alert" className={`border px-4 py-3 text-sm ${tones[tone] || tones.error}`}>
+    <div role="alert" className={`rounded-xl border px-4 py-3 text-sm ${tones[tone] || tones.error}`}>
       {children}
     </div>
   )
 }
 
 const PRIMARY_BUTTON_CLASS =
-  'min-h-11 bg-noir px-5 py-2.5 text-[13px] uppercase tracking-widest text-white transition hover:bg-gold sm:text-xs'
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-noir px-5 py-2.5 text-sm font-medium text-white transition hover:bg-plum focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40'
 const GHOST_TONES = {
-  default: 'border-stone-200 text-noir hover:border-gold hover:bg-gold hover:text-white',
-  danger: 'border-rose-300 text-rose-700 hover:bg-rose-600 hover:text-white hover:border-rose-600',
+  default: 'border border-stone-200 bg-ivory text-noir hover:border-stone-300 hover:bg-stone-50',
+  danger: 'border border-rose-200 bg-ivory text-rose-700 hover:border-rose-600 hover:bg-rose-600 hover:text-white',
 }
 
 /**
@@ -108,7 +128,7 @@ const GHOST_TONES = {
 export function buttonClass(variant = 'primary', tone = 'default') {
   return variant === 'primary'
     ? PRIMARY_BUTTON_CLASS
-    : `min-h-11 border px-4 py-2 text-[13px] uppercase tracking-widest transition sm:text-xs ${GHOST_TONES[tone] || GHOST_TONES.default}`
+    : `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${GHOST_TONES[tone] || GHOST_TONES.default}`
 }
 
 export function PrimaryButton({ children, className = '', ...props }) {
@@ -136,23 +156,28 @@ export function GhostButton({ children, className = '', tone = 'default', ...pro
 export function Modal({ open, onClose, title, children, footer, wide = false }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-950/50 p-4 sm:p-8">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-950/40 p-4 backdrop-blur-sm sm:p-8">
       <div
-        className={`w-full border border-stone-200 bg-ivory shadow-lg ${wide ? 'max-w-3xl' : 'max-w-lg'}`}
+        className={`w-full overflow-hidden rounded-2xl border border-stone-200/80 bg-ivory shadow-2xl shadow-stone-950/20 ${wide ? 'max-w-3xl' : 'max-w-lg'}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <header className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-3.5">
-          <h2 className="text-[13px] uppercase tracking-widest text-stone-500 sm:text-xs">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-stone-400 transition hover:text-noir">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-6 w-6" aria-hidden="true">
+        <header className="flex items-center justify-between gap-4 border-b border-stone-100 px-5 py-4">
+          <h2 className="text-base font-semibold text-noir">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full p-1.5 text-stone-400 transition hover:bg-stone-100 hover:text-noir"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
             </svg>
           </button>
         </header>
         <div className="px-5 py-5">{children}</div>
-        {footer && <footer className="flex flex-wrap justify-end gap-2 border-t border-stone-200 px-5 py-3.5">{footer}</footer>}
+        {footer && <footer className="flex flex-wrap justify-end gap-2 border-t border-stone-100 bg-stone-50/60 px-5 py-4">{footer}</footer>}
       </div>
     </div>
   )
@@ -327,7 +352,7 @@ export function ActionMenu({ label, items = [] }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}
-        className="inline-flex min-h-11 w-11 items-center justify-center border border-stone-200 text-noir transition hover:border-gold hover:bg-gold hover:text-white"
+        className="inline-flex min-h-11 w-11 items-center justify-center rounded-xl border border-stone-200 text-noir transition hover:border-stone-300 hover:bg-stone-50"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
           <circle cx="5" cy="12" r="1.75" />
@@ -344,13 +369,13 @@ export function ActionMenu({ label, items = [] }) {
             role="menu"
             aria-label={label}
             style={style}
-            className="fixed z-50 w-52 border border-stone-200 bg-ivory py-1 shadow-lg"
+            className="fixed z-50 w-52 rounded-xl border border-stone-200/80 bg-ivory p-1.5 shadow-xl shadow-stone-950/10"
           >
             {items.map((item, index) => {
               const armed = armedKey === item.key
               const content = armed && item.confirmLabel ? item.confirmLabel : item.label
-              const tone = item.tone === 'danger' ? 'text-rose-700 hover:bg-rose-50' : 'text-noir hover:bg-sand'
-              const className = `flex w-full items-center px-3 py-2.5 text-start text-[13px] uppercase tracking-widest transition sm:text-xs ${tone} ${
+              const tone = item.tone === 'danger' ? 'text-rose-700 hover:bg-rose-50' : 'text-noir hover:bg-stone-100'
+              const className = `flex w-full items-center rounded-lg px-3 py-2.5 text-start text-[13px] font-medium transition ${tone} ${
                 armed ? 'bg-rose-50' : ''
               }`
               const ref = (el) => {
@@ -377,30 +402,31 @@ export function ActionMenu({ label, items = [] }) {
   )
 }
 
-export function Table({ head, children, className = '' }) {  return (
+export function Table({ head, children, className = '' }) {
+  return (
     <div className={`overflow-x-auto ${className}`}>
       <table className="w-full min-w-[40rem] border-collapse text-start">
         <thead>
-          <tr className="border-b border-stone-200 bg-stone-50">
+          <tr className="border-b border-stone-200">
             {head.map((h) => (
               <th
                 key={h}
                 scope="col"
-                className={`px-4 py-3 text-[11px] uppercase tracking-widest text-stone-500 sm:py-2.5 sm:text-xs ${h === '' ? 'w-px' : 'text-start'}`}
+                className={`px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider text-stone-400 ${h === '' ? 'w-px' : 'text-start'}`}
               >
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-stone-200">{children}</tbody>
+        <tbody className="divide-y divide-stone-100">{children}</tbody>
       </table>
     </div>
   )
 }
 
 export function Td({ children, className = '' }) {
-  return <td className={`px-4 py-3 align-middle text-[15px] text-noir sm:text-sm ${className}`}>{children}</td>
+  return <td className={`px-5 py-3.5 align-middle text-sm text-noir ${className}`}>{children}</td>
 }
 
 /** Paginator driven by Laravel's `meta.links`, so any admin list can use it. */
@@ -417,15 +443,15 @@ export function Pagination({ meta, onPage }) {
             type="button"
             onClick={() => onPage(new URL(link.url, window.location.origin).searchParams.get('page'))}
             disabled={link.active}
-            className={`min-h-11 min-w-11 border px-3 py-2 text-sm ${
-              link.active ? 'border-gold bg-gold text-white' : 'border-stone-200 hover:border-gold'
+            className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm transition ${
+              link.active ? 'border-noir bg-noir text-white' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
             }`}
             dangerouslySetInnerHTML={{ __html: link.label }}
           />
         ) : (
           <span
             key={i}
-            className="min-h-11 min-w-11 border border-stone-100 px-3 py-2 text-center text-sm text-stone-300"
+            className="min-h-11 min-w-11 rounded-lg border border-stone-100 px-3 py-2 text-center text-sm text-stone-300"
             dangerouslySetInnerHTML={{ __html: link.label }}
           />
         ),

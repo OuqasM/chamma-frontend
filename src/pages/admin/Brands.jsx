@@ -164,7 +164,7 @@ export default function AdminBrands() {
             {brands.map((b) => (
               <tr key={b.id} className="transition hover:bg-stone-50">
                 <Td>
-                  <span className="flex h-10 w-16 items-center justify-center overflow-hidden bg-stone-100">
+                  <span className="flex h-10 w-16 items-center justify-center overflow-hidden rounded-xl bg-stone-100">
                     {b.logo ? (
                       <img src={imageUrl(b.logo)} alt="" className="h-full w-full object-contain" loading="lazy" />
                     ) : (
@@ -236,9 +236,9 @@ export default function AdminBrands() {
           <TextInput label={t('admin', 'position')} type="number" min="0" value={form.position} onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))} error={errors.position?.[0]} />
 
           <div>
-            <span className="text-xs uppercase tracking-widest text-stone-400">{t('admin', 'logo')}</span>
+            <span className="text-[13px] font-medium text-stone-600">{t('admin', 'logo')}</span>
             {form.logo && (
-              <span className="mt-1.5 flex h-16 w-28 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50">
+              <span className="mt-1.5 flex h-16 w-28 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
                 <img src={imageUrl(form.logo)} alt="" className="h-full w-full object-contain" />
               </span>
             )}
@@ -246,7 +246,7 @@ export default function AdminBrands() {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/svg+xml"
               onChange={uploadLogo}
-              className="mt-2 w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
+              className="mt-2 w-full text-xs text-stone-600 file:me-3 file:rounded-lg file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:font-medium file:text-noir"
             />
           </div>
 

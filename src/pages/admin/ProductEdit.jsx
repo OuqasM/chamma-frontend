@@ -332,7 +332,7 @@ export default function AdminProductEdit() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
-          <Panel title={t('admin', 'product')} bodyClassName="p-5">
+          <Panel title={t('admin', 'product')} bodyClassName="px-6 py-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <TextInput
                 label={t('admin', 'name')}
@@ -420,7 +420,7 @@ export default function AdminProductEdit() {
             </div>
           </Panel>
 
-          <Panel title={t('admin', 'descriptionTitle')} bodyClassName="p-5">
+          <Panel title={t('admin', 'descriptionTitle')} bodyClassName="px-6 py-5">
             <p className="mb-4 text-xs text-stone-500">{t('admin', 'descriptionHint')}</p>
 
             {COPY_LOCALES.map((code) => (
@@ -428,7 +428,7 @@ export default function AdminProductEdit() {
                 key={code}
                 // A group per language, so the heading separates them for
                 // screen readers as well as visually.
-                className="mb-5 border-t border-stone-200 pt-4 last:mb-0 last:border-0"
+                className="mb-5 border-t border-stone-100 pt-4 last:mb-0 last:border-0"
               >
                 <legend className="sr-only">{dictionaries[code].localeName}</legend>
                 <p className="mb-2 text-sm font-medium text-noir">{dictionaries[code].localeName}</p>
@@ -455,25 +455,25 @@ export default function AdminProductEdit() {
         </div>
 
         <div className="space-y-6">
-          <Panel title={t('admin', 'images')} bodyClassName="p-5">
+          <Panel title={t('admin', 'images')} bodyClassName="px-6 py-5">
             {images.length === 0 ? (
               <p className="text-sm text-stone-500">{t('admin', 'noImage')}</p>
             ) : (
               <ul className="grid grid-cols-3 gap-3">
                 {images.map((img, index) => (
                   <li key={img.path} className="relative">
-                    <span className="block aspect-square overflow-hidden border border-stone-200 bg-stone-50">
+                    <span className="block aspect-square overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
                       <img src={imageUrl(img.url)} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </span>
                     {img.is_primary && (
-                      <span className="absolute start-0 top-0">
+                      <span className="absolute start-1 top-1">
                         <Badge tone="accent">{t('admin', 'image')}</Badge>
                       </span>
                     )}
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute end-0 top-0 bg-rose-600 px-1.5 py-0.5 text-[11px] uppercase tracking-widest sm:text-xs text-white transition hover:bg-rose-700"
+                      className="absolute end-1 top-1 rounded-full bg-rose-600/95 px-2 py-0.5 text-[11px] font-medium text-white transition hover:bg-rose-700"
                     >
                       {t('admin', 'removeImage')}
                     </button>
@@ -482,7 +482,7 @@ export default function AdminProductEdit() {
               </ul>
             )}
 
-            <div className="mt-4 space-y-3 border-t border-stone-200 pt-4">
+            <div className="mt-4 space-y-3 border-t border-stone-100 pt-4">
               <p className="text-xs text-stone-500">{t('admin', 'uploadHint')}</p>
               <label className="block">
                 <span className="sr-only">{t('admin', 'upload')}</span>
@@ -491,7 +491,7 @@ export default function AdminProductEdit() {
                   accept="image/jpeg,image/png,image/webp,image/svg+xml"
                   onChange={upload}
                   disabled={uploading || images.length >= MAX_IMAGES}
-                  className="w-full text-xs text-stone-600 file:me-3 file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:uppercase file:tracking-widest"
+                  className="w-full text-xs text-stone-600 file:me-3 file:rounded-lg file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:font-medium file:text-noir"
                 />
               </label>
             </div>

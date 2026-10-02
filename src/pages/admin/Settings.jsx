@@ -150,11 +150,11 @@ export default function AdminSettings() {
         <p className="text-[13px] text-stone-500 sm:text-xs">{t('admin', 'mailTransportHint')}</p>
         <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
           <div>
-            <dt className="text-xs uppercase tracking-widest text-stone-400">{t('admin', 'mailTransport')}</dt>
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-stone-400">{t('admin', 'mailTransport')}</dt>
             <dd className="font-semibold text-noir">{mailer}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-widest text-stone-400">{t('admin', 'email')}</dt>
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-stone-400">{t('admin', 'email')}</dt>
             <dd className="font-semibold text-noir" dir="ltr">{data.settings.mail.from}</dd>
           </div>
         </dl>

@@ -19,7 +19,7 @@ const PAYMENT_TONES = { pending: 'neutral', paid: 'jade', refunded: 'danger' }
 function Row({ label, children }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-2">
-      <dt className="text-xs uppercase tracking-widest text-stone-400">{label}</dt>
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-stone-400">{label}</dt>
       <dd className="text-right text-sm text-stone-700">{children}</dd>
     </div>
   )
@@ -86,8 +86,8 @@ export default function AdminOrderDetail() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] uppercase tracking-widest text-stone-400 sm:text-xs">{t('admin', 'order')}</p>
-          <h1 className="text-2xl tracking-wide text-stone-900">{order.reference}</h1>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-stone-400">{t('admin', 'order')}</p>
+          <h1 className="font-serif text-2xl text-noir">{order.reference}</h1>
         </div>
         <Link to={`/${locale}/admin/orders`} className={buttonClass('ghost')}>
           {t('admin', 'backToOrders')}
@@ -105,7 +105,7 @@ export default function AdminOrderDetail() {
                 <tr key={item.id}>
                   <Td>
                     <div className="flex items-center gap-3">
-                      <span className="h-14 w-12 shrink-0 overflow-hidden bg-stone-100">
+                      <span className="h-14 w-12 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                         {item.image && <img src={imageUrl(item.image)} alt="" className="h-full w-full object-cover" loading="lazy" />}
                       </span>
                       <span>
@@ -121,7 +121,7 @@ export default function AdminOrderDetail() {
               ))}
             </Table>
 
-            <dl className="mt-4 space-y-1 border-t border-stone-200 pt-4 text-sm">
+            <dl className="mt-4 space-y-1 border-t border-stone-100 pt-4 text-sm">
               <div className="flex justify-between text-stone-600">
                 <dt>{t('admin', 'subtotal')}</dt>
                 <dd>{money(order.subtotal, order.currency, locale)}</dd>
@@ -159,7 +159,7 @@ export default function AdminOrderDetail() {
             </dl>
 
             {closed ? (
-              <p className="mt-4 border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs text-stone-500">
+              <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-500">
                 {t('admin', 'orderClosed')}
               </p>
             ) : (
@@ -205,11 +205,11 @@ export default function AdminOrderDetail() {
             <dl className="mt-3 space-y-1.5 text-sm">
               {order.customer?.phone && (
                 <div className="flex items-baseline gap-2">
-                  <dt className="w-20 shrink-0 text-xs uppercase tracking-widest text-stone-400">
+                  <dt className="w-20 shrink-0 text-[11px] font-medium uppercase tracking-wider text-stone-400">
                     {t('admin', 'phone')}
                   </dt>
                   <dd>
-                    <a href={`tel:${order.customer.phone}`} dir="ltr" className="text-stone-700 hover:text-gold">
+                    <a href={`tel:${order.customer.phone}`} dir="ltr" className="text-stone-700 transition hover:text-plum">
                       {order.customer.phone}
                     </a>
                   </dd>
@@ -217,14 +217,14 @@ export default function AdminOrderDetail() {
               )}
               {order.customer?.email && (
                 <div className="flex items-baseline gap-2">
-                  <dt className="w-20 shrink-0 text-xs uppercase tracking-widest text-stone-400">
+                  <dt className="w-20 shrink-0 text-[11px] font-medium uppercase tracking-wider text-stone-400">
                     {t('admin', 'email')}
                   </dt>
                   <dd className="min-w-0">
                     <a
                       href={`mailto:${order.customer.email}`}
                       dir="ltr"
-                      className="block truncate text-stone-700 hover:text-gold"
+                      className="block truncate text-stone-700 transition hover:text-plum"
                     >
                       {order.customer.email}
                     </a>
@@ -233,7 +233,7 @@ export default function AdminOrderDetail() {
               )}
             </dl>
 
-            <h3 className="mt-5 border-t border-stone-200 pt-4 text-xs uppercase tracking-widest text-stone-400">
+            <h3 className="mt-5 border-t border-stone-200 pt-4 text-[11px] font-medium uppercase tracking-wider text-stone-400">
               {t('admin', 'shippingDetails')}
             </h3>
             <p className="mt-2 text-sm text-stone-900">{order.shipping?.city}</p>

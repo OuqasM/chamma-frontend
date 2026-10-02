@@ -1,13 +1,13 @@
 /**
  * Admin form controls.
  *
- * Same visual language as the storefront checkout (uppercase micro labels,
- * white fields, gold focus ring) plus the per-field validation state the admin
- * API returns in `ApiError.errors`.
+ * Same visual language as the storefront checkout (soft labels, white fields,
+ * gold focus ring) plus the per-field validation state the admin API returns in
+ * `ApiError.errors`.
  */
 function control(invalid, extra = '') {
-  return `mt-1.5 w-full border bg-ivory px-3 py-2.5 text-base outline-none transition focus:border-gold sm:text-sm ${
-    invalid ? 'border-rose-400' : 'border-stone-200'
+  return `mt-1.5 w-full rounded-xl border bg-ivory px-3.5 py-2.5 text-base text-noir outline-none transition placeholder:text-stone-400 focus:border-gold focus:ring-2 focus:ring-gold/15 sm:text-sm ${
+    invalid ? 'border-rose-300' : 'border-stone-200'
   } ${extra}`
 }
 
@@ -20,7 +20,7 @@ function Help({ error, hint }) {
 export function Field({ label, error, hint, className = '', children }) {
   return (
     <label className={`block ${className}`}>
-      {label && <span className="font-semibold text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</span>}
+      {label && <span className="text-[13px] font-medium text-stone-600">{label}</span>}
       {children}
       <Help error={error} hint={hint} />
     </label>
@@ -77,12 +77,12 @@ export function MultiSelect({ label, error, hint, className = '', options = [], 
   return (
     <fieldset className={className}>
       {label && (
-        <legend className="font-semibold text-[13px] uppercase tracking-widest text-stone-400 sm:text-xs">{label}</legend>
+        <legend className="text-[13px] font-medium text-stone-600">{label}</legend>
       )}
 
       <div
-        className={`mt-1.5 max-h-56 overflow-y-auto border bg-ivory ${
-          error ? 'border-rose-400' : 'border-stone-200'
+        className={`mt-1.5 max-h-56 overflow-y-auto rounded-xl border bg-ivory ${
+          error ? 'border-rose-300' : 'border-stone-200'
         }`}
       >
         {options.map((o) => {
@@ -122,7 +122,7 @@ export function MultiSelect({ label, error, hint, className = '', options = [], 
 /** Checkbox styled as a switchable row; `checked` drives the admin boolean. */
 export function Toggle({ label, checked, onChange, hint, disabled = false }) {
   return (
-    <label className={`flex items-start gap-3 border border-stone-200 bg-ivory px-3 py-2.5 ${disabled ? 'opacity-50' : ''}`}>
+    <label className={`flex items-start gap-3 rounded-xl border border-stone-200 bg-ivory px-3.5 py-3 transition hover:border-stone-300 ${disabled ? 'opacity-50' : ''}`}>
       <input
         type="checkbox"
         checked={Boolean(checked)}
@@ -131,7 +131,7 @@ export function Toggle({ label, checked, onChange, hint, disabled = false }) {
         className="mt-0.5 h-4 w-4 accent-gold"
       />
       <span>
-        <span className="block font-semibold text-[15px] text-noir sm:text-sm">{label}</span>
+        <span className="block text-sm font-medium text-noir">{label}</span>
         {hint && <span className="mt-0.5 block text-[13px] text-stone-500 sm:text-xs">{hint}</span>}
       </span>
     </label>
