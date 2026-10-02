@@ -17,8 +17,6 @@ import { Link } from 'react-router-dom'
 const STATUS_TONES = {
   amber: 'border-amber-200/80 bg-amber-50 text-amber-700',
   sky: 'border-sky-200/80 bg-sky-50 text-sky-700',
-  violet: 'border-violet-200/80 bg-violet-50 text-violet-700',
-  indigo: 'border-indigo-200/80 bg-indigo-50 text-indigo-700',
   emerald: 'border-emerald-200/80 bg-emerald-50 text-emerald-700',
   rose: 'border-rose-200/80 bg-rose-50 text-rose-700',
 }
