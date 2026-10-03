@@ -11,12 +11,44 @@ import { absolute, organisationJsonLd } from '../lib/seo'
 function Section({ title, action, children }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
-      <div className="mb-6 flex items-baseline justify-between">
+      <div className="mb-6 flex items-baseline justify-between gap-4">
         <h2 className="font-serif text-2xl text-noir">{title}</h2>
         {action}
       </div>
       {children}
     </section>
+  )
+}
+
+/** The "view all" affordance beside a section heading.
+ *
+ *  It was a 12px gold word that only announced itself on hover, which read as
+ *  a caption rather than as the way into the rest of the shelf. It now carries
+ *  the weight of a heading counterpart: the label in `noir` so it holds its own
+ *  against the serif title, a gold rule that is always drawn rather than grown
+ *  on hover, and an arrow that mirrors with the writing direction — the same
+ *  forward cue the brand tiles use, so the page has one idea of "onward". */
+function ViewAllLink({ to, children }) {
+  const { dir } = useApp()
+  const arrow = dir === 'rtl' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
+
+  return (
+    <Link
+      to={to}
+      className="group inline-flex shrink-0 items-center gap-2 border-b border-gold pb-1 text-sm font-medium uppercase tracking-[0.18em] text-noir transition-colors hover:text-gold"
+    >
+      {children}
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+        className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+      >
+        <path d={arrow} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </Link>
   )
 }
 
@@ -194,11 +226,7 @@ export default function Home() {
       {data.best_sellers?.length > 0 && (
         <Section
           title={t('home', 'topSellers')}
-          action={
-            <Link to={`/${locale}/products`} className="text-xs uppercase tracking-widest text-gold hover:underline">
-              {t('home', 'viewAll')}
-            </Link>
-          }
+          action={<ViewAllLink to={`/${locale}/products`}>{t('home', 'viewAll')}</ViewAllLink>}
         >
           <ProductShelf products={data.best_sellers} label={t('home', 'topSellers')} />
         </Section>
@@ -213,11 +241,7 @@ export default function Home() {
       {data.offers?.length > 0 && (
         <Section
           title={t('home', 'offers')}
-          action={
-            <Link to={`/${locale}/offers`} className="text-xs uppercase tracking-widest text-gold hover:underline">
-              {t('home', 'viewAll')}
-            </Link>
-          }
+          action={<ViewAllLink to={`/${locale}/offers`}>{t('home', 'viewAll')}</ViewAllLink>}
         >
           <ProductShelf products={data.offers} label={t('home', 'offers')} />
         </Section>
