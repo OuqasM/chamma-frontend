@@ -3,16 +3,17 @@
  * The header at the top of a brand page, and the category header it shares code
  * with.
  *
- * The two look alike in the markup and are fed by different fields: a category
+ * The two look identical on the page and are fed by different fields: a category
  * publishes an `image` object, a brand publishes a `logo` string. The page read
- * `image` for both, so the brand branch could never be taken and every brand
- * fell through to the bare heading — a brand page with no brand on it, which is
+ * `image` for both, so the brand header could never be built and every brand fell
+ * through to the bare heading — a brand page with no brand on it, which is
  * exactly the sort of thing a screenshot of the *products* below it hides.
  *
- * The other claim here is that the two are not treated identically even once the
- * field is found. A category photo is cropped to fill its header; a brand mark
- * is a 640x200 gold wordmark on transparency, so cropping it would cut the
- * lettering off at both ends. `object-contain` is load-bearing, not decoration.
+ * The header itself is the full-bleed cover treatment, and that is the claim worth
+ * pinning: the image fills the width edge to edge behind the scrim, for a brand
+ * mark as much as for a category photo. A brand header that rendered its mark
+ * small on a dark panel is a different page design, not a fix, and it is the kind
+ * of regression that only shows up by looking.
  */
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -76,55 +77,46 @@ const render = async (kind) => {
   await act(async () => Promise.resolve())
 }
 
-const images = () => [...container.querySelectorAll('header img')]
 const header = () => container.querySelector('header')
+const images = () => [...header().querySelectorAll('img')]
+const brand = (over = {}) => ({
+  data: [],
+  meta: { brand: { id: 1, slug: 'rituals', name: 'Rituals', logo: '/images/brands/rituals.svg', ...over } },
+})
 
 describe('a brand page shows the brand', () => {
   it('renders the logo the resource actually sends', async () => {
-    payload = {
-      data: [],
-      meta: {
-        brand: {
-          id: 1,
-          slug: 'rituals',
-          name: 'Rituals',
-          tagline: 'Maison de parfum',
-          logo: '/images/brands/rituals.svg',
-        },
-      },
-    }
+    payload = brand({ tagline: 'Maison de parfum' })
 
     await render('brands')
 
     const found = images()
     expect(found).toHaveLength(1)
     expect(found[0].getAttribute('src')).toBe('/images/brands/rituals.svg')
-    // The name is real text in the h1 right below, so the wordmark is empty for
-    // a screen reader rather than a second reading of the same word.
-    expect(found[0].getAttribute('alt')).toBe('')
     expect(container.querySelector('h1').textContent).toBe('Rituals')
   })
 
-  it('contains the wordmark instead of cropping it to fill', async () => {
-    payload = {
-      data: [],
-      meta: { brand: { id: 1, slug: 'rituals', name: 'Rituals', logo: '/images/brands/rituals.svg' } },
-    }
+  it('covers the full width of the top of the page', async () => {
+    payload = brand()
 
     await render('brands')
 
-    // A wordmark is transparent gold, so it needs the dark panel behind it; and
-    // it is 640x200, so `object-cover` would slice the name off at both ends.
-    expect(header().className).toContain('bg-noir')
-    expect(images()[0].className).toContain('object-contain')
-    expect(images()[0].className).not.toContain('object-cover')
+    // The brand header is the category header: inset-0, object-cover, scrim.
+    // Not a logo parked in the corner of a dark panel.
+    const img = images()[0]
+    expect(img.className).toContain('absolute')
+    expect(img.className).toContain('inset-0')
+    expect(img.className).toContain('object-cover')
+    expect(img.className).toContain('w-full')
+    expect(header().className).toContain('overflow-hidden')
+    // The name sits over it in white, so the mark is decorative for a reader.
+    expect(img.getAttribute('alt')).toBe('')
+    expect(container.querySelector('h1').className).toContain('text-white')
   })
 
   it('still renders the products under the header', async () => {
-    payload = {
-      data: [{ id: 1 }, { id: 2 }],
-      meta: { brand: { id: 1, slug: 'rituals', name: 'Rituals', logo: '/images/brands/rituals.svg' } },
-    }
+    payload = brand()
+    payload.data = [{ id: 1 }, { id: 2 }]
 
     await render('brands')
 
@@ -132,12 +124,12 @@ describe('a brand page shows the brand', () => {
   })
 
   it('falls back to the plain heading when a brand has no logo', async () => {
-    payload = { data: [], meta: { brand: { id: 1, slug: 'x', name: 'X', logo: null } } }
+    payload = brand({ logo: null })
 
     await render('brands')
 
     expect(images()).toHaveLength(0)
-    expect(container.querySelector('h1').textContent).toBe('X')
+    expect(container.querySelector('h1').textContent).toBe('Rituals')
   })
 })
 
@@ -161,7 +153,6 @@ describe('a category page keeps its photograph', () => {
     expect(found).toHaveLength(1)
     expect(found[0].getAttribute('src')).toBe('/images/categories/femme.jpg')
     expect(found[0].className).toContain('object-cover')
-    expect(found[0].className).not.toContain('object-contain')
   })
 
   it('never shows a category logo, which the resource does not send', async () => {
