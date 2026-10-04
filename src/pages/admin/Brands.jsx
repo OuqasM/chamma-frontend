@@ -160,7 +160,7 @@ export default function AdminBrands() {
         {brands.length === 0 ? (
           <EmptyState title={t('admin', 'noBrands')} />
         ) : (
-          <Table head={[t('admin', 'logo'), t('admin', 'name'), t('admin', 'origin'), t('admin', 'products'), t('admin', 'status'), t('admin', 'actions')]}>
+          <Table head={[t('admin', 'logo'), t('admin', 'name'), t('admin', 'origin'), t('admin', 'position'), t('admin', 'products'), t('admin', 'status'), t('admin', 'actions')]}>
             {brands.map((b) => (
               <tr key={b.id} className="transition hover:bg-stone-50">
                 <Td>
@@ -177,6 +177,10 @@ export default function AdminBrands() {
                   {b.tagline && <span className="block text-xs text-stone-500">{b.tagline}</span>}
                 </Td>
                 <Td className="text-stone-600">{b.origin || '—'}</Td>
+                {/* The storefront sorts every brand list by this number, so it
+                    belongs in the table: without it the order looks arbitrary and
+                    there is no way to tell 0 from "never set". */}
+                <Td className="text-stone-600">{b.position}</Td>
                 <Td className="text-stone-600">{b.products_count ?? 0}</Td>
                 <Td>{b.is_active ? <Badge tone="accent">{t('admin', 'active')}</Badge> : <Badge>{t('admin', 'inactive')}</Badge>}</Td>
                 <Td>
