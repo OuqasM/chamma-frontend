@@ -26,7 +26,7 @@ export function Footer() {
   // the customer coming back to check, so promoting it is noise.
   const account = [
     { to: `/${locale}/wishlist`, label: t('common', 'wishlist') },
-    { to: `/${locale}/cart`, label: t('common', 'cart') },
+    { to: `/${locale}/checkout`, label: t('common', 'cart') },
   ]
 
   // Same two taxonomies the header's mega sheet is built from, so the footer

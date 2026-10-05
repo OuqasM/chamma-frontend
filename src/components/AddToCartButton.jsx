@@ -33,7 +33,12 @@ export default function AddToCartButton({
   if (inCart) {
     return (
       <Link
-        to={`/${locale}/cart`}
+        // Stands in for the button that opened the checkout drawer: the button
+        // is replaced by this link the moment it is pressed, so by the time the
+        // drawer closes the element that opened it no longer exists. The drawer
+        // hands focus here instead — see its focus effects.
+        data-cart-trigger
+        to={`/${locale}/checkout`}
         // A link is inline, so the w-full every caller passes would be ignored
         // and the label would sit hard against the start edge. Forcing the
         // block-level box the button had keeps the label centred and the

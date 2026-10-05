@@ -17,6 +17,20 @@ const readStored = (key) => {
   }
 }
 
+// Writing is guarded for the same reason reading is, and it matters more here.
+// A full quota, or storage blocked by the browser's privacy settings, makes
+// setItem throw — and an uncaught throw inside this effect unmounts the tree.
+// The shopper would lose their cart by adding to it, which is the opposite of
+// what the cart is for. Failing to persist is survivable: the cart stays correct
+// in memory for as long as the tab is open.
+const writeStored = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    /* storage unavailable or full; the session still works */
+  }
+}
+
 const readCart = () => readStored('chamma_cart')
 
 // Walks a dotted key so a group can hold a table of related strings —
@@ -38,6 +52,11 @@ export function AppProvider({ children }) {
 
   const [cart, setCart] = useState(readCart)
   const [wishlist, setWishlist] = useState(readWishlist)
+  // Whether the checkout drawer is sliding in from the left. Opening it is part
+  // of adding to the cart rather than something the caller asks for separately,
+  // so a shopper cannot end up with an item in their cart and no sign that it
+  // landed — which is what the silent add used to do.
+  const [cartOpen, setCartOpen] = useState(false)
   const [nav, setNav] = useState(null)
   // The footer's social links and contact details. They arrive in the same
   // navigation response rather than in a request of their own, so the footer
@@ -65,11 +84,11 @@ export function AppProvider({ children }) {
   }, [locale])
 
   useEffect(() => {
-    localStorage.setItem('chamma_cart', JSON.stringify(cart))
+    writeStored('chamma_cart', cart)
   }, [cart])
 
   useEffect(() => {
-    localStorage.setItem('chamma_wishlist', JSON.stringify(wishlist))
+    writeStored('chamma_wishlist', wishlist)
   }, [wishlist])
 
   // Navigation labels are language-specific, so they reload per locale.
@@ -112,6 +131,12 @@ export function AppProvider({ children }) {
   )
 
   const addToCart = useCallback((product, quantity = 1) => {
+    // Opening the drawer belongs here rather than at each call site. It used to
+    // be left to the button, which meant the add was silent: the item landed in
+    // the cart, the header badge ticked up, and nothing on the page said so.
+    // Doing it here means there is no path that adds an item quietly, including
+    // a new one added later.
+    setCartOpen(true)
     setCart((prev) => {
       const found = prev.find((l) => l.id === product.id)
       if (found) {
@@ -143,6 +168,10 @@ export function AppProvider({ children }) {
 
   const removeFromCart = useCallback((id) => setCart((prev) => prev.filter((l) => l.id !== id)), [])
 
+  const openCart = useCallback(() => setCartOpen(true), [])
+
+  const closeCart = useCallback(() => setCartOpen(false), [])
+
   const clearCart = useCallback(() => setCart([]), [])
 
   const toggleWishlist = useCallback((product) => {
@@ -167,6 +196,9 @@ export function AppProvider({ children }) {
       setQuantity,
       removeFromCart,
       clearCart,
+      cartOpen,
+      openCart,
+      closeCart,
       wishlist,
       toggleWishlist,
       inWishlist,
@@ -176,7 +208,7 @@ export function AppProvider({ children }) {
       cartCount: cart.reduce((n, l) => n + l.quantity, 0),
       cartSubtotal: cart.reduce((n, l) => n + Number(l.price) * l.quantity, 0),
     }),
-    [locale, t, nav, contact, cart, addToCart, setQuantity, removeFromCart, clearCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
+    [locale, t, nav, contact, cart, addToCart, setQuantity, removeFromCart, clearCart, cartOpen, openCart, closeCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -172,6 +172,28 @@
     opacity: 1;
   }
 
+  /* The checkout drawer slides in from the physical left in *both* writing
+     directions, which is why this is a separate class rather than a variant of
+     `.drawer`. The menu drawer follows the reading direction — `start-0`, and
+     the RTL rule flips its hidden offset — because a menu is read in the
+     direction it comes from. The checkout drawer is not read, it is acted on,
+     and a shopper has to know which edge to swipe back before they can.
+
+     Deliberately independent of `[dir]`: reusing `.drawer` here would leave the
+     RTL rule to win on specificity and put the panel on the right in Arabic,
+     which is the one thing this class exists to prevent. Keep the duration in
+     step with DRAWER_MS in lib/overlay.js. */
+  .drawer-left {
+    --drawer-hidden: -100%;
+    transform: translateX(var(--drawer-hidden));
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    overscroll-behavior: contain;
+  }
+
+  .drawer-left[data-open='true'] {
+    transform: translateX(0);
+  }
+
   /* Navbar dropdowns: a short fade with a few pixels of travel, so they read as
      dropping out of the trigger rather than blinking. These are popups rather
      than panels pinned to an edge, so a physical translateY reads the same in

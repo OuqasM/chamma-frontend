@@ -13,13 +13,14 @@
  *   `Meknès`, `AGELMOUS`. Typing `fes` has to find Fès, or the shopper concludes
  *   the store does not deliver to their city. Matching ignores case and
  *   combining marks, so `fes`, `Fès` and `FES` all match.
- * - **Cost and delay are shown before choosing.** The point of asking the user to
+ * - **Cost is shown before choosing.** The point of asking the user to
  *   pick a city is that delivery costs money, and the fee is already known from
  *   the API. Hiding it until after selection means picking the wrong city first.
  */
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { formatPrice } from '../lib/format'
+import { knownFee, isFreeDelivery } from '../lib/shipping'
 
 /** Strips case and combining accents: `Fès` -> `fes`, `Meknès` -> `meknes`. */
 function normalise(value) {
@@ -31,7 +32,7 @@ function normalise(value) {
 }
 
 /**
- * Matches on the city name. Fee and delay are deliberately not searchable: a
+ * Matches on the city name. The fee is deliberately not searchable: a
  * shopper looking for Ouarzazate is searching for a place, not a price.
  */
 function matches(city, query) {
@@ -175,10 +176,13 @@ export default function CityPicker({ cities, value, onChange, locale, t, invalid
 
       {selected && (
         <p className="mt-1 text-xs text-stone-500">
-          {selected.fee > 0
-            ? `${t('checkout', 'deliveryFee')}: ${formatPrice(selected.fee, locale)}`
-            : t('checkout', 'freeDelivery')}
-          {selected.delay ? ` · ${selected.delay}` : ''}
+          {/* Only ever a fee the server sent. An absent one falls through to
+              nothing at all: the old `fee > 0 ? price : 'free'` read a missing
+              value as zero, which is a promise the shop had not made. */}
+          {knownFee(selected.fee) &&
+            (isFreeDelivery(selected.fee)
+              ? t('checkout', 'freeDelivery')
+              : `${t('checkout', 'deliveryFee')}: ${formatPrice(selected.fee, locale)}`)}
         </p>
       )}
 
@@ -222,7 +226,11 @@ export default function CityPicker({ cities, value, onChange, locale, t, invalid
                   >
                     <span className="truncate">{city.label}</span>
                     <span className="shrink-0 text-xs text-stone-400">
-                      {city.fee > 0 ? formatPrice(city.fee, locale) : t('common', 'free')}
+                      {isFreeDelivery(city.fee)
+                        ? t('common', 'free')
+                        : knownFee(city.fee)
+                          ? formatPrice(city.fee, locale)
+                          : null}
                     </span>
                   </button>
                 </li>

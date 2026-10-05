@@ -3,25 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { LOCALES, dictionaries } from '../lib/i18n'
-
-function useDismiss(refs, open, setOpen) {
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e) => {
-      const inside = refs.some((r) => r.current && r.current.contains(e.target))
-      if (!inside) setOpen(false)
-    }
-    const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open, refs, setOpen])
-}
+import { useDismiss, useOverlayTransition, useBodyScrollLock, DRAWER_MS, MEGA_MS, DROPDOWN_MS } from '../lib/overlay'
 
 function LocaleSwitcher() {
   const { locale, setLocale } = useApp()
@@ -384,50 +366,6 @@ function DrawerSection({ label, items, defaultOpen = false }) {
   )
 }
 
-// Matches the `transition` duration of `.drawer` in index.css.
-const DRAWER_MS = 380
-// Matches the `transition` duration of `.mega` in index.css.
-const MEGA_MS = 260
-// Matches the `transition` duration of `.dropdown` in index.css.
-const DROPDOWN_MS = 180
-
-/**
- * The two phases an animated panel or menu needs.
- *
- * `mounted` — keep the element in the document for the length of its exit
- * transition. Unmounting the instant `open` flips to false leaves no frame to
- * animate, which is why these menus used to snap in and out.
- *
- * `shown` — one frame behind `open` on the way in. An element that mounts
- * already-open has its *final* computed style on the first paint, so the
- * browser has nothing to transition from and it simply appears. Mounting it
- * closed and flipping `shown` on the next frame gives the transition a
- * starting position.
- */
-function useOverlayTransition(open, ms) {
-  const [mounted, setMounted] = useState(open)
-  const [shown, setShown] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      setMounted(true)
-      return
-    }
-    // Collapses straight away, then stays mounted long enough to slide out.
-    setShown(false)
-    if (!mounted) return
-    const timer = setTimeout(() => setMounted(false), ms)
-    return () => clearTimeout(timer)
-  }, [open, mounted, ms])
-
-  useEffect(() => {
-    if (!open || !mounted) return
-    const raf = requestAnimationFrame(() => setShown(true))
-    return () => cancelAnimationFrame(raf)
-  }, [open, mounted])
-
-  return { mounted, shown }
-}
 
 function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRoute }) {
   const { t, locale, cartCount, wishlist } = useApp()
@@ -437,20 +375,11 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
   refs.current = [panelRef]
   useDismiss(refs, open, onClose)
 
-  // The page behind the drawer must not scroll under the shopper's finger.
-  useEffect(() => {
-    if (!open) return
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previous
-    }
-  }, [open])
-
   // The panel stays mounted for the length of the exit transition, and only
   // reaches its open position a frame after mounting, so it slides in from the
   // edge instead of appearing.
   const { mounted, shown } = useOverlayTransition(open, DRAWER_MS)
+  useBodyScrollLock(open && mounted)
 
   useEffect(() => {
     onClose()
@@ -553,7 +482,7 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
         <div className="shrink-0 border-t border-stone-200 bg-ivory px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
             <DrawerFooterLink to={`/${locale}/wishlist`} onClick={onClose} label={t('common', 'wishlist')} count={wishlist.length} />
-            <DrawerFooterLink to={`/${locale}/cart`} onClick={onClose} label={t('common', 'cart')} count={cartCount} />
+            <DrawerFooterLink to={`/${locale}/checkout`} onClick={onClose} label={t('common', 'cart')} count={cartCount} />
           </div>
         </div>
       </div>
@@ -719,7 +648,7 @@ export function Header() {
               )}
             </Link>
             <Link
-              to={`/${locale}/cart`}
+              to={`/${locale}/checkout`}
               className="relative flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-noir transition hover:text-gold"
               aria-label={t('common', 'cart')}
             >

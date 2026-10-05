@@ -9,7 +9,6 @@ import Home from './pages/Home'
 import Catalogue from './pages/Catalogue'
 import Product from './pages/Product'
 import Taxonomy from './pages/Taxonomy'
-import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Wishlist from './pages/Wishlist'
 import { OrderConfirmation, OrderLookup, NotFound } from './pages/Order'
@@ -120,7 +119,11 @@ export default function App() {
             <Route path="offers" element={<Catalogue mode="offers" />} />
             <Route path="search" element={<Catalogue mode="search" />} />
             <Route path="new" element={<Navigate to="products?sort=newest" replace />} />
-            <Route path="cart" element={<Cart />} />
+            {/* The cart page was merged into checkout: the order form and the
+              lines it applies to are one screen now. Redirected rather than
+              removed so a bookmarked or already-shared /cart still lands
+              somewhere useful. */}
+            <Route path="cart" element={<Navigate to="../checkout" replace />} />
             <Route path="wishlist" element={<Wishlist />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="order" element={<OrderLookup />} />

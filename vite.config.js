@@ -17,4 +17,9 @@ export default defineConfig({
     },
   },
   preview: { port: 5173, host: true },
+  test: {
+    // Each suite picks its own environment with a `@vitest-environment`
+    // docblock; this only adds the setup file, which every suite loads.
+    setupFiles: ['./src/test-setup.js'],
+  },
 })
