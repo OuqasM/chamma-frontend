@@ -233,7 +233,10 @@ export default function Home() {
       )}
 
       {data.new_arrivals?.length > 0 && (
-        <Section title={t('home', 'newArrivals')}>
+        <Section
+          title={t('home', 'newArrivals')}
+          action={<ViewAllLink to={`/${locale}/products?sort=newest`}>{t('home', 'viewAll')}</ViewAllLink>}
+        >
           <ProductShelf products={data.new_arrivals} label={t('home', 'newArrivals')} />
         </Section>
       )}
