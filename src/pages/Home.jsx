@@ -202,6 +202,7 @@ export default function Home() {
 
             {data.promises && (
               <ul className="mt-9 space-y-1.5 text-xs text-stone-200">
+                {data.promises.original && <li>• {data.promises.original}</li>}
                 {data.promises.nationwide && <li>• {data.promises.nationwide}</li>}
                 {data.promises.cod && <li>• {data.promises.cod}</li>}
                 {data.promises.estimate && <li>• {data.promises.estimate}</li>}
