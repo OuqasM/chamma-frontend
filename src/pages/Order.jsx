@@ -32,7 +32,7 @@ export function OrderConfirmation() {
   // them, but the page is noindex: the URL is guessable enough to try, and a
   // confirmation has nothing worth ranking.
   useSeo({
-    title: `${t('checkout', 'success', { reference: order?.reference ?? '' })} | Chamma Store`,
+    title: `${t('checkout', 'success', { reference: order?.reference ?? '' })} | ${t('seo', 'siteName')}`,
     noindex: true,
     jsonLd: order ? orderJsonLd(order) : null,
   })
@@ -147,7 +147,7 @@ export function OrderConfirmation() {
 export function OrderLookup() {
   const { locale, t } = useApp()
 
-  useSeo({ title: `${t('order', 'lookup')} | Chamma Store`, noindex: true })
+  useSeo({ title: `${t('order', 'lookup')} | ${t('seo', 'siteName')}`, noindex: true })
 
   const [reference, setReference] = useState('')
   const [phone, setPhone] = useState('')

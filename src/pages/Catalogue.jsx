@@ -270,7 +270,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
   // concerned. Search is the exception: it is noindex because the result set
   // changes with every query and there is nothing stable to rank.
   useSeo({
-    title: `${title} | Chamma Store`,
+    title: `${title} | ${t('seo', 'siteName')}`,
     description: isSearch ? undefined : t('seo', mode === 'offers' ? 'offersDescription' : 'shopDescription'),
     canonical: absolute(isSearch ? `/${locale}/products` : `/${locale}/${mode === 'offers' ? 'offers' : 'products'}`),
     alternates: isSearch

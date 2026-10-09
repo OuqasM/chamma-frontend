@@ -33,7 +33,7 @@ export default function useSeo({
   noindex = false,
   jsonLd = null,
 }) {
-  const { locale } = useApp()
+  const { locale, t } = useApp()
 
   useEffect(() => {
     resetSeo()
@@ -47,7 +47,7 @@ export default function useSeo({
     setMeta('og:type', type)
     setMeta('og:url', canonical ?? null)
     setMeta('og:locale', OG_LOCALE[locale] ?? 'fr_MA')
-    setMeta('og:site_name', 'Chamma Store')
+    setMeta('og:site_name', t('seo', 'siteName'))
 
     setMetaOrRemove('twitter:card', image ? 'summary_large_image' : 'summary')
     setMetaOrRemove('twitter:title', title)

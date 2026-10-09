@@ -38,7 +38,7 @@ export default function Product() {
   const p = data?.product
 
   useSeo({
-    title: p ? `${p.seo?.title || p.name} | Chamma Store` : 'Chamma Store',
+    title: p ? `${p.seo?.title || p.name} | ${t('seo', 'siteName')}` : t('seo', 'siteName'),
     description: p?.seo?.description,
     image: p?.image?.url,
     canonical: p?.canonical,

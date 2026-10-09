@@ -21,7 +21,7 @@ import {
 export default function Checkout() {
   const { locale, t, cart } = useApp()
 
-  useSeo({ title: `${t('cart', 'checkout')} | Chamma Store`, noindex: true })
+  useSeo({ title: `${t('cart', 'checkout')} | ${t('seo', 'siteName')}`, noindex: true })
 
   const c = useCheckoutForm()
 

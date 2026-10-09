@@ -9,7 +9,7 @@ import { EmptyState } from '../components/Spinner'
 export default function Wishlist() {
   const { locale, t, wishlist, toggleWishlist } = useApp()
 
-  useSeo({ title: `${t('common', 'wishlist')} | Chamma Store`, noindex: true })
+  useSeo({ title: `${t('common', 'wishlist')} | ${t('seo', 'siteName')}`, noindex: true })
 
   if (wishlist.length === 0) {
     return (

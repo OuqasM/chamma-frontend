@@ -137,7 +137,7 @@ export default function Home() {
   }, [locale])
 
   useSeo({
-    title: t('seo', 'homeTitle'),
+    title: t('seo', 'siteName'),
     description: t('seo', 'homeDescription'),
     image: data?.hero?.image,
     // Home has no alternates of its own: it is the x-default target, so all

@@ -72,6 +72,9 @@ export function Footer() {
                 Chamma
               </span>
               <span aria-hidden="true" className="mt-2 block h-px w-full bg-gold/50" />
+              <span className="mt-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                {t('store', 'tagline')}
+              </span>
             </span>
           </Link>
 

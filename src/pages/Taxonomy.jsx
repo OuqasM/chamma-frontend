@@ -31,7 +31,7 @@ export default function Taxonomy({ kind }) {
   const entity = data?.meta?.[kind === 'brands' ? 'brand' : 'category']
 
   useSeo({
-    title: entity ? `${entity.seo?.title || entity.name} | Chamma Store` : 'Chamma Store',
+    title: entity ? `${entity.seo?.title || entity.name} | ${t('seo', 'siteName')}` : t('seo', 'siteName'),
     description: entity?.seo?.description || entity?.description,
     // A brand carries a `logo`, not an `image`, so the brand page used to ship
     // no social preview at all. The logo is a better answer than nothing.

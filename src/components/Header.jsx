@@ -429,6 +429,9 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
                   Chamma
                 </span>
                 <span aria-hidden="true" className="mt-1.5 block h-px w-full bg-gold/50" />
+                <span className="mt-1.5 block text-[9px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                  {t('store', 'tagline')}
+                </span>
               </span>
             </Link>
 
@@ -447,10 +450,6 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
                 ✕
               </button>
             </div>
-          </div>
-
-          <div className="mt-6">
-            <SearchBar onNavigate={onClose} block />
           </div>
         </div>
 
@@ -506,7 +505,7 @@ function DrawerFooterLink({ to, onClick, label, count }) {
   )
 }
 
-function SearchBar({ onNavigate, block = false }) {
+function SearchBar({ onNavigate, block = false, autoFocus = false }) {
   const { locale, t } = useApp()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
@@ -526,6 +525,7 @@ function SearchBar({ onNavigate, block = false }) {
       <input
         type="search"
         value={q}
+        autoFocus={autoFocus}
         onChange={(e) => setQ(e.target.value)}
         placeholder={t('nav', 'search')}
         aria-label={t('nav', 'search')}
@@ -550,6 +550,10 @@ export function Header() {
   const { locale, t, nav, cartCount, wishlist } = useApp()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  // The search field is only an inline input from `sm` up. Below that the bar
+  // has no room for it, so the magnifier in the actions reveals a full-width
+  // row under the header instead of pushing the control into the drawer.
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const isNewRoute =
     location.pathname === `/${locale}/products` &&
@@ -585,6 +589,12 @@ export function Header() {
     return () => mq.removeEventListener('change', close)
   }, [])
 
+  // A route change closes the revealed search row, the same way the drawer
+  // closes itself on navigation.
+  useEffect(() => {
+    setSearchOpen(false)
+  }, [location.pathname])
+
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-ivory/95 backdrop-blur">
       {/* A hairline tier carrying only the language switch. It earns its place
@@ -606,6 +616,9 @@ export function Header() {
               aria-hidden="true"
               className="mt-1.5 block h-px w-full bg-gold/50"
             />
+            <span className="mt-1.5 block whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+              {t('store', 'tagline')}
+            </span>
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center gap-7 xl:flex" aria-label="Main">
@@ -637,6 +650,26 @@ export function Header() {
             <div className="hidden sm:block xl:hidden">
               <LocaleSwitcher />
             </div>
+            <button
+              type="button"
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label={t('nav', 'search')}
+              aria-expanded={searchOpen}
+              aria-controls="mobile-search"
+              className="p-0.5 text-noir transition hover:text-gold sm:hidden"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+              </svg>
+            </button>
             <Link
               to={`/${locale}/wishlist`}
               className="relative hidden text-sm text-noir transition hover:text-gold sm:block"
@@ -663,7 +696,10 @@ export function Header() {
 
             <button
               type="button"
-              onClick={() => setMenuOpen(true)}
+              onClick={() => {
+                setSearchOpen(false)
+                setMenuOpen(true)
+              }}
               aria-label={t('common', 'menu')}
               aria-expanded={menuOpen}
               className="-me-1 p-1 text-xl leading-none text-noir transition hover:text-gold xl:hidden"
@@ -672,6 +708,12 @@ export function Header() {
             </button>
           </div>
         </div>
+
+        {searchOpen && (
+          <div id="mobile-search" className="pb-4 sm:hidden">
+            <SearchBar block autoFocus onNavigate={() => setSearchOpen(false)} />
+          </div>
+        )}
       </div>
 
       <MobileMenu
