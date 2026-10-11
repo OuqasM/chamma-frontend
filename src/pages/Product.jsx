@@ -186,7 +186,7 @@ export default function Product() {
           {p.has_variants && Array.isArray(p.variants) && p.variants.length > 0 && (
             <div className="mt-6">
               <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-stone-500">
-                {t('product', 'variant') || 'Variant'} <span className="text-rose-500">*</span>
+                {t('product', 'availableVariants') || 'Available variants'} <span className="text-rose-500">*</span>
               </label>
               <select
                 value={variant}
