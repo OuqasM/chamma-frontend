@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Chamma Store — Uniquement des produits originaux</title>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -35,6 +35,8 @@ const emptyForm = () => ({
   is_available: true,
   stock: DEFAULT_STOCK,
   gender: '',
+  has_variants: false,
+  variants: [],
   // One short and one long description per language, each optional: a language
   // left blank is simply not written, and the storefront then shows the copy of
   // a language that is filled rather than an empty block.
@@ -153,6 +155,8 @@ export default function AdminProductEdit() {
           is_available: Boolean(p.is_available ?? true),
           stock: p.stock ?? 0,
           gender: p.gender || '',
+          has_variants: Boolean(p.has_variants),
+          variants: (p.variants || []).map((v) => ({ name: v.name })),
           short_descriptions: copyFromTranslations(p.translations, 'short_description'),
           descriptions: copyFromTranslations(p.translations, 'description'),
         })
@@ -253,6 +257,8 @@ export default function AdminProductEdit() {
       is_available: form.is_available,
       stock: Number(form.stock) || 0,
       gender: textOrNull(form.gender),
+      has_variants: form.has_variants,
+      variants: form.variants,
       // Keyed by language, so the API can tell "French is blank" from "French
       // was not submitted": only a submitted key is written.
       short_descriptions: form.short_descriptions,
@@ -418,6 +424,59 @@ export default function AdminProductEdit() {
                 onChange={setFlag('is_available')}
               />
             </div>
+
+            <div className="mt-4">
+              <Toggle
+                label={t('admin', 'hasVariants') || 'Has variants'}
+                hint={t('admin', 'hasVariantsHint') || 'If enabled, customer must select a variant on product page'}
+                checked={form.has_variants}
+                onChange={setFlag('has_variants')}
+              />
+            </div>
+
+            {form.has_variants && (
+              <div className="mt-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-sm font-medium text-noir">
+                    {t('admin', 'variants') || 'Variants'}
+                  </label>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {form.variants.map((v, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-1 text-xs text-stone-700">
+                      {v.name}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm((f) => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }))
+                        }}
+                        className="text-stone-500 hover:text-stone-800"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    placeholder={t('admin', 'addVariant') || 'Add variant name (e.g. 50ml)'}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const val = e.target.value.trim()
+                        if (val && !form.variants.find((x) => x.name.toLowerCase() === val.toLowerCase())) {
+                          setForm((f) => ({ ...f, variants: [...f.variants, { name: val }] }))
+                          e.target.value = ''
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                {errors.variants?.[0] && <p className="mt-1 text-xs text-rose-600">{errors.variants[0]}</p>}
+              </div>
+            )}
           </Panel>
 
           <Panel title={t('admin', 'descriptionTitle')} bodyClassName="px-6 py-5">

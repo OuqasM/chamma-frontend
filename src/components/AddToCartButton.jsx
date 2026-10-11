@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { productHref } from '../lib/api'
 
 /**
  * Add to cart, which becomes a link to the cart once the product is in it.
@@ -28,7 +29,30 @@ export default function AddToCartButton({
 }) {
   const { locale, t, addToCart, cart } = useApp()
 
-  const inCart = cart.some((l) => l.id === product.id)
+  const chosen = props.variant || ''
+
+  // Keyed by variant too, so a product already sitting in the cart in one size
+  // does not block adding a different one from the product page.
+  const inCart = cart.some((l) => l.id === product.id && (l.variant || '') === chosen)
+
+  // A variant is mandatory: a product that has variants can never be added
+  // without one. On the product page the caller disables the button until the
+  // shopper chooses (and the selector is right above it). On a listing card
+  // there is no selector, so the button becomes a link to the product page,
+  // where the choice can actually be made.
+  const needsVariant = Boolean(product?.has_variants) && !chosen
+
+  if (needsVariant && !disabled) {
+    return (
+      <Link
+        to={productHref(product.url, locale)}
+        className={`flex items-center justify-center text-center ${className} ${activeClassName}`}
+        {...props}
+      >
+        {children ?? t('product', 'selectVariant')}
+      </Link>
+    )
+  }
 
   if (inCart) {
     return (
@@ -68,13 +92,15 @@ export default function AddToCartButton({
       type={type}
       disabled={disabled}
       onClick={() => {
-        addToCart(product, quantity)
+        const variant = props.variant
+        if (product?.has_variants && !variant) return
+        addToCart(product, quantity, variant || null)
         onAdd?.()
       }}
       className={className}
       {...props}
     >
-      {children ?? t('common', 'addToCart')}
+      {children ?? (needsVariant ? t('product', 'selectVariant') : t('common', 'addToCart'))}
     </button>
   )
 }

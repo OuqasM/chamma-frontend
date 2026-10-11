@@ -29,7 +29,8 @@ export function useDismiss(refs, open, setOpen) {
   useEffect(() => {
     if (!open) return
     const onDown = (e) => {
-      const inside = refs.some((r) => r.current && r.current.contains(e.target))
+      const list = refs && refs.current ? refs.current : Array.isArray(refs) ? refs : []
+      const inside = list.some((r) => r && r.current && r.current.contains(e.target))
       if (!inside) setOpen(false)
     }
     const onKey = (e) => {

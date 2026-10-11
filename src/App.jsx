@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import { AdminProvider } from './context/AdminContext'
@@ -53,9 +53,10 @@ function LocaleShell() {
  * - Keyed on `pathname` only. The catalogue drives its filters and pagination
  *   through the query string, and resetting on those would yank the page to the
  *   top every time a filter chip is toggled.
- * - Skipped on the first render, so a reload keeps the position the browser
- *   restored and Back still lands where it left. Without the ref, arriving at a
- *   deep link would jump to the top of an already-restored page.
+ * - It runs on mount as well as on a change. `index.html` turns the browser's
+ *   own scroll restoration off, so there is no saved offset to fight; running
+ *   here too is what guarantees a reload starts at the top on a browser that
+ *   ignores that setting.
  * - `behavior: 'instant'`. A smooth scroll between pages reads as lag, not as
  *   polish, and it also fights the smooth `scrollBy` inside `Carousel`.
  * - `left: 0` alongside `top: 0`, since a horizontally scrolled page carries that
@@ -66,13 +67,8 @@ function LocaleShell() {
  */
 function ScrollToTop() {
   const { pathname } = useLocation()
-  const first = useRef(true)
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false
-      return
-    }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [pathname])
 

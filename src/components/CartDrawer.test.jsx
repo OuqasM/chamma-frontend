@@ -373,7 +373,7 @@ describe('checkout drawer', () => {
       address: '',
       notes: '',
       payment_method: 'cod',
-      items: [{ product_id: 7, quantity: 1 }],
+      items: [{ product_id: 7, quantity: 1, variant: null }],
       locale: 'fr',
     })
     expect(path).toBe('/fr/order/CH-1')

@@ -18,12 +18,14 @@ export default function Product() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [variant, setVariant] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
     setData(null)
     setError(null)
     setQuantity(1)
+    setVariant('')
 
     api
       .product(locale, slug, { signal: controller.signal })
@@ -181,6 +183,31 @@ export default function Product() {
               <dd>{p.sku}</dd>
             </div>
           </dl>
+          {p.has_variants && Array.isArray(p.variants) && p.variants.length > 0 && (
+            <div className="mt-6">
+              <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-stone-500">
+                {t('product', 'variant') || 'Variant'} <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={variant}
+                onChange={(e) => setVariant(e.target.value)}
+                className="w-full border border-stone-200 bg-white px-3 py-2 text-sm text-noir focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/40"
+                required
+              >
+                <option value="">{t('product', 'selectVariant') || 'Select variant'}</option>
+                {p.variants.map((v) => (
+                  <option key={v.id || v.name} value={v.name}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+              {!variant && (
+                <p className="mt-2 text-xs font-medium text-rose-600">
+                  {t('product', 'variantRequired') || 'Please choose a variant before adding to cart.'}
+                </p>
+              )}
+            </div>
+          )}
 
           {!soldOut && (
             <div className="mt-6 flex flex-wrap items-stretch gap-3">
@@ -207,8 +234,10 @@ export default function Product() {
               <AddToCartButton
                 product={p}
                 quantity={quantity}
+                variant={variant}
                 className="flex-1 bg-noir px-6 py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-gold"
                 activeClassName="bg-gold hover:bg-noir"
+                disabled={p.has_variants && (!variant || variant === '')}
               />
 
               <button

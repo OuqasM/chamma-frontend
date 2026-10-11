@@ -130,7 +130,7 @@ export function AppProvider({ children }) {
     [location.pathname, location.search, navigate, alternates],
   )
 
-  const addToCart = useCallback((product, quantity = 1) => {
+  const addToCart = useCallback((product, quantity = 1, variant = null) => {
     // Opening the drawer belongs here rather than at each call site. It used to
     // be left to the button, which meant the add was silent: the item landed in
     // the cart, the header badge ticked up, and nothing on the page said so.
@@ -138,9 +138,10 @@ export function AppProvider({ children }) {
     // a new one added later.
     setCartOpen(true)
     setCart((prev) => {
-      const found = prev.find((l) => l.id === product.id)
+      const variantKey = variant || ''
+      const found = prev.find((l) => l.id === product.id && (l.variant || '') === variantKey)
       if (found) {
-        return prev.map((l) => (l.id === product.id ? { ...l, quantity: Math.min(l.quantity + quantity, 20) } : l))
+        return prev.map((l) => (l.id === product.id && (l.variant || '') === variantKey ? { ...l, quantity: Math.min(l.quantity + quantity, 20) } : l))
       }
       return [
         ...prev,
@@ -152,21 +153,55 @@ export function AppProvider({ children }) {
           price: product.price,
           compare_at_price: product.compare_at_price ?? null,
           stock: product.stock ?? null,
+          variant: variant || null,
+          variants: Array.isArray(product.variants)
+            ? product.variants.map((v) => ({ id: v.id, name: v.name }))
+            : null,
           quantity: Math.min(quantity, 20),
         },
       ]
     })
   }, [])
 
-  const setQuantity = useCallback((id, quantity) => {
+  // A line is identified by its product *and* its variant, so the same product
+  // bought in two sizes stays two separate rows instead of one being clobbered.
+  const setQuantity = useCallback((line, quantity) => {
+    const key = `${line.id}::${line.variant || ''}`
     setCart((prev) =>
       quantity <= 0
-        ? prev.filter((l) => l.id !== id)
-        : prev.map((l) => (l.id === id ? { ...l, quantity: Math.min(quantity, 20) } : l)),
+        ? prev.filter((l) => `${l.id}::${l.variant || ''}` !== key)
+        : prev.map((l) => (`${l.id}::${l.variant || ''}` === key ? { ...l, quantity: Math.min(quantity, 20) } : l)),
     )
   }, [])
 
-  const removeFromCart = useCallback((id) => setCart((prev) => prev.filter((l) => l.id !== id)), [])
+  const removeFromCart = useCallback((line) => {
+    const key = `${line.id}::${line.variant || ''}`
+    setCart((prev) => prev.filter((l) => `${l.id}::${l.variant || ''}` !== key))
+  }, [])
+
+  const setLineVariant = useCallback((line, variant) => {
+    const fromKey = `${line.id}::${line.variant || ''}`
+    const toVariant = variant || null
+    const toKey = `${line.id}::${toVariant || ''}`
+
+    if (toKey === fromKey) return
+
+    setCart((prev) => {
+      const source = prev.find((l) => `${l.id}::${l.variant || ''}` === fromKey)
+      if (!source) return prev
+
+      const target = prev.find((l) => `${l.id}::${l.variant || ''}` === toKey)
+      if (target) {
+        // Same product, already in the cart under the new variant: merge the
+        // quantities rather than leaving two rows for one choice.
+        return prev
+          .filter((l) => `${l.id}::${l.variant || ''}` !== fromKey)
+          .map((l) => (`${l.id}::${l.variant || ''}` === toKey ? { ...l, quantity: Math.min(l.quantity + source.quantity, 20) } : l))
+      }
+
+      return prev.map((l) => (`${l.id}::${l.variant || ''}` === fromKey ? { ...l, variant: toVariant } : l))
+    })
+  }, [])
 
   const openCart = useCallback(() => setCartOpen(true), [])
 
@@ -194,6 +229,7 @@ export function AppProvider({ children }) {
       cart,
       addToCart,
       setQuantity,
+      setLineVariant,
       removeFromCart,
       clearCart,
       cartOpen,
@@ -208,7 +244,7 @@ export function AppProvider({ children }) {
       cartCount: cart.reduce((n, l) => n + l.quantity, 0),
       cartSubtotal: cart.reduce((n, l) => n + Number(l.price) * l.quantity, 0),
     }),
-    [locale, t, nav, contact, cart, addToCart, setQuantity, removeFromCart, clearCart, cartOpen, openCart, closeCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
+    [locale, t, nav, contact, cart, addToCart, setQuantity, setLineVariant, removeFromCart, clearCart, cartOpen, openCart, closeCart, wishlist, toggleWishlist, inWishlist, setLocale, alternates, setAlternates],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

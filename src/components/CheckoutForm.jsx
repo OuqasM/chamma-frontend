@@ -66,7 +66,7 @@ export function useCheckoutForm({ onPlaced, scrollRef } = {}) {
   const [message, setMessage] = useState(null)
   const [placing, setPlacing] = useState(false)
 
-  const items = cart.map((l) => ({ product_id: l.id, quantity: l.quantity }))
+  const items = cart.map((l) => ({ product_id: l.id, quantity: l.quantity, variant: l.variant || null }))
 
   // The city list, the payment methods and the bank details all come from the
   // API: the storefront never hardcodes what the store can ship or take.
@@ -229,22 +229,27 @@ function StepMarker({ done = false, locked = false }) {
 export function CheckoutFields({ c }) {
   const { form, update, errors, optionsError, cities, methods, isTransfer, bank, hasBankDetails, formId } = c
 
+  const inputClass = (key) =>
+    `mt-2 w-full rounded-xl border bg-stone-50/70 px-4 py-3 text-sm text-noir outline-none transition placeholder:text-stone-300 focus:bg-white focus:ring-4 ${
+      errors[key]
+        ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100'
+        : 'border-stone-200 focus:border-gold focus:ring-gold/10'
+    }`
+
   const field = (key, label, props = {}) => {
     const { hint, ...rest } = props
 
     return (
       <label className="block">
-        <span className="text-[13px] font-semibold uppercase tracking-wider text-stone-600">{label}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">{label}</span>
         <input
           value={form[key]}
           onChange={update(key)}
           {...rest}
           dir={key === 'email' ? 'ltr' : undefined}
-          className={`mt-1.5 w-full border bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold ${
-            errors[key] ? 'border-rose-400' : 'border-stone-200'
-          }`}
+          className={inputClass(key)}
         />
-        {hint && <span className="mt-1 block text-xs text-stone-400">{hint}</span>}
+        {hint && <span className="mt-1.5 block text-xs text-stone-400">{hint}</span>}
         {errors[key] && <span className="mt-1 block text-xs text-rose-600">{errors[key][0]}</span>}
       </label>
     )
@@ -263,8 +268,8 @@ export function CheckoutFields({ c }) {
 
       {optionsError ? (
         <div>
-          <span className="text-[13px] font-semibold uppercase tracking-wider text-stone-600">{c.t('checkout', 'city')}</span>
-          <p className="mt-1.5 border border-rose-300 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">
+          <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">{c.t('checkout', 'city')}</span>
+          <p className="mt-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {c.t('checkout', 'cityError')}
           </p>
         </div>
@@ -288,23 +293,25 @@ export function CheckoutFields({ c }) {
       {field('address', c.t('checkout', 'address'), { autoComplete: 'street-address' })}
 
       <label className="block">
-        <span className="text-[13px] font-semibold uppercase tracking-wider text-stone-600">{c.t('checkout', 'notes')}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">{c.t('checkout', 'notes')}</span>
         <textarea
           value={form.notes}
           onChange={update('notes')}
           rows={3}
-          className="mt-1.5 w-full border border-stone-200 bg-ivory px-3 py-2.5 text-sm outline-none transition focus:border-gold"
+          className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50/70 px-4 py-3 text-sm text-noir outline-none transition placeholder:text-stone-300 focus:border-gold focus:bg-white focus:ring-4 focus:ring-gold/10"
         />
       </label>
 
       <fieldset>
-        <legend className="text-[13px] font-semibold uppercase tracking-wider text-stone-600">{c.t('checkout', 'payment')}</legend>
-        <div className="mt-2 space-y-2">
+        <legend className="text-xs font-semibold uppercase tracking-wider text-stone-500">{c.t('checkout', 'payment')}</legend>
+        <div className="mt-3 space-y-2.5">
           {methods.map((m) => (
             <label
               key={m.code}
-              className={`flex cursor-pointer items-start gap-3 border bg-ivory px-4 py-3 text-sm transition ${
-                form.payment_method === m.code ? 'border-gold' : 'border-stone-200 hover:border-stone-300'
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 text-sm transition ${
+                form.payment_method === m.code
+                  ? 'border-gold bg-gold/5 ring-2 ring-gold/15'
+                  : 'border-stone-200 bg-stone-50/50 hover:border-stone-300 hover:bg-white'
               }`}
             >
               <input
@@ -316,7 +323,7 @@ export function CheckoutFields({ c }) {
                 className="mt-0.5 accent-gold"
               />
               <span>
-                <span className="block text-noir">{m.label}</span>
+                <span className="block font-medium text-noir">{m.label}</span>
                 <span className="mt-0.5 block text-xs text-stone-500">{m.hint}</span>
               </span>
             </label>
@@ -333,8 +340,8 @@ export function CheckoutFields({ c }) {
         // the shop had a conversation about an order it could not see: no
         // reference, no stock committed, nothing to reconcile against.
         // The order comes first, the receipt link second.
-        <section className="overflow-hidden border border-gold/40 bg-ivory">
-          <header className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-3">
+        <section className="overflow-hidden rounded-2xl border border-gold/30 bg-white shadow-sm">
+          <header className="flex items-center gap-3 border-b border-gold/20 bg-gold/5 px-4 py-3">
             <span className="font-serif text-base text-noir">{c.t('checkout', 'transferTitle')}</span>
             <span className="ms-auto text-[11px] uppercase tracking-widest text-stone-500">
               {c.t('checkout', 'transferBadge')}
@@ -391,7 +398,7 @@ export function CheckoutFields({ c }) {
                   type="submit"
                   form={formId}
                   disabled={c.placing || !c.canSubmit}
-                  className="mt-3 flex w-full items-center justify-center gap-2 bg-noir px-4 py-3.5 text-xs uppercase tracking-widest text-white transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-noir px-4 py-3.5 text-xs uppercase tracking-widest text-white transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {c.placing ? c.t('common', 'loading') : c.t('checkout', 'placeOrderCta')}
                 </button>
@@ -425,17 +432,17 @@ export function CheckoutFields({ c }) {
  * there is exactly one copy of it.
  */
 export function CartLines() {
-  const { locale, t, cart, setQuantity, removeFromCart } = useApp()
+  const { locale, t, cart, setQuantity, setLineVariant, removeFromCart } = useApp()
 
   if (cart.length === 0) return null
 
   return (
-    <ul className="divide-y divide-stone-200 border-b border-stone-200 text-sm">
+    <ul className="space-y-3 text-sm">
       {cart.map((line) => (
-        <li key={line.id} className="flex gap-3 py-3 first:pt-0 last:pb-4">
+        <li key={`${line.id}::${line.variant || ''}`} className="flex gap-3 rounded-xl border border-stone-100 bg-stone-50/60 p-3">
           <Link
             to={`/${locale}/products/${line.slug}`}
-            className="w-14 shrink-0 overflow-hidden bg-ivory"
+            className="w-14 shrink-0 overflow-hidden rounded-lg bg-ivory"
             tabIndex={-1}
             aria-hidden="true"
           >
@@ -448,13 +455,34 @@ export function CartLines() {
             <Link to={`/${locale}/products/${line.slug}`} className="font-serif hover:text-gold">
               {line.name}
             </Link>
-            <p className="mt-0.5 text-xs text-stone-500">{formatPrice(line.price, locale)}</p>
+            <div className="mt-0.5 text-xs text-stone-500">
+              {Array.isArray(line.variants) && line.variants.length > 0 ? (
+                <label className="mr-1 inline-flex items-center gap-1 align-middle">
+                  <span className="sr-only">{t('product', 'variant') || 'Variant'}</span>
+                  <select
+                    value={line.variant || ''}
+                    onChange={(e) => setLineVariant(line, e.target.value)}
+                    className="border border-stone-200 bg-white px-1.5 py-0.5 text-xs text-noir focus:border-gold focus:outline-none"
+                  >
+                    {!line.variant && <option value="">{t('product', 'selectVariant') || 'Select variant'}</option>}
+                    {line.variants.map((v) => (
+                      <option key={v.id || v.name} value={v.name}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                line.variant && <span className="mr-1">[{line.variant}]</span>
+              )}
+              {formatPrice(line.price, locale)}
+            </div>
 
             <div className="mt-2 flex items-center justify-between gap-2">
-              <div className="flex items-center border border-stone-200 text-xs">
+              <div className="flex items-center rounded-full border border-stone-200 bg-white text-xs">
                 <button
                   type="button"
-                  onClick={() => setQuantity(line.id, line.quantity - 1)}
+                  onClick={() => setQuantity(line, line.quantity - 1)}
                   className="px-2.5 py-1 hover:text-gold"
                   aria-label="-"
                 >
@@ -463,7 +491,7 @@ export function CartLines() {
                 <span className="min-w-8 text-center">{line.quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(line.id, line.quantity + 1)}
+                  onClick={() => setQuantity(line, line.quantity + 1)}
                   // Stock, not the 20-per-line cap the cart state applies: the
                   // cap is there to stop a fat-fingered quantity, this is
                   // telling the shopper there is nothing left to add.
@@ -480,7 +508,7 @@ export function CartLines() {
 
             <button
               type="button"
-              onClick={() => removeFromCart(line.id)}
+              onClick={() => removeFromCart(line)}
               className="mt-1 self-start text-xs text-stone-400 underline hover:text-rose-700"
             >
               {t('cart', 'remove')}
@@ -514,7 +542,7 @@ export function OrderSummary({ c, className = '', wide = false }) {
 
   return (
     <div className={className}>
-      <h2 className="border-b border-stone-300 pb-2 font-serif text-xl text-noir">
+      <h2 className="border-b border-stone-100 pb-3 font-serif text-lg text-noir">
         {t('checkout', 'orderSummary')}
       </h2>
 
@@ -627,7 +655,7 @@ export function PlaceOrderButton({ c, className = '' }) {
           type="submit"
           form={formId}
           disabled={placing || !canSubmit}
-          className="w-full bg-noir py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-noir py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-noir/10 transition hover:bg-gold hover:shadow-gold/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {placing ? t('common', 'loading') : t('checkout', 'place')}
         </button>
@@ -646,7 +674,7 @@ export function CheckoutError({ message, errors }) {
   if (!message) return null
 
   return (
-    <div role="alert" className="mb-5 border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+    <div role="alert" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
       {message}
       {errors?.message && <span className="block text-xs">{errors.message[0]}</span>}
     </div>

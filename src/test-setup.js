@@ -81,4 +81,12 @@ if (typeof window !== 'undefined') {
   if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
     Element.prototype.scrollIntoView = () => {}
   }
+
+  // Same story for the window, except jsdom *does* define `scrollTo` — its
+  // implementation only logs "Not implemented: Window's scrollTo() method" to
+  // stderr, since it has no layout to scroll. `ScrollToTop` calls it on the
+  // first render of every route, so that message became pages of noise in a
+  // passing suite. Replaced unconditionally: there is no jsdom behaviour to
+  // preserve here. A test that cares asserts on a spy it installs itself.
+  window.scrollTo = () => {}
 }
