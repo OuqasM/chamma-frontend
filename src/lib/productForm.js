@@ -48,11 +48,11 @@ export const prefillFromProduct = (product) => ({
   brand_id: product.brand_id ?? '',
   category_ids: (product.category_ids ?? []).map(Number),
   // The form edits the full price; when discounted that is the struck
-  // original, not the discounted amount the customer is charged.
+  // original, and `discount` holds the new price the customer actually pays.
   price: (product.discount_percent ?? 0) > 0 ? (product.compare_at_price ?? product.price) : (product.price ?? ''),
   cost_price: product.cost_price ?? '',
-  // UI-only: never sent as-is, converted to compare_at_price on submit.
-  discount: product.discount_percent ?? '',
+  // The new (discounted) price, or blank when the product is not on sale.
+  discount: (product.discount_percent ?? 0) > 0 ? (product.price ?? '') : '',
   // The publish flag and the availability flag are separate, and the duplicate
   // starts as a plain live product: the merchant sets what it should be.
   is_active: true,

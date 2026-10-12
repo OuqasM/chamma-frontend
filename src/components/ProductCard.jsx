@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { imageUrl, productHref } from '../lib/api'
+import { discountPercent } from '../lib/format'
 import { Price } from './Price'
 import AddToCartButton from './AddToCartButton'
 import WaitlistDialog from './WaitlistDialog'
@@ -13,6 +14,9 @@ export function ProductCard({ product, showAdd = true }) {
   const href = productHref(product.url, locale)
   const soldOut = !product.in_stock
   const wished = inWishlist(product.id)
+  // Derived here from the two prices rather than read off the API, so the badge
+  // and the price it sits over can never disagree about the size of the cut.
+  const off = discountPercent(product.price, product.compare_at_price)
 
   return (
     <article className="group relative flex flex-col">
@@ -40,9 +44,9 @@ export function ProductCard({ product, showAdd = true }) {
             </div>
           )}
 
-          {product.discount_percent > 0 && (
+          {off > 0 && (
             <span className="absolute start-0 top-3 bg-sale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
-              -{product.discount_percent}%
+              -{off}%
             </span>
           )}
           {soldOut && (

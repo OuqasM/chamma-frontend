@@ -48,30 +48,26 @@ const numberOrNull = (value) => (value === '' || value === null ? null : Number(
 const textOrNull = (value) => (value === '' ? null : value)
 
 /**
- * The admin types the *full* (pre-discount) price plus a percentage, and the
- * discount is taken off that. The API stores the opposite pair — `price` is the
- * amount actually charged, `compare_at_price` the struck-through original — so
- * the arithmetic happens here and the form keeps the merchant's model.
+ * The admin types the *full* price and the *discounted* (new) price, both as
+ * amounts. The API stores that pair directly — `price` is the amount actually
+ * charged, `compare_at_price` the struck-through original — and the percentage
+ * shown to shoppers is derived from the two, both here and on the storefront.
  *
  * `price` is deliberately never re-derived on load into the form from the
  * charged amount, or re-saving would compound the discount every time.
  */
-const MAX_DISCOUNT = 90
-function pricingFor(fullPrice, discountPercent) {
+function pricingFor(fullPrice, salePrice) {
   const full = Number(fullPrice)
-  const d = Number(discountPercent)
+  const sale = Number(salePrice)
 
   if (!Number.isFinite(full) || full <= 0) return { final: fullPrice, original: null, percent: 0 }
-  if (!discountPercent || !Number.isFinite(d) || d <= 0) return { final: full, original: null, percent: 0 }
+  // No discounted price, or one that is not actually lower than the full price:
+  // the product simply sells at its full price with nothing struck through.
+  if (!salePrice || !Number.isFinite(sale) || sale <= 0 || sale >= full) {
+    return { final: full, original: null, percent: 0 }
+  }
 
-  const clamped = Math.min(d, MAX_DISCOUNT)
-  let final = Math.round(full * (1 - clamped / 100))
-
-  // The storefront only counts a product as discounted when the original is
-  // strictly above the charged price, so rounding must never collapse the two.
-  if (final >= full) final = Math.max(0, full - 0.01)
-
-  return { final, original: full, percent: Math.round((1 - final / full) * 100) }
+  return { final: sale, original: full, percent: Math.round((1 - sale / full) * 100) }
 }
 
 export default function AdminProductEdit() {
@@ -142,11 +138,12 @@ export default function AdminProductEdit() {
           category_ids: (p.category_ids ?? []).map(Number),
           slug: p.slug || '',
           // Form edits the full price; when discounted that is the struck
-          // original, not the discounted amount the customer is charged.
+          // original, and `discount` below holds the new price the customer
+          // actually pays.
           price: (p.discount_percent ?? 0) > 0 ? (p.compare_at_price ?? p.price) : (p.price ?? ''),
           cost_price: p.cost_price ?? '',
-          // UI-only: never sent as-is, converted to compare_at_price on submit.
-          discount: p.discount_percent ?? '',
+          // The new (discounted) price, or blank when the product is not on sale.
+          discount: (p.discount_percent ?? 0) > 0 ? (p.price ?? '') : '',
           // The two switches answer different questions and are sent as two
           // separate flags: `is_active` decides whether the product is on the
           // storefront at all, `is_available` only whether it reads as buyable
@@ -353,8 +350,7 @@ export default function AdminProductEdit() {
                 label={t('admin', 'discount')}
                 type="number"
                 min="0"
-                max={MAX_DISCOUNT}
-                step="1"
+                step="0.01"
                 value={form.discount}
                 onChange={setField('discount')}
                 error={errors.compare_at_price?.[0]}
