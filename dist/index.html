@@ -17,6 +17,33 @@
       // before it runs.
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
     </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
     <script type="module" crossorigin src="/assets/index-OC_Asy_5.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-6KC_O-su.css">
   </head>
