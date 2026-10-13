@@ -25,22 +25,34 @@ export default function AddToCartButton({
   children,
   disabled = false,
   type = 'button',
+  // Pulled out of the spread below so they never reach the DOM element, and
+  // normalised into one list either way.
+  variant,
+  variants,
   ...props
 }) {
   const { locale, t, addToCart, cart } = useApp()
 
-  const chosen = props.variant || ''
+  // The product page lets a shopper pick several variants at once, so the
+  // selection is a list. The older single `variant` prop still works — it is
+  // just a list of one — and no selection at all stays an empty list, which is
+  // what a product without variants has.
+  const chosen = Array.isArray(variants) ? variants.filter(Boolean) : variant ? [variant] : []
 
   // Keyed by variant too, so a product already sitting in the cart in one size
-  // does not block adding a different one from the product page.
-  const inCart = cart.some((l) => l.id === product.id && (l.variant || '') === chosen)
+  // does not block adding a different one from the product page. With several
+  // selections the button only reads "in the cart" once every one of them is.
+  const inCart =
+    chosen.length > 0
+      ? chosen.every((v) => cart.some((l) => l.id === product.id && (l.variant || '') === v))
+      : cart.some((l) => l.id === product.id && (l.variant || '') === '')
 
   // A variant is mandatory: a product that has variants can never be added
   // without one. On the product page the caller disables the button until the
   // shopper chooses (and the selector is right above it). On a listing card
   // there is no selector, so the button becomes a link to the product page,
   // where the choice can actually be made.
-  const needsVariant = Boolean(product?.has_variants) && !chosen
+  const needsVariant = Boolean(product?.has_variants) && chosen.length === 0
 
   if (needsVariant && !disabled) {
     return (
@@ -92,9 +104,13 @@ export default function AddToCartButton({
       type={type}
       disabled={disabled}
       onClick={() => {
-        const variant = props.variant
-        if (product?.has_variants && !variant) return
-        addToCart(product, quantity, variant || null)
+        if (product?.has_variants && chosen.length === 0) return
+        // One cart line per chosen variant, so picking two sizes adds both.
+        if (chosen.length > 0) {
+          chosen.forEach((v) => addToCart(product, quantity, v))
+        } else {
+          addToCart(product, quantity, null)
+        }
         onAdd?.()
       }}
       className={className}

@@ -18,14 +18,19 @@ export default function Product() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
-  const [variant, setVariant] = useState('')
+  const [variants, setVariants] = useState([])
+
+  // A shopper can want more than one size in one go, so the choices toggle
+  // independently rather than replacing each other.
+  const toggleVariant = (name) =>
+    setVariants((list) => (list.includes(name) ? list.filter((v) => v !== name) : [...list, name]))
 
   useEffect(() => {
     const controller = new AbortController()
     setData(null)
     setError(null)
     setQuantity(1)
-    setVariant('')
+    setVariants([])
 
     api
       .product(locale, slug, { signal: controller.signal })
@@ -188,23 +193,34 @@ export default function Product() {
               <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-stone-500">
                 {t('product', 'availableVariants') || 'Available variants'} <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={variant}
-                onChange={(e) => setVariant(e.target.value)}
-                className="w-full border border-stone-200 bg-white px-3 py-2 text-sm text-noir focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/40"
-                required
-              >
-                <option value="">{t('product', 'selectVariant') || 'Select variant'}</option>
-                {p.variants.map((v) => (
-                  <option key={v.id || v.name} value={v.name}>
-                    {v.name}
-                  </option>
-                ))}
-              </select>
-              {!variant && (
+              {/* One toggle per variant, not a single-choice select: a shopper
+                  buying two sizes ticks both and the cart gets a line each. */}
+              <div className="flex flex-wrap gap-2">
+                {p.variants.map((v) => {
+                  const active = variants.includes(v.name)
+                  return (
+                    <button
+                      key={v.id || v.name}
+                      type="button"
+                      onClick={() => toggleVariant(v.name)}
+                      aria-pressed={active}
+                      className={
+                        active
+                          ? 'border border-gold bg-gold px-3 py-2 text-sm font-medium text-white transition'
+                          : 'border border-stone-200 bg-white px-3 py-2 text-sm text-noir transition hover:border-gold hover:text-gold'
+                      }
+                    >
+                      {v.name}
+                    </button>
+                  )
+                })}
+              </div>
+              {variants.length === 0 ? (
                 <p className="mt-2 text-xs font-medium text-rose-600">
-                  {t('product', 'variantRequired') || 'Please choose a variant before adding to cart.'}
+                  {t('product', 'variantRequired') || 'Please choose at least one variant before adding to cart.'}
                 </p>
+              ) : (
+                <p className="mt-2 text-xs text-stone-500">{t('product', 'variantsHint') || 'Select one or more variants.'}</p>
               )}
             </div>
           )}
@@ -234,10 +250,10 @@ export default function Product() {
               <AddToCartButton
                 product={p}
                 quantity={quantity}
-                variant={variant}
+                variants={variants}
                 className="flex-1 bg-noir px-6 py-3 text-center text-xs uppercase tracking-widest text-white transition hover:bg-gold"
                 activeClassName="bg-gold hover:bg-noir"
-                disabled={p.has_variants && (!variant || variant === '')}
+                disabled={p.has_variants && variants.length === 0}
               />
 
               <button
