@@ -6,6 +6,7 @@ import { Price } from '../components/Price'
 import { ProductGrid } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
 import AddToCartButton from '../components/AddToCartButton'
+import VariantPicker from '../components/VariantPicker'
 import useSeo from '../hooks/useSeo'
 import { absolute } from '../lib/seo'
 import { Spinner, ErrorState } from '../components/Spinner'
@@ -19,11 +20,6 @@ export default function Product() {
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [variants, setVariants] = useState([])
-
-  // A shopper can want more than one size in one go, so the choices toggle
-  // independently rather than replacing each other.
-  const toggleVariant = (name) =>
-    setVariants((list) => (list.includes(name) ? list.filter((v) => v !== name) : [...list, name]))
 
   useEffect(() => {
     const controller = new AbortController()
@@ -193,34 +189,23 @@ export default function Product() {
               <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-stone-500">
                 {t('product', 'availableVariants') || 'Available variants'} <span className="text-rose-500">*</span>
               </label>
-              {/* One toggle per variant, not a single-choice select: a shopper
-                  buying two sizes ticks both and the cart gets a line each. */}
-              <div className="flex flex-wrap gap-2">
-                {p.variants.map((v) => {
-                  const active = variants.includes(v.name)
-                  return (
-                    <button
-                      key={v.id || v.name}
-                      type="button"
-                      onClick={() => toggleVariant(v.name)}
-                      aria-pressed={active}
-                      className={
-                        active
-                          ? 'border border-gold bg-gold px-3 py-2 text-sm font-medium text-white transition'
-                          : 'border border-stone-200 bg-white px-3 py-2 text-sm text-noir transition hover:border-gold hover:text-gold'
-                      }
-                    >
-                      {v.name}
-                    </button>
-                  )
-                })}
-              </div>
+              {/* A multi-select popover rather than a single-choice select: a
+                  shopper buying two sizes ticks both and the cart gets a line
+                  each. */}
+              <VariantPicker
+                variants={p.variants}
+                value={variants}
+                onChange={setVariants}
+                describedBy="variant-hint"
+              />
               {variants.length === 0 ? (
-                <p className="mt-2 text-xs font-medium text-rose-600">
+                <p id="variant-hint" className="mt-2 text-xs font-medium text-rose-600">
                   {t('product', 'variantRequired') || 'Please choose at least one variant before adding to cart.'}
                 </p>
               ) : (
-                <p className="mt-2 text-xs text-stone-500">{t('product', 'variantsHint') || 'Select one or more variants.'}</p>
+                <p id="variant-hint" className="mt-2 text-xs text-stone-500">
+                  {t('product', 'variantsHint') || 'Select one or more variants.'}
+                </p>
               )}
             </div>
           )}
