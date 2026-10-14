@@ -26,10 +26,6 @@ import CityPicker from './CityPicker'
 const emptyForm = {
   name: '',
   phone: '',
-  // Optional. Collected only so the store can email a receipt or reply to its
-  // own order alert; the WhatsApp handover is how most orders actually reach
-  // the owner, so this must never be required.
-  email: '',
   city: '',
   address: '',
   notes: '',
@@ -246,7 +242,6 @@ export function CheckoutFields({ c }) {
           value={form[key]}
           onChange={update(key)}
           {...rest}
-          dir={key === 'email' ? 'ltr' : undefined}
           className={inputClass(key)}
         />
         {hint && <span className="mt-1.5 block text-xs text-stone-400">{hint}</span>}
@@ -259,12 +254,6 @@ export function CheckoutFields({ c }) {
     <div className="space-y-5">
       {field('name', c.t('checkout', 'name'), { autoComplete: 'name' })}
       {field('phone', c.t('checkout', 'phone'), { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: '0612345678' })}
-      {field('email', c.t('checkout', 'email'), {
-        type: 'email',
-        autoComplete: 'email',
-        placeholder: 'you@example.com',
-        hint: c.t('checkout', 'emailHint'),
-      })}
 
       {optionsError ? (
         <div>

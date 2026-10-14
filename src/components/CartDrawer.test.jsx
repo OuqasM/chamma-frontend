@@ -194,7 +194,7 @@ describe('checkout drawer', () => {
     // The whole point of the drawer: name, phone, city, address and payment
     // without leaving the page. Each label comes from the real dictionary, so
     // this fails if a field is dropped from the form rather than just reworded.
-    for (const key of ['name', 'phone', 'email', 'address', 'notes', 'payment']) {
+    for (const key of ['name', 'phone', 'address', 'notes', 'payment']) {
       expect(dialog().textContent).toContain(fr.checkout[key])
     }
     // A `<select>` of 444 cities cannot be presented; the combobox is the point.
@@ -368,7 +368,6 @@ describe('checkout drawer', () => {
     expect(apiMock.checkout).toHaveBeenCalledWith('fr', {
       name: 'Amina Benali',
       phone: '0612345678',
-      email: '',
       city: '',
       address: '',
       notes: '',

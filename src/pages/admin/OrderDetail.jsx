@@ -215,22 +215,6 @@ export default function AdminOrderDetail() {
                   </dd>
                 </div>
               )}
-              {order.customer?.email && (
-                <div className="flex items-baseline gap-2">
-                  <dt className="w-20 shrink-0 text-[11px] font-medium uppercase tracking-wider text-stone-400">
-                    {t('admin', 'email')}
-                  </dt>
-                  <dd className="min-w-0">
-                    <a
-                      href={`mailto:${order.customer.email}`}
-                      dir="ltr"
-                      className="block truncate text-stone-700 transition hover:text-plum"
-                    >
-                      {order.customer.email}
-                    </a>
-                  </dd>
-                </div>
-              )}
             </dl>
 
             <h3 className="mt-5 border-t border-stone-200 pt-4 text-[11px] font-medium uppercase tracking-wider text-stone-400">

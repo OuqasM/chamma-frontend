@@ -23,7 +23,6 @@ const blank = () => ({ q: '', status: '', page: 1 })
 const emptyDraft = () => ({
   name: '',
   phone: '',
-  email: '',
   city: '',
   address: '',
   notes: '',
@@ -213,7 +212,6 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
       const body = {
         name: draft.name,
         phone: draft.phone,
-        email: draft.email || null,
         city: draft.city,
         address: draft.address,
         notes: draft.notes || null,
@@ -296,14 +294,6 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               dir="ltr"
               inputMode="tel"
               required
-            />
-            <TextInput
-              label={t('checkout', 'email')}
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={draft.email}
-              onChange={(e) => set({ email: e.target.value })}
             />
             <Select
               label={t('checkout', 'city')}
