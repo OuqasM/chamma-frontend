@@ -187,18 +187,13 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
             className="mega z-30 hidden overflow-y-auto overscroll-contain border-b border-stone-200 bg-ivory shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] xl:block"
           >
             <div className="mx-auto max-w-7xl px-8 py-6">
-              <div className="flex items-baseline gap-4">
-                <h2 className="font-serif text-xl font-bold uppercase tracking-[0.18em] text-noir">{label}</h2>
-                <span aria-hidden="true" className="h-px flex-1 bg-stone-200" />
-              </div>
-
               {kind === 'categories' ? (
                 /* Four columns, and a fixed-height letterbox crop rather than a
                    4/3 frame. A 4/3 image in three columns is ~225px tall, which
                    put eight categories at ~950px — past the fold on any laptop.
                    The crop keeps the photograph, which is the point of the sheet,
                    and drops the row to ~130px. */
-                <ul className="mt-5 grid grid-cols-4 gap-x-6 gap-y-5">
+                <ul className="grid grid-cols-4 gap-x-6 gap-y-5">
                   {items.map((it) => (
                     <li key={it.id}>
                       <Link
@@ -227,7 +222,7 @@ function MegaMenu({ label, items, kind, active, to, onNavigate }) {
                   ))}
                 </ul>
               ) : (
-                <ul className="mt-5 grid grid-cols-4 gap-x-6 gap-y-4">
+                <ul className="grid grid-cols-4 gap-x-6 gap-y-4">
                   {items.map((it) => (
                     <li key={it.id}>
                       <Link
