@@ -731,7 +731,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/fr/products/ajmal-viola-body-powder</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-viola-body-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-viola-body-powder"/>
@@ -740,7 +740,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/ar/products/ajmal-viola-body-powder</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-viola-body-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-viola-body-powder"/>
@@ -749,7 +749,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/en/products/ajmal-viola-body-powder</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-viola-body-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-viola-body-powder"/>
@@ -758,7 +758,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/fr/products/ajmal-blu-french-powder</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-blu-french-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-blu-french-powder"/>
@@ -767,7 +767,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/ar/products/ajmal-blu-french-powder</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-blu-french-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-blu-french-powder"/>
@@ -776,7 +776,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/en/products/ajmal-blu-french-powder</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-blu-french-powder"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-blu-french-powder"/>
@@ -1460,7 +1460,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/fr/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
@@ -1469,7 +1469,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/ar/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
@@ -1478,7 +1478,7 @@
   </url>
   <url>
     <loc>https://chammastore.com/en/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-10-17</lastmod>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee"/>
@@ -1537,6 +1537,60 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/my-pink-crush-mes-essentiels-rose"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/my-pink-crush-mes-essentiels-rose"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/my-pink-crush-mes-essentiels-rose"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/fr/products/the-ordinary-the-mini-icons-set</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/the-ordinary-the-mini-icons-set"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/ar/products/the-ordinary-the-mini-icons-set</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/the-ordinary-the-mini-icons-set"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/en/products/the-ordinary-the-mini-icons-set</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/the-ordinary-the-mini-icons-set"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/the-ordinary-the-mini-icons-set"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/fr/products/rituals-the-ritual-of-sakura-coffret-s</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/ar/products/rituals-the-ritual-of-sakura-coffret-s</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/en/products/rituals-the-ritual-of-sakura-coffret-s</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/rituals-the-ritual-of-sakura-coffret-s"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/rituals-the-ritual-of-sakura-coffret-s"/>
     <changefreq>weekly</changefreq>
   </url>
   <url>
@@ -1969,6 +2023,60 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/nuxe"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/nuxe"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/nuxe"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/fr/brands/the-ordinary</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/the-ordinary"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/ar/brands/the-ordinary</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/the-ordinary"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/en/brands/the-ordinary</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/the-ordinary"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/the-ordinary"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/fr/brands/ajmal</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/ajmal"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/ar/brands/ajmal</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/ajmal"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://chammastore.com/en/brands/ajmal</loc>
+    <lastmod>2026-10-17</lastmod>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/ajmal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/ajmal"/>
     <changefreq>weekly</changefreq>
   </url>
 
