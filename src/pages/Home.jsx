@@ -183,7 +183,7 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.3em] text-stone-300">{data.hero.eyebrow}</p>
             )}
             <h1 className="mt-3 font-serif text-4xl leading-tight text-white md:text-5xl">
-              Chamma Store
+              {t('home', 'heroTitle')}
             </h1>
             <div className="mt-7 flex gap-3">
               <Link
