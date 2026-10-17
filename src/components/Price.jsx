@@ -16,13 +16,18 @@ export function Price({ product, className = '' }) {
   // text against its own fill, and the price against the page. All three
   // call sites are on light surfaces; moving this onto `bg-noir` would drop it
   // to 3.1:1 and need a lighter step.
+  //
+  // Every price here rides `font-price`, Oswald's condensed 600 — a price is
+  // a promo surface, so it reads as a price tag, not as body copy. Wishlist's
+  // call site sends no weight of its own, so the component carries the 600
+  // itself rather than depending on its callers.
 
   if (!product.compare_at_price || off <= 0) {
-    return <span className={className}>{formatPrice(product.price, locale)}</span>
+    return <span className={`font-price font-semibold ${className}`}>{formatPrice(product.price, locale)}</span>
   }
 
   return (
-    <span className={`inline-flex items-baseline gap-2 ${className}`}>
+    <span className={`font-price font-semibold inline-flex items-baseline gap-2 ${className}`}>
       <span className="text-sale">{formatPrice(product.price, locale)}</span>
       <s className="text-sm text-stone-400">{formatPrice(product.compare_at_price, locale)}</s>
       <span className="rounded-full bg-sale px-1.5 py-0.5 text-[11px] font-medium text-white">

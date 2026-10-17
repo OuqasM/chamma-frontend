@@ -24,11 +24,11 @@
   }
 
   /* Titles are strong everywhere, on every page.
-     Every heading uses the serif display face, which sits light at weight 400 —
-     Amiri in particular is a Naskh face drawn to read finely — so at heading
-     sizes the titles came out thin and tiring to read. Setting the weight here
-     rather than per element means a new page cannot forget it, and because this
-     is the base layer an explicit `font-light` or `font-semibold` on a single
+     Every heading uses the serif display face (Fraunces in Latin, Amiri in
+     Arabic), and the referenced faces are the 700 cuts — see src/fonts.css —
+     so the weight here never synthesizes. Setting it in the base layer rather
+     than per element means a new page cannot forget it, and because this is
+     the base layer an explicit `font-light` or `font-semibold` on a single
      element still wins. */
   h1,
   h2,

@@ -73,17 +73,25 @@ export default {
         },
       },
       fontFamily: {
-        // Amiri is a naskh revival covering Arabic only, so it leads and the
-        // stack still resolves per-glyph: Arabic headings render in Amiri, Latin
-        // headings fall through to Georgia. The decorative script face this
-        // stack used to lead with has been dropped; see src/fonts.css.
+        // Self-hosted, per-glyph: Amiri is a naskh revival covering Arabic only
+        // (its 400 and 700 faces ship in src/fonts.css), so Arabic headings
+        // render in Amiri and Latin headings resolve to Fraunces — an
+        // old-style serif whose rounded curves carry the blush-rose palette's
+        // warmth. Both pieces of the stack carry real bold faces, so the 700
+        // the base layer forces on `serif` never synthesizes. Georgia stays as
+        // the offline fallback.
         serif: [
           'Amiri',
+          'Fraunces',
           'Georgia',
           "'Times New Roman'",
           'serif',
         ],
         sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // Prices only. Oswald answers `font-price`; every other sans use
+        // stays on the system stack. See src/fonts.css for why the Latin
+        // subsets cover Arabic prices too.
+        price: ['Oswald', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
     },
   },
