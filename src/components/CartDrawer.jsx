@@ -183,7 +183,7 @@ function CartDrawerBody({ closeCart }) {
         <Link
           to={`/${locale}/products`}
           onClick={closeCart}
-          className="inline-block bg-noir px-6 py-3 text-xs uppercase tracking-widest text-white hover:bg-gold"
+          className="inline-block rounded-full bg-noir px-6 py-3 text-xs uppercase tracking-widest text-white hover:bg-gold"
         >
           {t('nav', 'shop')}
         </Link>
@@ -198,7 +198,7 @@ function CartDrawerBody({ closeCart }) {
       <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-6 py-5">
         <CheckoutError message={c.message} errors={c.errors} />
 
-        <OrderSummary c={c} className="border border-stone-200 p-4" />
+        <OrderSummary c={c} className="rounded-2xl border border-stone-200 p-4" />
 
         <form id={c.formId} onSubmit={c.submit} noValidate className="mt-6">
           <CheckoutFields c={c} />

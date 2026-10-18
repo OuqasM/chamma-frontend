@@ -66,7 +66,7 @@ function BrandCard({ brand, discoverLabel }) {
   const arrow = dir === 'rtl' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
 
   return (
-    <Link to={href} className="group relative block w-full overflow-hidden bg-ivory">
+    <Link to={href} className="group relative block w-full overflow-hidden rounded-2xl bg-ivory">
       <div className="relative aspect-[4/3]">
         {image ? (
           <img
@@ -188,13 +188,13 @@ export default function Home() {
             <div className="mt-7 flex gap-3">
               <Link
                 to={`/${locale}/products`}
-                className="bg-ivory px-7 py-3 text-xs uppercase tracking-widest text-noir transition hover:bg-gold hover:text-white"
+                className="rounded-full bg-ivory px-7 py-3 text-xs uppercase tracking-widest text-noir transition hover:bg-gold hover:text-white"
               >
                 {t('nav', 'shop')}
               </Link>
               <Link
                 to={`/${locale}/offers`}
-                className="border border-white/40 px-7 py-3 text-xs uppercase tracking-widest text-white transition hover:border-white"
+                className="rounded-full border border-white/40 px-7 py-3 text-xs uppercase tracking-widest text-white transition hover:border-white"
               >
                 {t('nav', 'offers')}
               </Link>

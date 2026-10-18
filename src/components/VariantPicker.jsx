@@ -124,7 +124,7 @@ export default function VariantPicker({ variants = [], value = [], onChange, des
           role="listbox"
           aria-multiselectable="true"
           data-open={shown}
-          className={`dropdown absolute z-30 mt-1 w-full border border-stone-200 bg-ivory shadow-xl ${
+          className={`dropdown absolute z-30 mt-1 w-full rounded-xl border border-stone-200 bg-ivory shadow-xl ${
             shown ? '' : 'pointer-events-none'
           }`}
         >

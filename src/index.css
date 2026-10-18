@@ -24,9 +24,9 @@
   }
 
   /* Titles are strong everywhere, on every page.
-     Every heading uses the serif display face (Fraunces in Latin, Amiri in
-     Arabic), and the referenced faces are the 700 cuts — see src/fonts.css —
-     so the weight here never synthesizes. Setting it in the base layer rather
+     Every heading uses the display face (Rubik in both Latin and Arabic,
+     with per-glyph subsets shipped in src/fonts.css), whose variable faces
+     are cut for the 700 weight — so the weight here never synthesizes. Setting it in the base layer rather
      than per element means a new page cannot forget it, and because this is
      the base layer an explicit `font-light` or `font-semibold` on a single
      element still wins. */
@@ -38,6 +38,20 @@
   h6,
   .font-serif {
     font-weight: 700;
+  }
+
+  /* Soft corners site-wide. Every button is a capsule and every text field a
+     fixed-radius box, matching the rounded-corner title face; nothing needs to
+     opt in because an explicit `rounded-*` utility (utilities layer) outranks
+     this rule wherever a surface wants its own shape. */
+  button {
+    border-radius: 9999px;
+  }
+
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    border-radius: 0.75rem;
   }
 }
 

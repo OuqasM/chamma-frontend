@@ -104,12 +104,12 @@ export default function Product() {
                   // lazy; the rest can be. The component renders every slide up
                   // front, which would otherwise fetch the whole gallery at once.
                   loading={i === 0 ? 'eager' : 'lazy'}
-                  className="aspect-[4/5] w-full object-cover"
+                  className="aspect-[4/5] w-full rounded-2xl object-cover"
                 />
               )}
             />
           ) : gallery.length === 1 ? (
-            <div className="overflow-hidden">
+            <div className="overflow-hidden rounded-2xl">
               <img
                 src={imageUrl(gallery[0].url)}
                 alt={gallery[0].alt || p.name}
@@ -117,7 +117,7 @@ export default function Product() {
               />
             </div>
           ) : (
-            <div className="flex aspect-[4/5] items-center justify-center bg-ivory text-stone-300">Chamma</div>
+            <div className="flex aspect-[4/5] items-center justify-center rounded-2xl bg-ivory text-stone-300">Chamma</div>
           )}
         </div>
 
@@ -212,7 +212,7 @@ export default function Product() {
 
           {!soldOut && (
             <div className="mt-6 flex flex-wrap items-stretch gap-3">
-              <div className="flex items-center border border-stone-200">
+              <div className="flex items-center rounded-full border border-stone-200">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="px-4 py-3 text-lg text-stone-500 hover:text-gold"
@@ -244,7 +244,7 @@ export default function Product() {
               <button
                 onClick={() => toggleWishlist(p)}
                 aria-label={t('product', 'addToWishlist')}
-                className={`border px-4 text-lg transition ${wished ? 'border-gold text-gold' : 'border-stone-200 text-stone-400 hover:border-gold'}`}
+                className={`rounded-full border px-4 text-lg transition ${wished ? 'border-gold text-gold' : 'border-stone-200 text-stone-400 hover:border-gold'}`}
               >
                 {wished ? '♥' : '♡'}
               </button>

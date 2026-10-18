@@ -208,7 +208,7 @@ export function OrderLookup() {
       </form>
 
       {order && (
-        <div className="mt-10 border border-stone-200 bg-ivory p-6">
+        <div className="mt-10 rounded-2xl border border-stone-200 bg-ivory p-6">
           <p className="font-mono text-sm text-gold">{order.reference}</p>
           <p className="mt-1 font-serif text-lg text-noir">{order.status_label}</p>
           <p className="mt-3 text-sm text-stone-600">

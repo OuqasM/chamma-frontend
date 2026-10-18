@@ -60,7 +60,7 @@ export default function WaitlistDialog({ product, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={product.name}
-        className="relative w-full max-w-sm bg-ivory p-6 shadow-2xl"
+        className="relative w-full max-w-sm rounded-3xl bg-ivory p-6 shadow-2xl"
       >
         <button
           type="button"

@@ -187,7 +187,7 @@ export default function CityPicker({ cities, value, onChange, locale, t, invalid
       )}
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full border border-stone-200 bg-ivory shadow-lg">
+        <div className="absolute z-30 mt-1 w-full rounded-xl border border-stone-200 bg-ivory shadow-lg">
           <div className="border-b border-stone-200 p-2">
             <input
               ref={inputRef}

@@ -58,7 +58,7 @@ export default function AddToCartButton({
     return (
       <Link
         to={productHref(product.url, locale)}
-        className={`flex items-center justify-center text-center ${className} ${activeClassName}`}
+        className={`flex items-center justify-center rounded-full text-center ${className} ${activeClassName}`}
         {...props}
       >
         {children ?? t('product', 'selectVariant')}
@@ -79,7 +79,7 @@ export default function AddToCartButton({
         // and the label would sit hard against the start edge. Forcing the
         // block-level box the button had keeps the label centred and the
         // footprint identical to what the shopper just pressed.
-        className={`flex items-center justify-center text-center ${className} ${activeClassName}`}
+        className={`flex items-center justify-center rounded-full text-center ${className} ${activeClassName}`}
         {...props}
       >
         {t('common', 'goToCart')}

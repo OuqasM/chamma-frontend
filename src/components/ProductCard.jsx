@@ -27,7 +27,7 @@ export function ProductCard({ product, showAdd = true }) {
           help to read as an object; the interest comes from type and the two
           hover cues instead. `overflow-hidden` stays on the image link so the
           zoom is clipped to the image box. */}
-      <Link to={href} className="block overflow-hidden">
+      <Link to={href} className="block overflow-hidden rounded-2xl">
         <div className="relative aspect-[4/5]">
           {image ? (
             <img
@@ -45,7 +45,7 @@ export function ProductCard({ product, showAdd = true }) {
           )}
 
           {off > 0 && (
-            <span className="absolute start-0 top-3 bg-sale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
+            <span className="absolute start-3 top-3 rounded-full bg-sale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
               -{off}%
             </span>
           )}
@@ -67,7 +67,7 @@ export function ProductCard({ product, showAdd = true }) {
         onClick={() => toggleWishlist(product)}
         aria-label={t('product', 'addToWishlist')}
         aria-pressed={wished}
-        className={`absolute end-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border text-sm leading-none transition ${
+        className={`absolute end-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border text-sm leading-none transition ${
           wished ? 'border-gold bg-gold text-white' : 'border-stone-200 text-stone-400 hover:border-gold hover:text-gold'
         }`}
       >

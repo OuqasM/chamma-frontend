@@ -21,7 +21,7 @@ export default function BankSlipImage({ image, className = '' }) {
         alt=""
         loading="lazy"
         decoding="async"
-        className="h-20 w-auto shrink-0 border border-stone-100 object-cover"
+        className="h-20 w-auto shrink-0 rounded-lg border border-stone-100 object-cover"
       />
       <span className="min-w-0 flex-1">
         <span className="block text-xs text-noir">{t('checkout', 'downloadRib')}</span>

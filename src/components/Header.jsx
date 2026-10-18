@@ -31,7 +31,7 @@ function LocaleSwitcher() {
         <ul
           role="listbox"
           data-open={shown}
-          className="dropdown absolute end-0 z-50 mt-2 w-36 border border-stone-200 bg-ivory py-1 shadow-lg"
+          className="dropdown absolute end-0 z-50 mt-2 w-36 rounded-xl border border-stone-200 bg-ivory py-1 shadow-lg"
         >
           {LOCALES.map((code) => (
             <li key={code}>
@@ -492,7 +492,7 @@ function DrawerFooterLink({ to, onClick, label, count }) {
     <Link
       to={to}
       onClick={onClick}
-      className="flex flex-1 items-center justify-center gap-2 border border-stone-300 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-700 transition hover:border-gold hover:text-noir"
+      className="flex flex-1 items-center justify-center gap-2 rounded-full border border-stone-300 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-700 transition hover:border-gold hover:text-noir"
     >
       {label}
       {count > 0 && <span className="rounded-full bg-gold px-1.5 py-0.5 text-[10px] leading-none text-white">{count}</span>}

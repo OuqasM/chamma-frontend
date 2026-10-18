@@ -73,16 +73,15 @@ export default {
         },
       },
       fontFamily: {
-        // Self-hosted, per-glyph: Amiri is a naskh revival covering Arabic only
-        // (its 400 and 700 faces ship in src/fonts.css), so Arabic headings
-        // render in Amiri and Latin headings resolve to Fraunces — an
-        // old-style serif whose rounded curves carry the blush-rose palette's
-        // warmth. Both pieces of the stack carry real bold faces, so the 700
-        // the base layer forces on `serif` never synthesizes. Georgia stays as
-        // the offline fallback.
+        // Self-hosted, per-glyph: Rubik covers both scripts from the faces
+        // that ship in src/fonts.css — Arabic resolves to its arabic subset,
+        // Latin to the latin/latin-ext ones. A rounded-corner sans whose
+        // strokes carry a literal radius, it gives titles the soft, bold,
+        // commercial look the stack used to miss. The variable faces carry
+        // real weights on a 300–900 axis, so the 700 the base layer forces on
+        // `serif` never synthesizes. Georgia stays as the offline fallback.
         serif: [
-          'Amiri',
-          'Fraunces',
+          'Rubik',
           'Georgia',
           "'Times New Roman'",
           'serif',
