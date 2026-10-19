@@ -302,6 +302,8 @@ function productJsonLd(p, locale) {
       name: p.name,
       description: p.seo?.description,
       sku: p.sku || undefined,
+      // The barcode, the same identifier Merchant Center reads from the feed.
+      gtin: p.gtin || undefined,
       image: p.image?.url,
       brand: p.brand ? { '@type': 'Brand', name: p.brand.name } : undefined,
       offers: {

@@ -27,6 +27,7 @@ const emptyForm = () => ({
   // Server-owned: the URL follows the name. Kept only to build the "view on
   // store" link, refreshed from the response after every save.
   slug: '',
+  gtin: '',
   price: '',
   cost_price: '',
   // `is_active` hides the product from the storefront; `is_available` only
@@ -137,6 +138,7 @@ export default function AdminProductEdit() {
           brand_id: p.brand_id ?? '',
           category_ids: (p.category_ids ?? []).map(Number),
           slug: p.slug || '',
+          gtin: p.gtin || '',
           // Form edits the full price; when discounted that is the struck
           // original, and `discount` below holds the new price the customer
           // actually pays.
@@ -244,6 +246,7 @@ export default function AdminProductEdit() {
       name: form.name,
       brand_id: form.brand_id === '' ? null : Number(form.brand_id),
       category_ids: form.category_ids,
+      gtin: textOrNull(form.gtin),
       price: pricing.final,
       cost_price: numberOrNull(form.cost_price),
       compare_at_price: pricing.original,
@@ -400,6 +403,16 @@ export default function AdminProductEdit() {
                 value={form.stock}
                 onChange={setField('stock')}
                 error={errors.stock?.[0]}
+              />
+              {/* Text, not number: a UPC-12 with a leading zero loses it to an
+                  input that reads digits as a quantity. */}
+              <TextInput
+                label={t('admin', 'gtin')}
+                inputMode="numeric"
+                value={form.gtin}
+                onChange={setField('gtin')}
+                error={errors.gtin?.[0]}
+                hint={t('admin', 'gtinHint')}
               />
             </div>
 
