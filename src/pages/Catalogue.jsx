@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
@@ -218,11 +218,42 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
     return () => controller.abort()
   }, [locale, query, mode])
 
+  // Pagination and sorting are trips to a different listing, so they start at
+  // the top. Neither reaches `ScrollToTop`: both are `useSearchParams` writes
+  // on the same pathname, and that component only jumps on a changed pathname
+  // (or a push to one) — a replace is what the filter chips use, and those must
+  // not yank the page. `page` is what the paginator changes, `sort` reorders
+  // the whole list, and both hand you a new body of products to read. The mark
+  // writes leave in `lastEditKey` is what keeps the distinction: a filter edit
+  // in place — a chip, the sheet, "clear all" — also resets `page` to 1 as a
+  // side effect, and that reset reads as the edit continuing rather than as a
+  // trip to another page, so it is scrolled like any other filter edit: not at
+  // all. The mark is also why the paginator and the sort select need no mark
+  // themselves: an unmarked change is one setParam made for the listing, not
+  // for a filter. The seam stays shut while the mobile filters sheet is up as
+  // well — its selects trim the list live behind the panel, and the scroll
+  // position is part of what the shopper is inspecting through it. The first
+  // render is not a change: `ScrollToTop` has already asked for the top on
+  // mount.
+  const lastEditKey = useRef(null)
+  const listingRef = useRef(null)
+  useEffect(() => {
+    const listing = `${query.page}|${query.sort}`
+    const previous = listingRef.current
+    listingRef.current = listing
+    const edit = lastEditKey.current
+    lastEditKey.current = null
+    const editsInPlace = ['category', 'brand', 'min_price', 'max_price', 'filters'].includes(edit)
+    if (previous === listing || previous === null || filtersOpen || editsInPlace) return
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [query.page, query.sort, filtersOpen])
+
   const setParam = (key, value) => {
     const next = new URLSearchParams(params)
     if (value === '' || value === null || value === undefined) next.delete(key)
     else next.set(key, value)
     if (key !== 'page') next.delete('page')
+    if (key !== 'page' && key !== 'sort') lastEditKey.current = key
     setParams(next, { replace: true })
   }
 
@@ -231,6 +262,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
   const bounds = meta?.bounds
 
   const clearFilters = () => {
+    lastEditKey.current = 'filters'
     const next = new URLSearchParams(params)
     ;['category', 'brand', 'min_price', 'max_price'].forEach((k) => next.delete(k))
     next.delete('page')

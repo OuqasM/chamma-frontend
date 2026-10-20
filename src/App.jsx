@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigationType, useParams } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import { AdminProvider } from './context/AdminContext'
 import { Layout } from './layouts/Layout'
@@ -38,7 +38,7 @@ function LocaleShell() {
 }
 
 /**
- * Resets the window scroll to the top when the route path changes.
+ * Resets the window scroll to the top when the route changes.
  *
  * React Router does not touch the scroll position on navigation, and this app
  * uses `<Routes>` rather than the data router, so there is no `ScrollRestoration`
@@ -50,13 +50,22 @@ function LocaleShell() {
  *
  * Deliberate details:
  *
- * - Keyed on `pathname` only. The catalogue drives its filters and pagination
- *   through the query string, and resetting on those would yank the page to the
- *   top every time a filter chip is toggled.
+ * - Keyed on `pathname`, plus the navigation type so a clicked link works even
+ *   when the pathname does not move. The header's "Shop" keeps `/products` and
+ *   flips only the query string: a click on it from `/products?page=2` is a
+ *   request to be on that page and has to start it at the top, but pathname
+ *   alone cannot tell it from the page's *filter* writes, which never reset.
+ *   Those are `useSearchParams` `replace`s on the exact same pathname — a
+ *   filter chip or the mobile sheet updating the list in place — and a
+ *   `REPLACE` that leaves the pathname standing is skipped here. Everything
+ *   else a user can click is a push, so `PUSH` and `POP` always reset.
  * - It runs on mount as well as on a change. `index.html` turns the browser's
  *   own scroll restoration off, so there is no saved offset to fight; running
  *   here too is what guarantees a reload starts at the top on a browser that
  *   ignores that setting.
+ * - The catalogue's own pagination and sorting do not push — they `replace`
+ *   through `useSearchParams` — so they are covered by `Catalogue`, which
+ *   scrolls when `page` or `sort` changes.
  * - `behavior: 'instant'`. A smooth scroll between pages reads as lag, not as
  *   polish, and it also fights the smooth `scrollBy` inside `Carousel`.
  * - `left: 0` alongside `top: 0`, since a horizontally scrolled page carries that
@@ -66,11 +75,21 @@ function LocaleShell() {
  * scrolled to here.
  */
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, key } = useLocation()
+  const navigationType = useNavigationType()
+  const previous = useRef(null)
 
   useEffect(() => {
+    // A query-only `replace` is the catalogue editing its filters in place —
+    // never a trip to another page, and exactly what must not yank the scroll.
+    if (previous.current === pathname && navigationType === 'REPLACE') return
+    previous.current = pathname
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname])
+    // `key` changes on every history write, including pushes that leave the
+    // pathname standing — a second click on a header link to the page you are
+    // already on must still scroll, and `pathname` alone would skip it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
 
   return null
 }

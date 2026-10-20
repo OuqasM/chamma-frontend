@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { LOCALES, dictionaries } from '../lib/i18n'
 import { useDismiss, useOverlayTransition, useBodyScrollLock, DRAWER_MS, MEGA_MS, DROPDOWN_MS } from '../lib/overlay'
+import { scrollIfSelf } from '../lib/scrollTop'
 
 function LocaleSwitcher() {
   const { locale, setLocale } = useApp()
@@ -411,7 +412,7 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
                 wordmark follows it: the drawer is the only place the storefront
                 shows its logo on a screen too narrow to carry both at full
                 size. */}
-            <Link to={`/${locale}`} onClick={onClose} className="group flex items-center gap-3">
+            <Link to={`/${locale}`} onClick={(e) => { scrollIfSelf(`/${locale}`, location)(e); onClose() }} className="group flex items-center gap-3">
               <img
                 src="/chamma-store-logo.png"
                 alt="Chamma"
@@ -454,7 +455,10 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
               key={l.key}
               to={l.to}
               end={l.end}
-              onClick={onClose}
+              onClick={(e) => {
+                scrollIfSelf(l.to, location)(e)
+                onClose()
+              }}
               className={({ isActive }) => {
                 const active = isActive && linkIsActive(l.key, isActive, isNewRoute)
 
@@ -475,8 +479,8 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
 
         <div className="shrink-0 border-t border-stone-200 bg-ivory px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
-            <DrawerFooterLink to={`/${locale}/wishlist`} onClick={onClose} label={t('common', 'wishlist')} count={wishlist.length} />
-            <DrawerFooterLink to={`/${locale}/checkout`} onClick={onClose} label={t('common', 'cart')} count={cartCount} />
+            <DrawerFooterLink to={`/${locale}/wishlist`} onClick={onClose} onSelfClick={scrollIfSelf(`/${locale}/wishlist`, location)} label={t('common', 'wishlist')} count={wishlist.length} />
+            <DrawerFooterLink to={`/${locale}/checkout`} onClick={onClose} onSelfClick={scrollIfSelf(`/${locale}/checkout`, location)} label={t('common', 'cart')} count={cartCount} />
           </div>
         </div>
       </div>
@@ -487,11 +491,14 @@ function MobileMenu({ open, onClose, links, brandItems, categoryItems, isNewRout
 
 /** Wishlist and cart sit along the bottom as a matched pair, the count riding
     in a gold pill so it reads as a figure rather than loose text. */
-function DrawerFooterLink({ to, onClick, label, count }) {
+function DrawerFooterLink({ to, onClick, onSelfClick, label, count }) {
   return (
     <Link
       to={to}
-      onClick={onClick}
+      onClick={(e) => {
+        onSelfClick?.()
+        onClick?.()
+      }}
       className="flex flex-1 items-center justify-center gap-2 rounded-full border border-stone-300 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-700 transition hover:border-gold hover:text-noir"
     >
       {label}
@@ -603,7 +610,7 @@ export function Header() {
 
       <div className="mx-auto max-w-7xl px-4 xl:px-8">
         <div className="flex items-center gap-x-5 gap-y-2 py-4 xl:gap-x-9 xl:py-5">
-          <Link to={`/${locale}`} aria-label="Chamma Store" className="group flex shrink-0 flex-col">
+          <Link to={`/${locale}`} onClick={scrollIfSelf(`/${locale}`, location)} aria-label="Chamma Store" className="group flex shrink-0 flex-col">
             <span className="font-serif text-xl font-bold uppercase leading-none tracking-[0.3em] text-noir transition group-hover:text-gold xl:text-2xl">
               Chamma
             </span>
@@ -622,6 +629,7 @@ export function Header() {
                 key={l.key}
                 to={l.to}
                 end={l.end}
+                onClick={scrollIfSelf(l.to, location)}
                 className={({ isActive }) => {
                   const current = linkIsActive(l.key, isActive, isNewRoute)
 
@@ -667,6 +675,7 @@ export function Header() {
             </button>
             <Link
               to={`/${locale}/wishlist`}
+              onClick={scrollIfSelf(`/${locale}/wishlist`, location)}
               className="relative hidden text-sm text-noir transition hover:text-gold sm:block"
               aria-label={t('common', 'wishlist')}
             >
@@ -677,6 +686,7 @@ export function Header() {
             </Link>
             <Link
               to={`/${locale}/checkout`}
+              onClick={scrollIfSelf(`/${locale}/checkout`, location)}
               className="relative flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-noir transition hover:text-gold"
               aria-label={t('common', 'cart')}
             >

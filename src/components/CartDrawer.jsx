@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useDismiss, useOverlayTransition, useBodyScrollLock, DRAWER_MS } from '../lib/overlay'
+import { scrollIfSelf } from '../lib/scrollTop'
 import { useCheckoutForm, CheckoutFields, OrderSummary, PlaceOrderButton, CheckoutError } from './CheckoutForm'
 
 /**
@@ -172,6 +173,7 @@ export default function CartDrawer() {
  */
 function CartDrawerBody({ closeCart }) {
   const { cart, t, locale } = useApp()
+  const location = useLocation()
   const scrollRef = useRef(null)
 
   const c = useCheckoutForm({ onPlaced: closeCart, scrollRef })
@@ -182,7 +184,7 @@ function CartDrawerBody({ closeCart }) {
         <p className="text-sm text-stone-500">{t('cart', 'empty')}</p>
         <Link
           to={`/${locale}/products`}
-          onClick={closeCart}
+          onClick={(e) => { scrollIfSelf(`/${locale}/products`, location)(); closeCart() }}
           className="inline-block rounded-full bg-noir px-6 py-3 text-xs uppercase tracking-widest text-white hover:bg-gold"
         >
           {t('nav', 'shop')}

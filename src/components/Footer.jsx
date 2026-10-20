@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { socialUrl } from '../lib/api'
 import { SOCIAL_ICONS } from './SocialIcons'
+import { scrollIfSelf } from '../lib/scrollTop'
 
 /**
  * The footer speaks the same language as the header rather than inventing a
@@ -13,6 +14,7 @@ import { SOCIAL_ICONS } from './SocialIcons'
  */
 export function Footer() {
   const { locale, t, nav, contact } = useApp()
+  const location = useLocation()
 
   const shop = [
     { to: `/${locale}/products`, label: t('nav', 'shop') },
@@ -58,7 +60,7 @@ export function Footer() {
             the link columns, so the wordmark gets the whole measure instead of
             fighting three lists for one row. */}
         <div className="flex flex-col gap-6 border-b border-stone-200 py-12 sm:flex-row sm:items-end sm:justify-between">
-          <Link to={`/${locale}`} className="group inline-flex items-center gap-4">
+          <Link to={`/${locale}`} onClick={scrollIfSelf(`/${locale}`, location)} className="group inline-flex items-center gap-4">
             <img
               src="/chamma-store-logo.png"
               alt="Chamma"
@@ -149,6 +151,7 @@ export function Footer() {
                   <li key={it.to}>
                     <Link
                       to={it.to}
+                      onClick={scrollIfSelf(it.to, location)}
                       className="nav-link inline-block text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500 transition hover:text-noir"
                     >
                       {it.label}
