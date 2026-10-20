@@ -4,6 +4,7 @@ import { adminApi, api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { EmptyState } from '../../components/Spinner'
+import { SOCIAL_ICONS } from '../../components/SocialIcons'
 import { Select, TextInput } from '../../components/admin/Form'
 import {
   Badge,
@@ -601,10 +602,46 @@ export default function AdminOrders() {
                 <Td>
                   <Badge tone={o.status_color}>{o.status_label}</Badge>
                 </Td>
-                <Td>
-                  <Link to={`/${locale}/admin/orders/${o.id}`} className={buttonClass()}>
-                    {t('admin', 'view')}
-                  </Link>
+                <Td className="whitespace-nowrap text-end">
+                  <div className="flex items-center justify-end gap-2">
+                    {/* The customer's WhatsApp in one click. wa.me wants bare
+                        international digits and the order keeps the phone
+                        exactly as it was typed, so the link arrives built by
+                        OrderResource through the shared normaliser — the panel
+                        would otherwise be re-deciding the +212 rules here. A
+                        row whose phone does not normalise renders nothing
+                        rather than a link to nowhere. It opens a new tab
+                        because the chat is an errand alongside this list, and
+                        closing the message would otherwise close the place
+                        the owner was reading. */}
+                    {o.customer?.whatsapp_url && (
+                      <a
+                        href={o.customer.whatsapp_url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className={buttonClass('ghost')}
+                      >
+                        {/* The one green accent on the row: the glyph carries
+                            in currentColor so the tone stays a style choice. */}
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4 text-emerald-600"
+                          aria-hidden="true"
+                        >
+                          {SOCIAL_ICONS.whatsapp}
+                        </svg>
+                        {t('admin', 'contactWhatsapp')}
+                      </a>
+                    )}
+                    <Link to={`/${locale}/admin/orders/${o.id}`} className={buttonClass()}>
+                      {t('admin', 'view')}
+                    </Link>
+                  </div>
                 </Td>
               </tr>
             ))}
