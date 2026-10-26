@@ -220,7 +220,13 @@ export function OrderLookup() {
                 {imageUrl(item.image_url || item.image) && (
                   <img src={imageUrl(item.image_url || item.image)} alt="" className="h-12 w-10 object-cover" />
                 )}
-                <span className="flex-1">{item.product_name}</span>
+                <span className="flex-1">
+                  {item.product_name}
+                  {/* Two sizes of one product arrive as two lines; without
+                      the variant next to the name they read as an accident
+                      rather than a choice. */}
+                  {item.variant && <span className="text-stone-400"> — {item.variant}</span>}
+                </span>
                 <span className="text-stone-400">×{item.quantity}</span>
               </li>
             ))}

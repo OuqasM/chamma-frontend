@@ -110,6 +110,15 @@ export default function AdminOrderDetail() {
                       </span>
                       <span>
                         {item.name}
+                        {/* What was chosen at purchase time, kept next to the
+                            name: without the variant there is nothing telling
+                            the two sizes of the same product apart in this
+                            table. */}
+                        {item.variant && (
+                          <span className="block text-xs font-medium text-noir">
+                            {t('admin', 'variant')}: {item.variant}
+                          </span>
+                        )}
                         {item.sku && <span className="block font-mono text-xs text-stone-500">{item.sku}</span>}
                       </span>
                     </div>

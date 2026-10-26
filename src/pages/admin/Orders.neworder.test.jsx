@@ -7,9 +7,10 @@
  * repeated add into a quantity, and exactly which fields leave the browser.
  *
  * That last one is the important one. The server re-reads prices and stock, so
- * the only thing this form is allowed to send is which product, how many, and
- * who the customer is. If a display field ever leaks into the payload the
- * server is being told a price it should have looked up itself.
+ * the only thing this form is allowed to send is which product (and, for a
+ * product sold in sizes, which variant), how many, and who the customer is. If
+ * a display field ever leaks into the payload the server is being told a price
+ * it should have looked up itself.
  */
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -182,7 +183,7 @@ describe('AdminOrders new order', () => {
       phone: '0612345678',
       address: '12 rue Ibn Batouta',
       payment_method: 'cod',
-      items: [{ product_id: 7, quantity: 1 }],
+      items: [{ product_id: 7, quantity: 1, variant: null }],
     })
 
     // The rows carry `price` and `stock` so the owner can see them. None of that
@@ -208,7 +209,7 @@ describe('AdminOrders new order', () => {
     // One row with a quantity of 2, not two rows of 1. Two rows would still add
     // up at checkout, but they read as two separate decisions and have to be
     // reconciled by hand when the total is wrong.
-    expect(body.items).toEqual([{ product_id: 7, quantity: 2 }])
+    expect(body.items).toEqual([{ product_id: 7, quantity: 2, variant: null }])
   })
 
   it('will not submit an order with no items', async () => {
@@ -219,6 +220,111 @@ describe('AdminOrders new order', () => {
       (b) => b.textContent.trim() === 'save',
     )
     expect(save.disabled).toBe(true)
+  })
+
+  it('recording "two of the 100 ml": a variant product needs its variant chosen', async () => {
+    // Written as a panel product is: a flag, and one row per size.
+    products.mockResolvedValue({
+      data: [{
+        id: 7,
+        name: 'Oud Impérial',
+        price: 890,
+        stock: 10,
+        has_variants: true,
+        variants: [{ id: 1, name: '50 ml' }, { id: 2, name: '100 ml' }],
+      }],
+    })
+
+    await open()
+    await fillCustomer()
+    await addProduct()
+
+    // Nothing is pre-selected: the order must not name a bottle nobody chose.
+    const picker = dialog().querySelector('[aria-label="variant"]')
+    expect(picker).toBeTruthy()
+    expect(picker.value).toBe('')
+    expect(picker.textContent).toContain('50 ml')
+
+    const save = [...container.querySelectorAll('button')].find(
+      (b) => b.textContent.trim() === 'save',
+    )
+    expect(save.disabled).toBe(true)
+
+    await choose(picker, '100 ml')
+    expect(save.disabled).toBe(false)
+
+    await act(async () => {
+      dialog().querySelector('form').requestSubmit()
+    })
+
+    expect(createOrder).toHaveBeenCalledTimes(1)
+    const [, body] = createOrder.mock.calls[0]
+    expect(body.items).toEqual([{ product_id: 7, quantity: 1, variant: '100 ml' }])
+  })
+
+  it('adds a second line for each size of a variant product, not a merged one', async () => {
+    products.mockResolvedValue({
+      data: [{
+        id: 7,
+        name: 'Oud Impérial',
+        price: 890,
+        stock: 10,
+        has_variants: true,
+        variants: [{ id: 1, name: '50 ml' }, { id: 2, name: '100 ml' }],
+      }],
+    })
+
+    await open()
+    await fillCustomer()
+    await addProduct()
+    await addProduct()
+
+    const pickers = [...dialog().querySelectorAll('[aria-label="variant"]')]
+    expect(pickers).toHaveLength(2)
+    expect(pickers[0]).not.toBe(pickers[1])
+
+    await choose(pickers[0], '50 ml')
+    await choose(pickers[1], '100 ml')
+
+    await act(async () => {
+      dialog().querySelector('form').requestSubmit()
+    })
+
+    const [, body] = createOrder.mock.calls[0]
+    expect(body.items).toEqual([
+      { product_id: 7, quantity: 1, variant: '50 ml' },
+      { product_id: 7, quantity: 1, variant: '100 ml' },
+    ])
+  })
+
+  it('after removing a size, adding it again targets its own line', async () => {
+    products.mockResolvedValue({
+      data: [{
+        id: 7,
+        name: 'Oud Impérial',
+        price: 890,
+        stock: 10,
+        has_variants: true,
+        variants: [{ id: 1, name: '50 ml' }, { id: 2, name: '100 ml' }],
+      }],
+    })
+
+    await open()
+    await fillCustomer()
+    await addProduct()
+    await addProduct()
+    await addProduct()
+
+    const pickers = [...dialog().querySelectorAll('[aria-label="variant"]')]
+    expect(pickers).toHaveLength(3)
+
+    // Removing the middle line must not make the next addition share its
+    // identity: each line is chosen separately and removed separately.
+    await click(
+      pickers[1].closest('li').querySelector('button'),
+    )
+
+    expect([...dialog().querySelectorAll('[aria-label="variant"]')]).toHaveLength(2)
   })
 
   it('shows the reason the server refused, instead of a generic failure', async () => {

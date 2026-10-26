@@ -153,9 +153,14 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
 
   const addItem = (product) => {
     setDraft((d) => {
-      // Adding the same product twice should raise its quantity, not create two
-      // rows that then have to be reconciled to get the right order.
-      const existing = d.items.find((i) => i.product_id === product.id)
+      // A product sold in variants cannot be merged into an existing row: the
+      // two lines would then have to share one variant choice, and the whole
+      // point of a phone order is "two of the 50 ml and one of the 100 ml".
+      const hasVariants = Boolean(product.has_variants) && (product.variants?.length ?? 0) > 0
+      // Non-variant products keep the merge rule: adding the same product
+      // twice raises its quantity rather than creating two rows that then have
+      // to be reconciled to get the right order.
+      const existing = hasVariants ? null : d.items.find((i) => i.product_id === product.id)
       if (existing) {
         return {
           ...d,
@@ -169,10 +174,26 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         items: [
           ...d.items,
           {
+            // Lines are addressed by product + which addition of that product
+            // this is, so two lines of one variant product stay two lines —
+            // and stay distinct even after one of them was removed.
+            seq:
+              d.items.reduce(
+                (n, i) => (i.product_id === product.id ? Math.max(n, i.seq ?? 0) : n),
+                -1,
+              ) + 1,
             product_id: product.id,
             name: product.name,
             price: product.price,
             stock: product.stock,
+            has_variants: hasVariants,
+            variants: hasVariants
+              ? product.variants.map((v) => ({ id: v.id, name: v.name }))
+              : null,
+            // Nothing is pre-selected: the server rejects a variant line that
+            // does not name a variant, and the shop would ship a guessing
+            // mistake otherwise.
+            variant: null,
             quantity: 1,
           },
         ],
@@ -182,16 +203,27 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     setMatches([])
   }
 
-  const setQuantity = (productId, quantity) =>
+  // Which line of the draft this is: product + which of its additions.
+  const lineId = (item) => `${item.product_id}::${item.seq ?? 0}`
+
+  const setQuantity = (key, quantity) =>
     setDraft((d) => ({
       ...d,
       items: d.items.map((i) =>
-        i.product_id === productId ? { ...i, quantity: Math.max(1, Number(quantity) || 1) } : i,
+        lineId(i) === key ? { ...i, quantity: Math.max(1, Number(quantity) || 1) } : i,
       ),
     }))
 
-  const removeItem = (productId) =>
-    setDraft((d) => ({ ...d, items: d.items.filter((i) => i.product_id !== productId) }))
+  // Replacing a line's variant, not removing it: the owner changes their mind
+  // about the size, the quantity stays.
+  const setLineVariant = (key, variant) =>
+    setDraft((d) => ({
+      ...d,
+      items: d.items.map((i) => (lineId(i) === key ? { ...i, variant: variant || null } : i)),
+    }))
+
+  const removeItem = (key) =>
+    setDraft((d) => ({ ...d, items: d.items.filter((i) => lineId(i) !== key) }))
 
   const close = () => {
     // Throw away the draft rather than leaving it behind the next time the
@@ -203,9 +235,13 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     onClose()
   }
 
+  // A product with variants has not been ordered until a variant names which
+  // one: the server would refuse it, and the shelf needs the size.
+  const missingVariant = draft.items.some((i) => i.has_variants && !i.variant)
+
   const save = async (e) => {
     e.preventDefault()
-    if (saving || draft.items.length === 0) return
+    if (saving || draft.items.length === 0 || missingVariant) return
     setSaving(true)
     setError(null)
 
@@ -218,10 +254,14 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         notes: draft.notes || null,
         payment_method: draft.payment_method,
         payment_status: draft.payment_status,
-        // Only the two fields the server needs. `name`/`price`/`stock` above
+        // Only the fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
-        items: draft.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+        items: draft.items.map((i) => ({
+          product_id: i.product_id,
+          quantity: i.quantity,
+          variant: i.variant || null,
+        })),
       }
       const res = await call((signal) => adminApi.createOrder(locale, body, { signal }))
       close()
@@ -261,7 +301,11 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
       footer={
         <>
           <Ghostish onClick={close} label={t('admin', 'cancel')} />
-          <PrimaryButton type="submit" form="new-order-form" disabled={saving || draft.items.length === 0}>
+          <PrimaryButton
+            type="submit"
+            form="new-order-form"
+            disabled={saving || draft.items.length === 0 || missingVariant}
+          >
             {saving ? t('admin', 'saving') : t('admin', 'save')}
           </PrimaryButton>
         </>
@@ -370,37 +414,71 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             <p className="text-sm text-stone-500">{t('admin', 'newOrderEmptyItems')}</p>
           ) : (
             <ul className="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200">
-              {draft.items.map((item) => (
-                <li key={item.product_id} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
-                  <span className="min-w-40 flex-1 truncate text-sm text-stone-800">{item.name}</span>
+              {draft.items.map((item) => {
+                const key = lineId(item)
+                const missingChoice = item.has_variants && !item.variant
 
-                  {tooMany(item) && (
-                    <Badge tone="danger">
-                      {t('admin', 'outOfStock')} ({item.stock})
-                    </Badge>
-                  )}
+                return (
+                  <li key={key} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
+                    <span className="min-w-40 flex-1 truncate text-sm text-stone-800">{item.name}</span>
 
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => setQuantity(item.product_id, e.target.value)}
-                    aria-label={t('admin', 'quantity')}
-                    className="w-20 rounded-lg border border-stone-200 px-2 py-1.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/15"
-                  />
-                  <span className="w-24 text-right text-sm text-stone-600">
-                    {money((Number(item.price) || 0) * item.quantity)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.product_id)}
-                    className="text-xs font-medium text-stone-400 transition hover:text-rose-700"
-                  >
-                    {t('admin', 'newOrderRemoveItem')}
-                  </button>
-                </li>
-              ))}
+                    {item.has_variants && (
+                      <select
+                        value={item.variant || ''}
+                        onChange={(e) => setLineVariant(key, e.target.value)}
+                        aria-label={t('product', 'variant') || t('admin', 'variant')}
+                        // Before the owner chooses, the field reads as the one
+                        // thing wrong with the order — the row is real, the
+                        // size is not.
+                        className={`rounded-lg border bg-white px-2 py-1.5 text-sm text-noir focus:outline-none focus:ring-2 ${
+                          missingChoice
+                            ? 'border-rose-300 focus:ring-rose-100'
+                            : 'border-stone-200 focus:border-gold focus:ring-gold/15'
+                        }`}
+                      >
+                        <option value="" disabled>
+                          {t('product', 'selectVariant')}
+                        </option>
+                        {item.variants.map((v) => (
+                          <option key={v.id || v.name} value={v.name}>
+                            {v.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {tooMany(item) && (
+                      <Badge tone="danger">
+                        {t('admin', 'outOfStock')} ({item.stock})
+                      </Badge>
+                    )}
+
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => setQuantity(key, e.target.value)}
+                      aria-label={t('admin', 'quantity')}
+                      className="w-20 rounded-lg border border-stone-200 px-2 py-1.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/15"
+                    />
+                    <span className="w-24 text-right text-sm text-stone-600">
+                      {money((Number(item.price) || 0) * item.quantity)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(key)}
+                      className="text-xs font-medium text-stone-400 transition hover:text-rose-700"
+                    >
+                      {t('admin', 'newOrderRemoveItem')}
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
+          )}
+
+          {missingVariant && (
+            <p className="text-xs text-rose-600">{t('admin', 'variantRequired')}</p>
           )}
 
           <dl className="space-y-1.5 rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm">
@@ -579,13 +657,31 @@ export default function AdminOrders() {
         {orders.length === 0 ? (
           <EmptyState title={t('admin', 'noOrders')} />
         ) : (
-          <Table head={[t('admin', 'reference'), t('admin', 'customer'), t('admin', 'city'), t('admin', 'total'), t('admin', 'placedAt'), t('admin', 'status'), t('admin', 'actions')]}>
+          <Table head={[t('admin', 'reference'), t('admin', 'customer'), t('admin', 'items'), t('admin', 'city'), t('admin', 'total'), t('admin', 'placedAt'), t('admin', 'status'), t('admin', 'actions')]}>
             {orders.map((o) => (
               <tr key={o.id} className="transition hover:bg-stone-50">
                 <Td className="font-mono text-xs">{o.reference}</Td>
                 <Td>
                   {o.customer?.name}
                   <span className="block text-xs text-stone-500" dir="ltr">{o.customer?.phone}</span>
+                </Td>
+                <Td className="max-w-72">
+                  {/* One line per article, with the variant next to the name:
+                      it is what decides which bottle leaves the shelf, so it
+                      belongs to the line rather than to a detail screen the
+                      owner then has to open for. */}
+                  <ul className="divide-y divide-stone-100 text-xs leading-snug text-stone-700">
+                    {(o.items || []).map((i) => (
+                      <li key={i.id} className="whitespace-nowrap py-0.5 first:py-0">
+                        <span className="inline-block max-w-48 truncate align-middle">{i.name}</span>
+                        {i.variant && (
+                          <span className="font-medium text-noir"> — {i.variant}</span>
+                        )}
+                        <span className="text-stone-400"> ×{i.quantity}</span>
+                      </li>
+                    ))}
+                    {(o.items || []).length === 0 && <li className="text-stone-300">—</li>}
+                  </ul>
                 </Td>
                 <Td className="text-stone-600">{o.shipping?.city}</Td>
                 <Td className="whitespace-nowrap">
