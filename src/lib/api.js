@@ -2,7 +2,11 @@
  * Thin API client.
  *
  * The backend is the single source of truth: catalogue text, prices, stock
- * and shipping are always read from the API, never cached in the browser.
+ * and shipping quotes are always read from the API, never cached in the
+ * browser. The one exception is checkout options — the city list, payment
+ * methods and bank details are shop configuration, not cart state — which is
+ * shared between the two hosts of the checkout form and briefly cached; see
+ * `checkoutOptions` below.
  *
  * `VITE_API_URL` is the API origin and is empty by default: local development
  * and a single origin deployment leave it unset, so every request is relative
@@ -89,6 +93,65 @@ async function request(path, { locale, method = 'GET', body, params, signal, aut
 
 const scoped = (locale) => (path, opts = {}) => request(path, { ...opts, locale })
 
+/**
+ * Checkout options: the deliverable cities, the payment methods, the bank
+ * details. Shop configuration, not cart state — they change when the shop's
+ * own settings change, not when the shopper's cart does.
+ *
+ * The drawer and the /checkout page each mount the checkout form after the
+ * first add-to-cart, and both stay mounted once the shopper has used both, so
+ * without this the same city list is fetched twice per locale per session.
+ * In-flight calls share one request; a settled answer is reused for five
+ * minutes; a failure is never cached, so a retry is a real retry.
+ */
+const CHECKOUT_OPTIONS_TTL_MS = 5 * 60 * 1000
+const checkoutOptionsCache = new Map()
+
+function checkoutOptions(locale) {
+  const hit = checkoutOptionsCache.get(locale)
+  if (hit && Date.now() - hit.at < CHECKOUT_OPTIONS_TTL_MS) return hit.promise
+
+  const promise = request(`/${locale}/checkout/options`).catch((error) => {
+    checkoutOptionsCache.delete(locale)
+    throw error
+  })
+
+  checkoutOptionsCache.set(locale, { at: Date.now(), promise })
+  return promise
+}
+
+/**
+ * A live quote, deduplicated only while it is in flight.
+ *
+ * The drawer is still mounted when the /checkout page mounts alongside it,
+ * and the two quotes they fire in that moment are byte-identical — same cart,
+ * same city, same locale — so one round trip can answer both.
+ *
+ * A settled quote is never reused, unlike the options: it is priced from live
+ * stock, and the moment it stops being fresh is exactly the moment showing it
+ * becomes a promise the next request gets to break.
+ */
+const quoteInFlight = new Map()
+
+function quote(locale, body) {
+  const key = JSON.stringify([locale, body])
+  if (quoteInFlight.has(key)) return quoteInFlight.get(key)
+
+  const promise = request(`/${locale}/checkout/quote`, { method: 'POST', body }).then(
+    (value) => {
+      quoteInFlight.delete(key)
+      return value
+    },
+    (error) => {
+      quoteInFlight.delete(key)
+      throw error
+    },
+  )
+
+  quoteInFlight.set(key, promise)
+  return promise
+}
+
 export const api = {
   // Storefront — locale is part of the path.
   home: (l) => scoped(l)('/home'),
@@ -103,8 +166,8 @@ export const api = {
   search: (l, params, opts) => scoped(l)('/search', { ...opts, params }),
 
   // Checkout.
-  checkoutOptions: (l) => request(`/${l}/checkout/options`),
-  quote: (l, body) => request(`/${l}/checkout/quote`, { method: 'POST', body }),
+  checkoutOptions,
+  quote,
   checkout: (l, body) => request(`/${l}/checkout`, { method: 'POST', body }),
   order: (l, reference, phone) => request(`/${l}/orders/${encodeURIComponent(reference)}`, { params: { phone } }),
 

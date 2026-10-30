@@ -26,10 +26,30 @@
     RewriteRule ^ /index.html [L]
 </IfModule>
 
-# The built index.html points at content hashed filenames, so it must not be
-# cached or a deploy would keep serving the previous bundle.
+# Caching. Two kinds of file ship in this tree, and they need opposite
+# policies.
+#
+# The build output under assets/ is content-hashed: the filename changes
+# whenever the content does, so it can be cached for a year and marked
+# immutable — the same policy nginx.conf applies in the Docker deployment.
+# Without this block the shared host sent no policy at all, and every visit
+# revalidated the whole bundle and every font subset.
+#
+# The files copied from public/ (the hero photographs, the logo, the bank
+# slip, the favicon) are NOT hashed: they can change under their own name, so
+# a week rather than a year — long enough to carry a browsing session, short
+# enough that replacing one shows up the same week.
+#
+# index.html must never be cached, or a deploy would keep serving the
+# previous bundle's filenames.
 <IfModule mod_headers.c>
     <FilesMatch "index\.html$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+    <FilesMatch "\.(?:js|mjs|css|woff2?)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(?:jpe?g|png|svg|webp|gif|ico)$">
+        Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
 </IfModule>

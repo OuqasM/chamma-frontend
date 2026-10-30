@@ -7,6 +7,36 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Chamma Store — Uniquement des produits originaux</title>
     <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
       // A reload has to start at the top. Chrome replays the offset it saved for
       // this history entry against the document while it is still short — the
       // storefront mounts a spinner and the shell first, and the API fills the
@@ -44,7 +74,7 @@
         document.head.appendChild(link)
       })()
     </script>
-    <script type="module" crossorigin src="/assets/index-DPbO6dxR.js"></script>
+    <script type="module" crossorigin src="/assets/index-BYxSn9dO.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-Ce5fB1iE.css">
   </head>
   <body>
