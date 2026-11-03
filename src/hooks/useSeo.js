@@ -22,6 +22,11 @@ function absoluteImage(url) {
  *
  * `jsonLd` is a payload, not a flag: Product passes a real schema.org object,
  * and the rest pass nothing.
+ *
+ * `enabled` is for a page that shows another page's view: the home page
+ * renders the boutique's own catalogue under its hero, and that catalogue
+ * must not write metadata over the home page's. Two writers on the same
+ * <head> would fight, and the loser's tags would be the ones a crawler read.
  */
 export default function useSeo({
   title,
@@ -32,10 +37,13 @@ export default function useSeo({
   type = 'website',
   noindex = false,
   jsonLd = null,
+  enabled = true,
 }) {
   const { locale, t } = useApp()
 
   useEffect(() => {
+    if (!enabled) return
+
     resetSeo()
 
     if (title) setTitle(title)
@@ -58,5 +66,5 @@ export default function useSeo({
     setRobots(noindex ? 'noindex, nofollow' : 'index, follow')
 
     setJsonLd(jsonLd)
-  }, [title, description, image, canonical, JSON.stringify(alternates ?? {}), type, noindex, locale, JSON.stringify(jsonLd)])
+  }, [enabled, title, description, image, canonical, JSON.stringify(alternates ?? {}), type, noindex, locale, JSON.stringify(jsonLd)])
 }

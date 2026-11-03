@@ -28,6 +28,7 @@ vi.mock('../context/AppContext', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  PER_PAGE: 24,
   api: {
     home: () => Promise.resolve({
       hero: null,
@@ -37,6 +38,11 @@ vi.mock('../lib/api', () => ({
       new_arrivals: [],
       offers: [],
     }),
+    // The home page carries the boutique's own catalogue under the hero, so
+    // the catalogue endpoint is asked as well. It answers with nothing here:
+    // this file measures the *brand* carousel's cadence, and the catalogue
+    // renders no carousel of its own.
+    products: () => Promise.resolve({ data: [], meta: null }),
   },
   imageUrl: () => null,
   absolute: (p) => `https://chammastore.com${p}`,
@@ -49,10 +55,11 @@ vi.mock('../lib/seo', () => ({
 
 vi.mock('../hooks/useSeo', () => ({ default: () => {} }))
 
-// Home's product shelves now use `ProductCard`, not `ProductGrid`. The shelves
-// stay empty in this file (see BRANDS note above), so neither is ever called —
-// but leaving `ProductGrid` here would make the mock quietly wrong for the next
-// person who adds a product to the fixture.
+// The brand tiles use `ProductCard`, and the catalogue under them uses
+// `ProductGrid`. Neither is called with anything in this file — the brands
+// have a logo but the carousel renders them as tiles, and the catalogue is
+// empty — but leaving `ProductGrid` here would make the mock quietly wrong
+// for the next person who adds a product to the fixture.
 vi.mock('../components/ProductCard', () => ({
   ProductCard: () => null,
   ProductGrid: () => null,
@@ -60,6 +67,7 @@ vi.mock('../components/ProductCard', () => ({
 vi.mock('../components/Spinner', () => ({
   Spinner: () => <p>loading</p>,
   ErrorState: () => <p>error</p>,
+  EmptyState: () => <p>empty</p>,
 }))
 
 const { default: Home } = await import('../pages/Home')

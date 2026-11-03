@@ -2,63 +2,20 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
-import { ProductCard } from '../components/ProductCard'
 import Carousel from '../components/Carousel'
+import Catalogue from './Catalogue'
 import { Spinner, ErrorState } from '../components/Spinner'
 import useSeo from '../hooks/useSeo'
 import { absolute, organisationJsonLd } from '../lib/seo'
 
-function Section({ title, action, children }) {
+function Section({ title, children }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
-      {/* The heading row wraps. The links beside it now name where they go —
-          "View all products" is longer than "View all" — and on a phone that
-          is more than the title can share a line with, so the link drops
-          under it rather than squeezing the title into a column. */}
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h2 className="font-serif text-2xl text-noir">{title}</h2>
-        {action}
       </div>
       {children}
     </section>
-  )
-}
-
-/** The "view all" affordance beside a section heading.
- *
- *  It was a 12px gold word that only announced itself on hover, which read as
- *  a caption rather than as the way into the rest of the shelf. It now carries
- *  the weight of a heading counterpart: the label in `noir` so it holds its own
- *  against the serif title, a gold rule that is always drawn rather than grown
- *  on hover, and an arrow that mirrors with the writing direction — the same
- *  forward cue the brand tiles use, so the page has one idea of "onward".
- *
- *  The label names what is on the other side of it. Three shelves each
- *  carrying a "View all" told a visitor nothing: "all" of what? The shelf
- *  shows four of the most loved and the link opens the whole shop, the shelf
- *  shows the newest and the link opens them all — a different set each time,
- *  and the client had to guess. Each link now says which set it opens. */
-function ViewAllLink({ to, children }) {
-  const { dir } = useApp()
-  const arrow = dir === 'rtl' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
-
-  return (
-    <Link
-      to={to}
-      className="group inline-flex shrink-0 items-center gap-2 border-b border-gold pb-1 text-sm font-medium uppercase tracking-[0.18em] text-noir transition-colors hover:text-gold"
-    >
-      {children}
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        aria-hidden="true"
-        className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
-      >
-        <path d={arrow} strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </Link>
   )
 }
 
@@ -102,29 +59,6 @@ function BrandCard({ brand, discoverLabel }) {
         </div>
       </div>
     </Link>
-  )
-}
-
-/** A row of products that scrolls sideways instead of wrapping.
- *
- *  The home page sends exactly four products per shelf, and this is the same
- *  treatment "Parfumez par marque" gets, so the page reads as one set of rules
- *  rather than a grid that changed halfway down.
- *
- *  It autoplays on a phone, where a single card on screen that moves by itself
- *  is the only signal that there is another one, and stands still from `lg` up,
- *  where four cards already fit on screen and moving them under a shopper
- *  comparing prices is just in the way. */
-function ProductShelf({ products, label }) {
-  return (
-    <Carousel
-      items={products}
-      ariaLabel={label}
-      autoplay={2500}
-      autoplayBelow={1024}
-      perViewClass="[--pv:1] sm:[--pv:2] lg:[--pv:4]"
-      renderItem={(p) => <ProductCard product={p} />}
-    />
   )
 }
 
@@ -234,32 +168,21 @@ export default function Home() {
         </Section>
       )}
 
-      {data.best_sellers?.length > 0 && (
-        <Section
-          title={t('home', 'topSellers')}
-          action={<ViewAllLink to={`/${locale}/products`}>{t('home', 'viewAllProducts')}</ViewAllLink>}
-        >
-          <ProductShelf products={data.best_sellers} label={t('home', 'topSellers')} />
-        </Section>
-      )}
+      {/* The boutique's own view, under the hero: every product, with the
+          filters that find them and the page row that walks through them.
 
-      {data.new_arrivals?.length > 0 && (
-        <Section
-          title={t('home', 'newArrivals')}
-          action={<ViewAllLink to={`/${locale}/products?sort=newest`}>{t('home', 'viewAllNew')}</ViewAllLink>}
-        >
-          <ProductShelf products={data.new_arrivals} label={t('home', 'newArrivals')} />
-        </Section>
-      )}
+          It replaces the three shelves that were here — "Les plus aimés",
+          "Fraîchement arrivés", "Nos coups de cœur" — which showed twelve
+          products between them and said nothing about the rest of the shop.
+          A visitor who never opened the menu found a dozen perfumes in a
+          store that carries hundreds, and the only way to the others was to
+          know the word "Boutique" and go looking for it.
 
-      {data.offers?.length > 0 && (
-        <Section
-          title={t('home', 'offers')}
-          action={<ViewAllLink to={`/${locale}/offers`}>{t('home', 'viewAllOffers')}</ViewAllLink>}
-        >
-          <ProductShelf products={data.offers} label={t('home', 'offers')} />
-        </Section>
-      )}
+          The catalogue is embedded rather than linked so that the landing
+          page *is* the shop: the same filters, the same sorting, the same
+          page row, and the page number in the URL so a listing can still be
+          sent to someone else. */}
+      <Catalogue mode="all" embedded />
     </>
   )
 }

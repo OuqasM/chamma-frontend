@@ -179,7 +179,18 @@ function Filters({ category, brand, minPrice, maxPrice, bounds, onSelect, onClea
   )
 }
 
-export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
+/**
+ * The catalogue.
+ *
+ * It is a page of its own at `/{locale}/products`, and it is also the view the
+ * home page shows under its hero: the whole list, with its filters, instead of
+ * three shelves of four products. `embedded` is what tells the two apart.
+ *
+ * An embedded catalogue brings its heading, its filters, its grid and its page
+ * row, and leaves the metadata alone: the page it sits on owns the canonical
+ * and the description, and two writers on the same <head> would fight over it.
+ */
+export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand, embedded = false }) {
   const { locale, t, nav } = useApp()
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -317,6 +328,8 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
           en: absolute(`/en/${mode === 'offers' ? 'offers' : 'products'}`),
         },
     noindex: isSearch,
+    // An embedded catalogue leaves the metadata to the page it sits on.
+    enabled: !embedded,
   })
 
   const filterProps = {
@@ -328,9 +341,14 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
     onSelect: setParam,
   }
 
+  // The heading is an `h2` when the catalogue is embedded: the page it sits
+  // on already has its own `h1`, and two of them on one page is a document
+  // that says two different things about itself.
+  const Heading = embedded ? 'h2' : 'h1'
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="font-serif text-3xl text-noir">{title}</h1>
+    <div className={`mx-auto max-w-7xl px-4 ${embedded ? 'py-12' : 'py-10'}`}>
+      <Heading className={`font-serif text-noir ${embedded ? 'text-2xl' : 'text-3xl'}`}>{title}</Heading>
 
       <div className="mt-8 grid gap-8 md:grid-cols-[220px_1fr]">
         {showSidebar && (
