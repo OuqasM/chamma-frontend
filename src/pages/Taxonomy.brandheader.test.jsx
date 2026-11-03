@@ -29,6 +29,7 @@ vi.mock('../context/AppContext', () => ({
 let payload = {}
 
 vi.mock('../lib/api', () => ({
+  PER_PAGE: 24,
   api: {
     brand: () => Promise.resolve(payload),
     category: () => Promise.resolve(payload),

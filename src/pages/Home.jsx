@@ -11,7 +11,11 @@ import { absolute, organisationJsonLd } from '../lib/seo'
 function Section({ title, action, children }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
-      <div className="mb-6 flex items-baseline justify-between gap-4">
+      {/* The heading row wraps. The links beside it now name where they go —
+          "View all products" is longer than "View all" — and on a phone that
+          is more than the title can share a line with, so the link drops
+          under it rather than squeezing the title into a column. */}
+      <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h2 className="font-serif text-2xl text-noir">{title}</h2>
         {action}
       </div>
@@ -27,7 +31,13 @@ function Section({ title, action, children }) {
  *  the weight of a heading counterpart: the label in `noir` so it holds its own
  *  against the serif title, a gold rule that is always drawn rather than grown
  *  on hover, and an arrow that mirrors with the writing direction — the same
- *  forward cue the brand tiles use, so the page has one idea of "onward". */
+ *  forward cue the brand tiles use, so the page has one idea of "onward".
+ *
+ *  The label names what is on the other side of it. Three shelves each
+ *  carrying a "View all" told a visitor nothing: "all" of what? The shelf
+ *  shows four of the most loved and the link opens the whole shop, the shelf
+ *  shows the newest and the link opens them all — a different set each time,
+ *  and the client had to guess. Each link now says which set it opens. */
 function ViewAllLink({ to, children }) {
   const { dir } = useApp()
   const arrow = dir === 'rtl' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
@@ -227,7 +237,7 @@ export default function Home() {
       {data.best_sellers?.length > 0 && (
         <Section
           title={t('home', 'topSellers')}
-          action={<ViewAllLink to={`/${locale}/products`}>{t('home', 'viewAll')}</ViewAllLink>}
+          action={<ViewAllLink to={`/${locale}/products`}>{t('home', 'viewAllProducts')}</ViewAllLink>}
         >
           <ProductShelf products={data.best_sellers} label={t('home', 'topSellers')} />
         </Section>
@@ -236,7 +246,7 @@ export default function Home() {
       {data.new_arrivals?.length > 0 && (
         <Section
           title={t('home', 'newArrivals')}
-          action={<ViewAllLink to={`/${locale}/products?sort=newest`}>{t('home', 'viewAll')}</ViewAllLink>}
+          action={<ViewAllLink to={`/${locale}/products?sort=newest`}>{t('home', 'viewAllNew')}</ViewAllLink>}
         >
           <ProductShelf products={data.new_arrivals} label={t('home', 'newArrivals')} />
         </Section>
@@ -245,7 +255,7 @@ export default function Home() {
       {data.offers?.length > 0 && (
         <Section
           title={t('home', 'offers')}
-          action={<ViewAllLink to={`/${locale}/offers`}>{t('home', 'viewAll')}</ViewAllLink>}
+          action={<ViewAllLink to={`/${locale}/offers`}>{t('home', 'viewAllOffers')}</ViewAllLink>}
         >
           <ProductShelf products={data.offers} label={t('home', 'offers')} />
         </Section>

@@ -17,6 +17,16 @@
 const ORIGIN = import.meta.env.VITE_API_URL || ''
 const BASE = `${ORIGIN}${import.meta.env.VITE_API_BASE || '/api'}`.replace(/\/$/, '')
 
+/**
+ * How many products a listing asks for.
+ *
+ * The API's own default is smaller. The storefront asks for more so that a
+ * page of results is a page of results rather than the first screenful of a
+ * long list — and, more to the point, so that a brand with a couple of dozen
+ * products is one page rather than two.
+ */
+export const PER_PAGE = 24
+
 export class ApiError extends Error {
   constructor(message, { status, errors } = {}) {
     super(message)

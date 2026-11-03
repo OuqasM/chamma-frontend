@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
-import { api } from '../lib/api'
+import { api, PER_PAGE } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { absolute } from '../lib/seo'
 import { ProductGrid } from '../components/ProductCard'
+import { Pagination } from '../components/Pagination'
 import { Spinner, ErrorState, EmptyState } from '../components/Spinner'
 import useSeo from '../hooks/useSeo'
 
@@ -59,7 +60,10 @@ function Filters({ category, brand, minPrice, maxPrice, bounds, onSelect, onClea
                   category ? 'bg-transparent' : 'bg-gold'
                 }`}
               />
-              {t('home', 'viewAll')}
+              {/* The first option of a list of categories is not a category, it
+                  is the absence of one: every product. "View all" said that
+                  less clearly than the label it now carries. */}
+              {t('common', 'allProducts')}
             </button>
           </li>
           {nav?.categories?.map((c) => (
@@ -187,7 +191,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
   const query = useMemo(() => {
     const q = {
       page: params.get('page') || 1,
-      per_page: params.get('per_page') || 24,
+      per_page: params.get('per_page') || PER_PAGE,
       sort: params.get('sort') || (mode === 'offers' ? 'featured' : 'featured'),
       q: params.get('q') || undefined,
       category: fixedCategory || params.get('category') || undefined,
@@ -440,29 +444,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand }) {
 
           {products.length > 0 && <ProductGrid products={products} />}
 
-          {meta?.links && meta.links.length > 2 && (
-            <nav className="mt-12 flex flex-wrap justify-center gap-1.5" aria-label="Pagination">
-              {meta.links.map((link, i) =>
-                link.url ? (
-                  <button
-                    key={i}
-                    onClick={() => setParam('page', new URL(link.url, window.location.origin).searchParams.get('page'))}
-                    disabled={link.active}
-                    className={`min-w-9 border px-3 py-1.5 text-xs ${
-                      link.active ? 'border-gold bg-gold text-white' : 'border-stone-200 hover:border-gold'
-                    }`}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                  />
-                ) : (
-                  <span
-                    key={i}
-                    className="min-w-9 border border-stone-100 px-3 py-1.5 text-center text-xs text-stone-300"
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                  />
-                ),
-              )}
-            </nav>
-          )}
+          <Pagination meta={meta} onPage={(page) => setParam('page', page)} />
         </div>
       </div>
 

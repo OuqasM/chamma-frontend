@@ -51,6 +51,7 @@ const offers = vi.fn(empty)
 const search = vi.fn(empty)
 
 vi.mock('../lib/api', () => ({
+  PER_PAGE: 24,
   api: { products, offers, search },
   imageUrl: (u) => u || null,
   productHref: (url, locale) => `/${locale}${url}`,

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { api, imageUrl } from '../lib/api'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { api, imageUrl, PER_PAGE } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { ProductGrid } from '../components/ProductCard'
+import { Pagination } from '../components/Pagination'
 import { Spinner, ErrorState } from '../components/Spinner'
 import useSeo from '../hooks/useSeo'
 import { absolute } from '../lib/seo'
@@ -10,8 +11,13 @@ import { absolute } from '../lib/seo'
 export default function Taxonomy({ kind }) {
   const { slug } = useParams()
   const { locale, t } = useApp()
+  const [params, setParams] = useSearchParams()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+
+  // The page number rides the query string, like every other listing: it is
+  // the one piece of a listing's state a shopper can paste into a message.
+  const page = params.get('page') || '1'
 
   useEffect(() => {
     const controller = new AbortController()
@@ -19,14 +25,40 @@ export default function Taxonomy({ kind }) {
     setError(null)
 
     const fetcher = kind === 'brands' ? api.brand : api.category
-    fetcher(locale, slug, { signal: controller.signal })
+    fetcher(locale, slug, {
+      signal: controller.signal,
+      params: { page, per_page: PER_PAGE },
+    })
       .then(setData)
       .catch((e) => {
         if (e.name !== 'AbortError') setError(e.message)
       })
 
     return () => controller.abort()
-  }, [locale, slug, kind])
+  }, [locale, slug, kind, page])
+
+  // A page change is a different list of products, and it starts at the top.
+  // `ScrollToTop` cannot see it: the page number is a query-string write on
+  // the same pathname, which is the channel the filters use too — and those
+  // must not yank the page. The first render is not a change: `ScrollToTop`
+  // has already asked for the top on mount.
+  const previousPage = useRef(null)
+  useEffect(() => {
+    if (previousPage.current === null) {
+      previousPage.current = page
+      return
+    }
+    if (previousPage.current === page) return
+    previousPage.current = page
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [page])
+
+  const setPage = (next) => {
+    const nextParams = new URLSearchParams(params)
+    if (!next || next === '1') nextParams.delete('page')
+    else nextParams.set('page', next)
+    setParams(nextParams, { replace: true })
+  }
 
   const entity = data?.meta?.[kind === 'brands' ? 'brand' : 'category']
 
@@ -101,6 +133,11 @@ export default function Taxonomy({ kind }) {
         ) : (
           <p className="py-16 text-center text-stone-500">{t('common', 'empty')}</p>
         )}
+
+        {/* The page row. It was missing, and a brand with more products than
+            fit on one page was showing only the first of them: the rest were
+            in the API's answer and nowhere on the page. */}
+        <Pagination meta={data?.meta} onPage={setPage} />
       </div>
     </div>
   )

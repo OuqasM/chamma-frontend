@@ -25,6 +25,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 vi.mock('./lib/api', () => ({
+  PER_PAGE: 24,
   api: {
     navigation: vi.fn(() => Promise.resolve({ brands: [], categories: [], contact: null })),
     checkoutOptions: vi.fn(() =>

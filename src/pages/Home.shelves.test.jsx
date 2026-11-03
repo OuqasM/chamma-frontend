@@ -160,7 +160,6 @@ describe('home product shelves', () => {
 
     expect(shelves()).toEqual(['topSellers', 'newArrivals', 'offers'])
   })
-
   it('shows the four products each shelf was sent, and no more', async () => {
     await renderHome()
 
@@ -184,6 +183,47 @@ describe('home product shelves', () => {
 
     expect(shelves()).toEqual(['topSellers', 'newArrivals'])
     expect(container.textContent).not.toContain('Parfum 30')
+  })
+})
+
+/**
+ * The link beside each section heading.
+ *
+ * They all used to read "View all", which told a visitor nothing: three
+ * shelves, three links, and "all" of what? Each link opens a different set —
+ * the whole shop, the new arrivals, the offers — so each one now names the
+ * set it opens.
+ *
+ * The mocked `t` hands back the key, so what is asserted here is that the
+ * three links are *different* labels and that each points at its own listing.
+ * A shared label again would collapse them into one and fail.
+ */
+describe('the section links', () => {
+  it('each name the set they open, and open their own', async () => {
+    await renderHome()
+
+    const link = (label) =>
+      [...container.querySelectorAll('a')].find((a) => a.textContent.includes(label))
+
+    expect(link('viewAllProducts').getAttribute('href')).toBe('/fr/products')
+    expect(link('viewAllNew').getAttribute('href')).toBe('/fr/products?sort=newest')
+    expect(link('viewAllOffers').getAttribute('href')).toBe('/fr/offers')
+  })
+
+  it('are three different sentences in every language', async () => {
+    const { dictionaries } = await import('../lib/i18n')
+
+    for (const locale of ['fr', 'ar', 'en']) {
+      const labels = ['viewAllProducts', 'viewAllNew', 'viewAllOffers'].map(
+        (key) => dictionaries[locale].home[key],
+      )
+
+      // Three different words for three different lists, in every language.
+      expect(new Set(labels).size).toBe(3)
+      // And each one is a real sentence: a key that went missing would read
+      // as undefined here rather than as a label.
+      expect(labels.every((label) => typeof label === 'string' && label.length > 0)).toBe(true)
+    }
   })
 })
 

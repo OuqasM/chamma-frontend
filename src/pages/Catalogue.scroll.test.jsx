@@ -31,6 +31,7 @@ vi.mock('../context/AppContext', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  PER_PAGE: 24,
   api: {
     // One product and a two-page paginator, so the pagination row renders.
     products: () =>
@@ -99,7 +100,8 @@ describe(`the catalogue's scroll`, () => {
     await render('/fr/products')
     scrollTo.mockClear()
 
-    const page2 = [...container.querySelectorAll('nav[aria-label="Pagination"] button')]
+    // The mocked `t` hands back the key, so the row's label is the key too.
+    const page2 = [...container.querySelectorAll('nav[aria-label="pagination"] button')]
       .find((b) => b.textContent.trim() === '2' && !b.disabled)
     await act(async () => page2.click())
 

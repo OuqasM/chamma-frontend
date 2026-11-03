@@ -86,7 +86,7 @@ export default function AdminDashboard() {
             to={`/${locale}/admin/orders`}
             className="text-xs font-medium uppercase tracking-widest text-stone-500 transition hover:text-plum"
           >
-            {t('home', 'viewAll')}
+            {t('admin', 'allOrders')}
           </Link>
         }
       >
