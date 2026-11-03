@@ -184,4 +184,21 @@ describe('ProductCard sold-out', () => {
     const labels = [...container.querySelectorAll('button')].map((b) => b.textContent.trim())
     expect(labels).not.toContain('waitlistCta')
   })
+
+  it('keeps the photograph in colour when the bottle is unavailable', async () => {
+    await renderCard({ product: { ...soldOutProduct, image: { url: '/images/oud.jpg' } } })
+
+    const photo = container.querySelector('img')
+    expect(photo).toBeTruthy()
+
+    // The photo is neither faded nor drained of its colour: a washed-out
+    // picture of a perfume reads as a bad photograph, not as a fact about the
+    // stock. The band across its foot is what says what is true.
+    expect(photo.className).not.toContain('saturate')
+    expect(photo.className).not.toContain('grayscale')
+    expect(photo.className).not.toContain('opacity-')
+
+    // The band is still there.
+    expect(container.textContent).toContain('outOfStock')
+  })
 })

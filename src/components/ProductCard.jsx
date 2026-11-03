@@ -30,13 +30,17 @@ export function ProductCard({ product, showAdd = true }) {
       <Link to={href} className="block overflow-hidden rounded-2xl">
         <div className="relative aspect-[4/5]">
           {image ? (
+            // The photograph keeps its colours even when the bottle is
+            // unavailable. A faded, half-desaturated photo read as a
+            // washed-out picture of a perfume rather than as a fact about the
+            // stock, and the brand's own photography is what the card is
+            // selling. The band across the foot of the photo is what says the
+            // bottle cannot be bought right now.
             <img
               src={image}
               alt={product.image?.alt || product.name}
               loading="lazy"
-              className={`h-full w-full object-cover transition duration-700 group-hover:scale-[1.06] ${
-                soldOut ? 'opacity-70 saturate-50' : ''
-              }`}
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
             />
           ) : (
             <div className="flex h-full items-center justify-center font-serif text-lg tracking-[0.3em] text-stone-300">
