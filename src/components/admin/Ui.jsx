@@ -427,10 +427,29 @@ export function Td({ children, className = '' }) {
   return <td className={`px-5 py-3.5 align-middle text-sm text-noir ${className}`}>{children}</td>
 }
 
-/** Paginator driven by Laravel's `meta.links`, so any admin list can use it. */
+/**
+ * Paginator driven by Laravel's `meta.links`, so any admin list can use it.
+ *
+ * A page change is a different set of rows, and it starts at the top. The
+ * browser keeps the offset it had, so the owner landed on the new page still
+ * scrolled down where the old one was — reading the bottom of a list they had
+ * just left, with the rows they wanted above the fold. The storefront does the
+ * same in `Catalogue` and `Taxonomy`, but it cannot be reused here: those
+ * watch a query-string write on the same pathname, while the admin's page
+ * number is plain component state behind a debounced request.
+ *
+ * The scroll is asked for on the click and not on the answer arriving: the
+ * panel debounces its list request, and waiting for the rows would leave the
+ * owner on the old offset for a quarter of a second.
+ */
 export function Pagination({ meta, onPage }) {
   const links = meta?.links
   if (!links || links.length <= 2) return null
+
+  const goToPage = (page) => {
+    onPage(page)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
 
   return (
     <nav className="flex flex-wrap justify-center gap-1.5" aria-label="Pagination">
@@ -439,7 +458,7 @@ export function Pagination({ meta, onPage }) {
           <button
             key={i}
             type="button"
-            onClick={() => onPage(new URL(link.url, window.location.origin).searchParams.get('page'))}
+            onClick={() => goToPage(new URL(link.url, window.location.origin).searchParams.get('page'))}
             disabled={link.active}
             className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm transition ${
               link.active ? 'border-noir bg-noir text-white' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'

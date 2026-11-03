@@ -669,15 +669,25 @@ export default function AdminOrders() {
                   {/* One line per article, with the variant next to the name:
                       it is what decides which bottle leaves the shelf, so it
                       belongs to the line rather than to a detail screen the
-                      owner then has to open for. */}
+                      owner then has to open for.
+
+                      The line is clipped to the cell instead of running past
+                      its border: the column is capped, and a nowrap line
+                      inside a capped cell paints over the city next to it.
+                      The name is the part that gives way — it is the longest
+                      and the least decisive of the three — while the variant
+                      and the quantity keep their room, and the whole name
+                      rides the title for the hover. */}
                   <ul className="divide-y divide-stone-100 text-xs leading-snug text-stone-700">
                     {(o.items || []).map((i) => (
-                      <li key={i.id} className="whitespace-nowrap py-0.5 first:py-0">
-                        <span className="inline-block max-w-48 truncate align-middle">{i.name}</span>
+                      <li key={i.id} className="flex items-baseline gap-x-1 py-0.5 first:py-0">
+                        <span className="min-w-0 truncate" title={i.name}>{i.name}</span>
                         {i.variant && (
-                          <span className="font-medium text-noir"> — {i.variant}</span>
+                          <span className="max-w-24 shrink-0 truncate font-medium text-noir" title={i.variant}>
+                            — {i.variant}
+                          </span>
                         )}
-                        <span className="text-stone-400"> ×{i.quantity}</span>
+                        <span className="shrink-0 text-stone-400">×{i.quantity}</span>
                       </li>
                     ))}
                     {(o.items || []).length === 0 && <li className="text-stone-300">—</li>}
