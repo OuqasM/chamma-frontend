@@ -32,11 +32,8 @@ vi.mock('../lib/api', () => ({
   api: {
     home: () => Promise.resolve({
       hero: null,
-      categories: [],
       brands: BRANDS,
-      best_sellers: [],
-      new_arrivals: [],
-      offers: [],
+      promises: {},
     }),
     // The home page carries the boutique's own catalogue under the hero, so
     // the catalogue endpoint is asked as well. It answers with nothing here:

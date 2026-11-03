@@ -54,11 +54,8 @@ vi.mock('../lib/api', () => ({
     home: () =>
       Promise.resolve({
         hero: null,
-        categories: [],
         brands: [],
-        best_sellers: [],
-        new_arrivals: [],
-        offers: [],
+        promises: {},
       }),
     products,
     offers: vi.fn(() => Promise.resolve({ data: [], meta: null })),
