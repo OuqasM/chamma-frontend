@@ -316,6 +316,28 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     setCustomers([])
   }
 
+  // The stock decisions the owner made while writing the order. They are
+  // **queued**, not made: they travel with the order and are applied when it
+  // is saved, so an order the owner abandons leaves the shop's stock alone.
+  const [stockActions, setStockActions] = useState([])
+
+  /**
+   * Queue a stock decision — or take it back, because the owner changed their
+   * mind before saving.
+   */
+  const queueStockAction = (action) => {
+    setStockActions((list) => {
+      const same = list.findIndex(
+        (a) =>
+          a.type === action.type &&
+          a.product_id === action.product_id &&
+          (a.variant ?? null) === (action.variant ?? null),
+      )
+
+      return same >= 0 ? list.filter((_, i) => i !== same) : [...list, action]
+    })
+  }
+
   const addItem = (product) => {
     setDraft((d) => {
       // A product sold in variants cannot be merged into an existing row: the
@@ -399,6 +421,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     setCustomers([])
     setSearched(null)
     setPicked(null)
+    setStockActions([])
     setPhoneFocused(false)
     setError(null)
     onClose()
@@ -438,6 +461,9 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         // sets is the price of delivering to that city; a free delivery for
         // one order is not a decision about every order that follows.
         remember_fee: draft.remember_fee,
+        // The stock decisions, made while writing the order and applied when
+        // it is saved.
+        stock_actions: stockActions,
         // Only the fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
@@ -887,11 +913,23 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
                     {/* The two decisions the owner makes while writing the
                         order: this bottle has just sold out, or this size is
                         discontinued for good. Both belong here — the parcel is
-                        going out now, and the shop's stock should say so. */}
+                        going out now, and the shop's stock should say so —
+                        and both wait for the save: an order the owner
+                        abandons must not leave the stock changed. */}
                     <ProductActions
                       productId={item.product_id}
                       productName={item.name}
                       variant={item.variant}
+                      queuedStock={stockActions.some(
+                        (a) => a.type === 'out_of_stock' && a.product_id === item.product_id,
+                      )}
+                      queuedVariant={stockActions.some(
+                        (a) =>
+                          a.type === 'remove_variant' &&
+                          a.product_id === item.product_id &&
+                          a.variant === item.variant,
+                      )}
+                      onQueue={queueStockAction}
                       className="w-full"
                     />
                   </li>

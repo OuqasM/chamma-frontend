@@ -298,13 +298,26 @@ about the containers, not the code.
 - **Neither touches the order.** The line keeps the name it was written with, which is what the
   history means.
 
+### …and they wait for the save
+
+- *"out of stock or remove variant should be applied until i save the order"*.
+- **While the order is being written, the decisions are queued, not made.** They travel with the
+  order (`stock_actions`) and are applied **when it is saved**, in the same transaction as the
+  order: an order the owner abandons must not leave the shop's stock changed, and an order that
+  is refused takes the decisions with it.
+- **On an order that is already saved there is nothing to wait for**, so on the order detail page
+  the button does the thing. One component, two modes: `onQueue` present means deferred.
+- **A decision can be taken back** before the save — clicking a queued decision again unqueues it.
+- The decisions are **best effort**: a size that is not there any more, or a product deleted since,
+  is skipped rather than failing the order the owner is trying to write.
+
 ### Tests
 
-- New: `backend/tests/Feature/AdminProductStockActionsTest.php` (5),
+- New: `backend/tests/Feature/AdminProductStockActionsTest.php` (8),
   `backend/tests/Feature/AdminSalesFiguresTest.php` (12),
   `frontend/src/pages/admin/Orders.figures.test.jsx` (3),
   `frontend/src/pages/admin/Products.stock.test.jsx` (2) and
-  `frontend/src/components/admin/ProductActions.test.jsx` (3). Suite now **373 backend / 1647
+  `frontend/src/components/admin/ProductActions.test.jsx` (5). Suite now **376 backend / 1658
   assertions**, **167 frontend** (was 164).
 - **A space in a path is `%20`, not `+`.** `urlencode()` writes it as `+`, which in a path is a
   literal plus — so "100 ml" arrived as "100+ml" and the size was not found.

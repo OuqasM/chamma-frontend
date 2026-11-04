@@ -105,4 +105,30 @@ describe('AdminProductActions', () => {
     expect(button('removeVariant')).toBeFalsy()
     expect(button('markOutOfStock')).toBeTruthy()
   })
+
+  /**
+   * While the order is being written, the decision waits for the save: an
+   * order the owner abandons must not leave the shop's stock changed.
+   */
+  it('queues the decision instead of making it, while the order is being written', async () => {
+    const onQueue = vi.fn()
+
+    await render({ productId: 7, productName: 'Oud Royale', onQueue })
+
+    await click(button('markOutOfStock'))
+
+    // Nothing was done to the shop.
+    expect(setProductAvailability).not.toHaveBeenCalled()
+    expect(removeVariant).not.toHaveBeenCalled()
+
+    // It was handed to the order instead.
+    expect(onQueue).toHaveBeenCalledWith({ type: 'out_of_stock', product_id: 7 })
+  })
+
+  it('shows a queued decision as waiting for the save', async () => {
+    await render({ productId: 7, productName: 'Oud Royale', queuedStock: true })
+
+    expect(button('queuedOutOfStock')).toBeTruthy()
+    expect(button('markOutOfStock')).toBeFalsy()
+  })
 })
