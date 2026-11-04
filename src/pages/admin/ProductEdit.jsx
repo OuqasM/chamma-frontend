@@ -368,6 +368,7 @@ export default function AdminProductEdit() {
                 onChange={setField('cost_price')}
                 error={errors.cost_price?.[0]}
                 hint={t('admin', 'costPriceHint')}
+                required
               />
               <Select
                 label={t('admin', 'gender')}

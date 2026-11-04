@@ -242,6 +242,12 @@ export const adminApi = {
   customers: (l, params, opts) => admin(l, '/admin/customers', { ...opts, params }),
   searchCustomers: (l, params, opts) => admin(l, '/admin/customers/search', { ...opts, params }),
   customer: (l, id, opts) => admin(l, `/admin/customers/${id}`, opts),
+
+  // What the shop charges for delivering to a city, and the way back to the
+  // carrier's price.
+  shippingFees: (l, opts) => admin(l, '/admin/shipping/fees', opts),
+  resetShippingFee: (l, city, opts) =>
+    admin(l, `/admin/shipping/fees/${encodeURIComponent(city)}`, { ...opts, method: 'DELETE' }),
   // Visitor tracking. Read-only — the backend writes these rows from the
   // storefront middleware, so there is no create/update/delete here.
   visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),

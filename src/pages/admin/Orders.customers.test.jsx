@@ -367,6 +367,9 @@ describe('AdminOrders customer lookup', () => {
 
     const [, body] = createOrder.mock.calls[0]
     expect(body.shipping_cost).toBe(20)
+    // A price the owner types is the price of delivering to that city, and
+    // it is kept.
+    expect(body.remember_fee).toBe(true)
   })
 
   it('lets the owner make the delivery free', async () => {
@@ -388,6 +391,9 @@ describe('AdminOrders customer lookup', () => {
 
     const [, body] = createOrder.mock.calls[0]
     expect(body.shipping_cost).toBe(0)
+    // But a free delivery for one order is not a decision about every order
+    // that follows, so the city's price is left alone.
+    expect(body.remember_fee).toBe(false)
   })
 
   /**

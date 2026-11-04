@@ -214,12 +214,53 @@ about the containers, not the code.
 - **The totals add up to what will be stored**: the server's subtotal plus the fee that will
   really be charged.
 
+### The delivery fee is kept for the city
+
+- *"if i changed delevery fees for a city it should be persisted for that city"*.
+- **The figure the owner puts in the order form is kept for that city** and is what every later
+  order to it is billed at — the storefront included, because a shopper told 35 and charged 50 has
+  been told two different things.
+- The overrides live in the **settings table** (`shipping_fee.CASABLANCA`), not in a table of their
+  own: there are a handful of them, they are read on the checkout path, and the settings are
+  already cached and already forgotten on a write.
+- **A free delivery for one order is not a decision about the city.** The panel sends
+  `remember_fee`, and the "free delivery" switch says no: it prices that order, not every order
+  that follows.
+- **There is a way back**: `DELETE /api/admin/shipping/fees/{city}` puts the carrier's price
+  back, and the panel offers it whenever the city is priced for itself. Without it, a city priced
+  free for one order would stay free for every order after it.
+
+### The benefit, and the figures over a window
+
+- *"also return their total sales, and the benifit turnover - capital"* and *"the benefit of each
+  order is its total - (purshase price of each of its products) (purshase price for each product
+  should be required"*.
+- **The benefit of an order is its total minus what the goods cost** — the purchase price of each
+  of its products.
+- **The purchase price is snapshotted on the order line**, like the selling price: the benefit of
+  an order is the benefit it had when it was placed, and not one that changes every time a product
+  is repriced.
+- **The purchase price is required on every product** — the admin API asks for it, and the column
+  is NOT NULL. A product created another way (a script, a seeder, a test) gets **its selling price**
+  as its purchase price: a zero margin, which understates the benefit rather than inventing one.
+  The products list shows the purchase price, so the ones nobody has filled in yet are visible.
+- **The orders list returns the figures over the filtered set**, not over the page on screen:
+  `total_sales`, `total_cost`, `total_benefit` and the number of orders. The owner is asking what
+  the shop took and what it earned; a page of twenty would answer a different question.
+- **The orders can be filtered by a window of dates** (`start_date`, `end_date`). A date on its own
+  means the whole of that day — "from the 1st" is the 1st, not midnight on the 1st with every
+  order of the morning missing.
+- **A migration's order matters**: the products' purchase-price backfill has to run **before** the
+  order lines' backfill, or the lines copy a purchase price that is still null and every order
+  reads as a benefit of its whole turnover. The two were renumbered when it was found — a
+  migration that has been applied must not be edited, so the local database was brought back to
+  the state before them and re-run.
+
 ### Tests
 
-- New: `backend/tests/Feature/AdminCustomerLookupTest.php` (24),
-  `frontend/src/pages/admin/Customers.test.jsx` (4) and
-  `frontend/src/pages/admin/Orders.customers.test.jsx` (13). Suite now **356
-  backend / 1550 assertions**, **159 frontend** (was 149).
+- New: `backend/tests/Feature/AdminSalesFiguresTest.php` (10) and
+  `frontend/src/pages/admin/Orders.figures.test.jsx` (3). Suite now **366 backend / 1560
+  assertions**, **162 frontend** (was 159).
 - The frontend mocks of `useAdmin` now return a **stable `call`**. A fresh one on every render
   restarted the customer lookup's debounce on every render, and the search never finished — the
   test was waiting for an answer the mock had cancelled.

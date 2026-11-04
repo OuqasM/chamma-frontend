@@ -16,12 +16,13 @@ import {
   Pagination,
   Panel,
   PrimaryButton,
+  StatCard,
   Table,
   Td,
   buttonClass,
 } from '../../components/admin/Ui'
 
-const blank = () => ({ q: '', status: '', page: 1 })
+const blank = () => ({ q: '', status: '', start_date: '', end_date: '', page: 1 })
 
 const emptyDraft = () => ({
   name: '',
@@ -37,9 +38,12 @@ const emptyDraft = () => ({
   // What this order costs to deliver. Empty means "the carrier's price for
   // the city", and the city fills it in.
   shipping_cost: '',
-  // Whether the owner has said what it costs. The server works out the
-  // carrier's price — and the free-delivery threshold — when nobody has.
+  // Whether the owner has decided what this order costs.
   shipping_manual: false,
+  // Whether that figure is kept for the city. A price the owner sets is the
+  // price of delivering to that city; a free delivery for one order is not a
+  // decision about every order that follows.
+  remember_fee: false,
   // A delivery the owner is not charging for.
   free_shipping: false,
   items: [],
@@ -429,6 +433,10 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         shipping_cost: draft.shipping_manual && draft.shipping_cost !== ''
           ? Number(draft.shipping_cost)
           : null,
+        // And whether that figure is kept for the city. A price the owner
+        // sets is the price of delivering to that city; a free delivery for
+        // one order is not a decision about every order that follows.
+        remember_fee: draft.remember_fee,
         // Only the fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
@@ -476,6 +484,34 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     return city ? city.fee : null
   }, [options, draft.city])
 
+  // Whether the shop has priced this city for itself, rather than taking the
+  // carrier's price. It is the difference between "this city costs what the
+  // courier charges" and "this city costs what you decided".
+  const cityOverridden = useMemo(() => {
+    const city = (options?.cities || []).find((c) => c.value === draft.city)
+    return Boolean(city?.overridden)
+  }, [options, draft.city])
+
+  /**
+   * Put the city back on the carrier's price.
+   */
+  const resetCityFee = async () => {
+    if (!draft.city) return
+
+    try {
+      await call((signal) => adminApi.resetShippingFee(locale, draft.city, { signal }))
+
+      // The city list carries the price, so it is read again rather than
+      // patched: the carrier's price and the shop's own are the same field.
+      const fresh = await api.checkoutOptions(locale)
+      setOptions(fresh)
+      set((d) => ({ ...d, shipping_cost: '', shipping_manual: false }))
+    } catch {
+      // The panel's error banner already says something went wrong; the fee
+      // is unchanged, which is the safe direction.
+    }
+  }
+
   // The fee follows the city: what a parcel costs to deliver is a fact about
   // where it is going. It is the owner's to change — a negotiated rate, a
   // free delivery — and changing the city puts the new city's price back,
@@ -489,6 +525,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
       // The owner's figure belonged to the old city, so it is no longer
       // theirs to send.
       shipping_manual: false,
+      remember_fee: false,
     }))
   }, [open, cityFee, set])
 
@@ -669,20 +706,42 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               city is what it starts at; the owner is the one who decides
               what this one costs. */}
           <div className="grid items-start gap-3 sm:grid-cols-2">
-            <TextInput
-              label={t('admin', 'newOrderShippingFee')}
-              name="shipping_cost"
-              type="number"
-              min="0"
-              step="1"
-              inputMode="numeric"
-              value={draft.shipping_cost}
-              onChange={(e) =>
-                set({ shipping_cost: e.target.value, shipping_manual: true })
-              }
-              hint={t('admin', 'newOrderShippingFeeHint')}
-              readOnly={draft.free_shipping}
-            />
+            <div>
+              <TextInput
+                label={t('admin', 'newOrderShippingFee')}
+                name="shipping_cost"
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                value={draft.shipping_cost}
+                onChange={(e) =>
+                  set({
+                    shipping_cost: e.target.value,
+                    shipping_manual: true,
+                    // A price the owner types is the price of delivering to
+                    // that city, and it is kept.
+                    remember_fee: true,
+                  })
+                }
+                hint={t('admin', 'newOrderShippingFeeHint')}
+                readOnly={draft.free_shipping}
+              />
+
+              {/* The way back. A city priced for itself — a negotiated rate, a
+                  free delivery — can be put back on the carrier's price, and
+                  without this a city priced free for one order would stay
+                  free for every order after it. */}
+              {cityOverridden && (
+                <button
+                  type="button"
+                  onClick={resetCityFee}
+                  className="mt-1.5 text-xs font-medium text-plum underline underline-offset-2 hover:text-noir"
+                >
+                  {t('admin', 'newOrderResetFee')}
+                </button>
+              )}
+            </div>
 
             <label className="flex items-start gap-2.5 rounded-xl border border-stone-200 px-3.5 py-3 text-sm text-stone-700 transition hover:border-stone-300">
               <input
@@ -693,9 +752,11 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
 
                   set({
                     free_shipping: free,
-                    // The owner's decision, and the server is told about it:
-                    // a free delivery is not something the threshold earned.
+                    // The price of this order, not of the city: a free
+                    // delivery for one order is not a decision about every
+                    // order that follows.
                     shipping_manual: true,
+                    remember_fee: false,
                     shipping_cost: free
                       ? '0'
                       : knownFee(cityFee)
@@ -943,6 +1004,8 @@ export default function AdminOrders() {
         signal,
         search: filters.q,
         status: filters.status,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
         page: filters.page,
       }))
         .then((d) => {
@@ -966,10 +1029,18 @@ export default function AdminOrders() {
   }, [locale, filters, call])
 
   const meta = data?.meta || {}
+  const summary = data?.summary || {}
   const statuses = meta.statuses || []
   const counts = meta.counts || {}
   // The controller merges `statuses`/`counts` into the standard paginator `meta`.
   const orders = data?.data || []
+
+  const money = (value) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
+      style: 'currency',
+      currency: 'MAD',
+      maximumFractionDigits: 0,
+    }).format(Number(value) || 0)
 
   const created = (result) => {
     const ref = result?.order?.reference
@@ -990,6 +1061,26 @@ export default function AdminOrders() {
 
       {error && <Banner>{error}</Banner>}
       {notice && <Banner tone="success">{notice}</Banner>}
+
+      {/* What the filtered orders came to. Over the whole filtered set and
+          not just the page on screen: the owner is asking what the shop took
+          and what it earned. */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label={t('admin', 'ordersTotalSales')}
+          value={money(summary.total_sales ?? 0)}
+          tone="accent"
+        />
+        <StatCard
+          label={t('admin', 'ordersTotalBenefit')}
+          value={money(summary.total_benefit ?? 0)}
+        />
+        <StatCard
+          label={t('admin', 'ordersCount')}
+          value={summary.orders ?? 0}
+          hint={t('admin', 'ordersCostHint', { cost: money(summary.total_cost ?? 0) })}
+        />
+      </div>
 
       <Panel>
         <div className="flex flex-wrap items-end gap-3">
@@ -1015,6 +1106,22 @@ export default function AdminOrders() {
               ))}
             </Select>
           </div>
+          <div className="w-44">
+            <TextInput
+              label={t('admin', 'ordersFrom')}
+              type="date"
+              value={filters.start_date}
+              onChange={(e) => setFilters((f) => ({ ...f, start_date: e.target.value, page: 1 }))}
+            />
+          </div>
+          <div className="w-44">
+            <TextInput
+              label={t('admin', 'ordersTo')}
+              type="date"
+              value={filters.end_date}
+              onChange={(e) => setFilters((f) => ({ ...f, end_date: e.target.value, page: 1 }))}
+            />
+          </div>
           {loading && <span className="pb-2 text-xs font-medium uppercase tracking-widest text-stone-400">{t('common', 'loading')}</span>}
         </div>
       </Panel>
@@ -1023,7 +1130,7 @@ export default function AdminOrders() {
         {orders.length === 0 ? (
           <EmptyState title={t('admin', 'noOrders')} />
         ) : (
-          <Table head={[t('admin', 'reference'), t('admin', 'customer'), t('admin', 'items'), t('admin', 'city'), t('admin', 'total'), t('admin', 'placedAt'), t('admin', 'status'), t('admin', 'actions')]}>
+          <Table head={[t('admin', 'reference'), t('admin', 'customer'), t('admin', 'items'), t('admin', 'city'), t('admin', 'total'), t('admin', 'ordersBenefit'), t('admin', 'placedAt'), t('admin', 'status'), t('admin', 'actions')]}>
             {orders.map((o) => (
               <tr key={o.id} className="transition hover:bg-stone-50">
                 <Td className="font-mono text-xs">{o.reference}</Td>
@@ -1066,6 +1173,16 @@ export default function AdminOrders() {
                     currency: o.currency || 'MAD',
                     maximumFractionDigits: 0,
                   }).format(o.total)}
+                </Td>
+                {/* What the order earned: the total minus the purchase price
+                    of what is in it. The purchase price is the one the line
+                    was written with, so this is the benefit the order had. */}
+                <Td className="whitespace-nowrap text-stone-600">
+                  {new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
+                    style: 'currency',
+                    currency: o.currency || 'MAD',
+                    maximumFractionDigits: 0,
+                  }).format(o.benefit ?? 0)}
                 </Td>
                 <Td className="whitespace-nowrap text-stone-600">
                   {new Date(o.created_at).toLocaleString(locale)}

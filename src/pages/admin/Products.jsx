@@ -215,6 +215,7 @@ export default function AdminProducts() {
                 t('admin', 'sku'),
                 t('admin', 'brand'),
                 t('admin', 'price'),
+                t('admin', 'costPrice'),
                 t('admin', 'stock'),
                 t('admin', 'status'),
                 t('admin', 'actions'),
@@ -245,6 +246,17 @@ export default function AdminProducts() {
                     {formatPrice(p.price, locale)}
                     {p.compare_at_price && (
                       <span className="block text-xs text-stone-400 line-through">{formatPrice(p.compare_at_price, locale)}</span>
+                    )}
+                  </Td>
+                  {/* What the shop pays for the unit. It is on the list
+                      because the benefit of every order is worked out from
+                      it, and a product whose purchase price is still its
+                      selling price is one nobody has filled in yet. */}
+                  <Td className="whitespace-nowrap text-stone-600">
+                    {p.cost_price === null || p.cost_price === undefined ? (
+                      <span className="text-stone-400">—</span>
+                    ) : (
+                      formatPrice(p.cost_price, locale)
                     )}
                   </Td>
                   <Td>
