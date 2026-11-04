@@ -236,6 +236,12 @@ export const adminApi = {
   // order is an order in every later read — there is no second kind to remember.
   orders: (l, params, opts) => admin(l, '/admin/orders', { ...opts, params }),
   createOrder: (l, body, opts) => admin(l, '/admin/orders', { ...opts, method: 'POST', body }),
+  // Customers. The panel's phone lookup asks for the customers whose number
+  // starts with what the owner has typed; the list is the shop's customers,
+  // and one customer is that customer with their orders.
+  customers: (l, params, opts) => admin(l, '/admin/customers', { ...opts, params }),
+  searchCustomers: (l, params, opts) => admin(l, '/admin/customers/search', { ...opts, params }),
+  customer: (l, id, opts) => admin(l, `/admin/customers/${id}`, opts),
   // Visitor tracking. Read-only — the backend writes these rows from the
   // storefront middleware, so there is no create/update/delete here.
   visits: (l, params, opts) => admin(l, '/admin/visits', { ...opts, params }),

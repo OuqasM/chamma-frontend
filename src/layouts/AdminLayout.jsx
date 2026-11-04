@@ -10,6 +10,7 @@ const NAV = [
   { to: 'categories', key: 'categories' },
   { to: 'brands', key: 'brands' },
   { to: 'orders', key: 'orders' },
+  { to: 'customers', key: 'customers' },
   { to: 'waitlist', key: 'waitlist' },
   { to: 'visits', key: 'visits' },
   { to: 'settings', key: 'settings' },
@@ -50,6 +51,13 @@ const ICON_PATHS = {
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.9" />
+    </>
+  ),
+  // A person: the head and the shoulders, which is what the row is about.
+  customers: (
+    <>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </>
   ),
   visits: (

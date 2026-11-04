@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi, api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
@@ -6,6 +6,8 @@ import { useAdmin } from '../../context/AdminContext'
 import { EmptyState } from '../../components/Spinner'
 import { SOCIAL_ICONS } from '../../components/SocialIcons'
 import { Select, TextInput } from '../../components/admin/Form'
+import { nationalDigits, normalisePhone } from '../../lib/phone'
+import { knownFee } from '../../lib/shipping'
 import {
   Badge,
   Banner,
@@ -28,7 +30,18 @@ const emptyDraft = () => ({
   address: '',
   notes: '',
   payment_method: '',
-  payment_status: 'pending',
+  // Paid, because the order this form records has already happened: the
+  // customer called, the parcel went out, the money changed hands. The owner
+  // unticks it for a transfer that has not arrived yet.
+  payment_status: 'paid',
+  // What this order costs to deliver. Empty means "the carrier's price for
+  // the city", and the city fills it in.
+  shipping_cost: '',
+  // Whether the owner has said what it costs. The server works out the
+  // carrier's price — and the free-delivery threshold — when nobody has.
+  shipping_manual: false,
+  // A delivery the owner is not charging for.
+  free_shipping: false,
   items: [],
 })
 
@@ -55,6 +68,39 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
   const [quote, setQuote] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  // The customers the typed number belongs to, and the one the owner picked
+  // out of them.
+  const [customers, setCustomers] = useState([])
+  const [lookingCustomer, setLookingCustomer] = useState(false)
+  const [searched, setSearched] = useState(null)
+  const [picked, setPicked] = useState(null)
+
+  // Whether the owner is in the phone field. The list shows itself only then:
+  // a dropdown covering the form before anybody has touched anything is in
+  // the way, not a help.
+  //
+  // The rows themselves are loaded as soon as the form opens, so clicking
+  // into the field brings them up straight away rather than after a wait.
+  const [phoneFocused, setPhoneFocused] = useState(false)
+
+  // The phone field and the list under it. Clicking anywhere else closes the
+  // list: a dropdown left hanging over the name field would cover the field
+  // the owner is trying to fill in.
+  const phoneRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const onPointerDown = (e) => {
+      if (!phoneRef.current?.contains(e.target)) {
+        setPhoneFocused(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open])
 
   // Accepts a patch object or an updater function, like React's own setState.
   // The options effect needs the updater form: it has to default the payment
@@ -125,6 +171,62 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     }
   }, [search, open, locale])
 
+  // The customer lookup, which is what the phone field is for.
+  //
+  // The dropdown opens with rows in it — the customers the shop saw most
+  // recently — because the owner is usually recording an order for somebody
+  // they have dealt with before, and a list that says "type to search" says
+  // nothing. What they type then filters those rows: a number typed as it is
+  // spoken (a prefix) or a name.
+  //
+  // The number is reduced before it is compared on the server, the one place
+  // that decides what a number is: "0612345678", "06 12 34 56 78" and
+  // "+212 6 12 34 56 78" are one handset, and the customer behind it is one
+  // customer.
+  useEffect(() => {
+    if (!open) return
+
+    const term = draft.phone.trim()
+
+    // A number the owner picked out of the list is not a search any more.
+    if (picked && term && normalisePhone(term) === normalisePhone(picked.phone)) {
+      setCustomers([])
+      setSearched(term)
+      return
+    }
+
+    let alive = true
+    setLookingCustomer(true)
+
+    // The first load is not debounced — the rows are wanted now — and the
+    // rest are, because the owner is typing.
+    const timer = setTimeout(
+      () => {
+        call((signal) => adminApi.searchCustomers(locale, { q: term }, { signal }))
+          .then((d) => {
+            if (!alive) return
+            setCustomers(d?.customers || [])
+            setSearched(term)
+          })
+          .catch(() => {
+            if (!alive) return
+            setCustomers([])
+            setSearched(term)
+          })
+          .finally(() => {
+            if (alive) setLookingCustomer(false)
+          })
+      },
+      term === '' ? 0 : 250,
+    )
+
+    return () => {
+      alive = false
+      clearTimeout(timer)
+      setLookingCustomer(false)
+    }
+  }, [open, locale, draft.phone, picked, call])
+
   // Shipping is priced by the same server endpoint checkout uses, so a phone
   // order is charged the city's carrier fee and the free-delivery threshold
   // exactly like an online one. The client never decides the fee.
@@ -150,6 +252,64 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
       alive = false
     }
   }, [open, locale, draft.city, draft.items])
+
+  // The number the owner is typing.
+  //
+  // Changing it drops the customer that was picked out of the list: those
+  // details belong to that customer's number, and a different number is a
+  // different person. The name and the address are left alone — the owner may
+  // have corrected them, and emptying a field somebody just filled in is
+  // worse than a stale one they can see.
+  const setPhone = (value) => {
+    set({ phone: value })
+
+    if (picked && nationalDigits(value) !== nationalDigits(picked.phone)) {
+      setPicked(null)
+    }
+  }
+
+  // The number is reduced to the one form the shop agrees on when the field is
+  // left, not on every keystroke: rewriting the field under the caret while
+  // somebody is still typing it is how a number ends up mangled.
+  const normaliseTypedPhone = () => {
+    const normalised = normalisePhone(draft.phone)
+
+    if (normalised && normalised !== draft.phone) {
+      set({ phone: normalised })
+    }
+  }
+
+  // Leaving the field closes the list. The dropdown items take the pointer
+  // down with `preventDefault`, so choosing one never blurs the field and the
+  // list is still there when the click lands.
+  const leavePhoneField = () => {
+    normaliseTypedPhone()
+    setPhoneFocused(false)
+  }
+
+  /**
+   * A customer the shop already knows.
+   *
+   * Their name, their city and their address come with them: a regular
+   * should not be asked where they live again, and the delivery fee follows
+   * the city that came with them.
+   */
+  const chooseCustomer = (customer) => {
+    // The city is only prefilled when the shop still delivers there. A city
+    // that has left the carrier's table would sit in the field as a value the
+    // <select> cannot show, and the save would be refused for a field the
+    // owner cannot see.
+    const deliverable = (options?.cities || []).some((c) => c.value === customer.city)
+
+    setPicked(customer)
+    set({
+      phone: customer.phone || draft.phone,
+      name: customer.name || '',
+      address: customer.address || '',
+      city: deliverable ? customer.city : '',
+    })
+    setCustomers([])
+  }
 
   const addItem = (product) => {
     setDraft((d) => {
@@ -231,6 +391,10 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     setDraft(emptyDraft())
     setSearch('')
     setMatches([])
+    setCustomers([])
+    setSearched(null)
+    setPicked(null)
+    setPhoneFocused(false)
     setError(null)
     onClose()
   }
@@ -248,12 +412,23 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     try {
       const body = {
         name: draft.name,
-        phone: draft.phone,
+        // The number goes out in the one form the shop agrees on, so the
+        // order, the customer record and the panel's own search all point at
+        // the same handset. The server normalises it again — it is the one
+        // place that decides what a number is.
+        phone: normalisePhone(draft.phone) || draft.phone,
         city: draft.city,
         address: draft.address,
         notes: draft.notes || null,
         payment_method: draft.payment_method,
         payment_status: draft.payment_status,
+        // What the owner decided the delivery costs. Null when they did not
+        // decide: the server then works out the carrier's price for the city
+        // — and the free-delivery threshold — which is the same figure the
+        // quote on the screen is showing.
+        shipping_cost: draft.shipping_manual && draft.shipping_cost !== ''
+          ? Number(draft.shipping_cost)
+          : null,
         // Only the fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
@@ -290,6 +465,67 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     [draft.items],
   )
 
+  // The carrier's fee for the chosen city.
+  //
+  // It is known as soon as the city is — what a parcel costs to deliver does
+  // not depend on what is inside it — so the owner sees the delivery cost
+  // before the products are picked, and a customer found by their number
+  // brings the city, and the fee, with them.
+  const cityFee = useMemo(() => {
+    const city = (options?.cities || []).find((c) => c.value === draft.city)
+    return city ? city.fee : null
+  }, [options, draft.city])
+
+  // The fee follows the city: what a parcel costs to deliver is a fact about
+  // where it is going. It is the owner's to change — a negotiated rate, a
+  // free delivery — and changing the city puts the new city's price back,
+  // because the old figure belonged to the old city.
+  useEffect(() => {
+    if (!open) return
+
+    set((d) => ({
+      ...d,
+      shipping_cost: d.free_shipping ? '0' : knownFee(cityFee) ? String(cityFee) : '',
+      // The owner's figure belonged to the old city, so it is no longer
+      // theirs to send.
+      shipping_manual: false,
+    }))
+  }, [open, cityFee, set])
+
+  // The fee the order will actually be charged.
+  //
+  // The owner's figure wins. Otherwise it is the server's: the quote when
+  // there are products in it — which is where the free-delivery threshold
+  // lives — and the carrier's price for the city before that.
+  const manualFee = Number(draft.shipping_cost)
+  const hasManualFee = draft.shipping_manual && draft.shipping_cost !== '' && Number.isFinite(manualFee)
+  const shippingFee = hasManualFee
+    ? manualFee
+    : quote
+      ? quote.shipping_cost
+      : knownFee(cityFee)
+        ? cityFee
+        : null
+
+  // What the order comes to. The subtotal is the server's, and the fee is
+  // whatever the order will really be charged, so the two add up to what
+  // will be stored.
+  const subtotalFigure = quote ? quote.subtotal : estimate
+  const totalFigure = quote && shippingFee !== null ? quote.subtotal + shippingFee : null
+
+  // Whether the number is one the shop can work with, and whether the shop
+  // has met it before.
+  const phoneComplete = normalisePhone(draft.phone) !== null
+  const searchedThis = searched !== null && searched === draft.phone.trim()
+  const searchedNothing = searchedThis && customers.length === 0 && !lookingCustomer && !picked
+
+  // A number nobody knows is not an error: the order creates the customer.
+  const unknownCustomer = phoneComplete && searchedNothing
+
+  // Something was typed and it matched nobody — but it is not a number yet,
+  // so there is nothing to say about a customer.
+  const noMatch = !phoneComplete && searchedNothing && draft.phone.trim() !== ''
+
   const tooMany = (item) => Number(item.stock) < item.quantity
 
   return (
@@ -321,6 +557,71 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             {t('admin', 'newOrderCustomer')}
           </legend>
 
+          {/* The phone comes first because it is the key to everything else:
+              it says who this is, and the rest of the form is filled in from
+              it. */}
+          <div className="relative" ref={phoneRef}>
+            <TextInput
+              label={t('checkout', 'phone')}
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              value={draft.phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onBlur={leavePhoneField}
+              onFocus={() => setPhoneFocused(true)}
+              dir="ltr"
+              inputMode="tel"
+              placeholder="0612345678"
+              hint={t('admin', 'newOrderPhoneHint')}
+              required
+            />
+
+            {/* The customers: the ones the shop knows, filtered by whatever has
+                been typed. The number and the city are what a row shows —
+                the number is how the owner recognises the person, and the
+                city is what decides the delivery fee. */}
+            {phoneFocused && customers.length > 0 && (
+              <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-stone-200 bg-ivory shadow-lg">
+                {customers.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      // The pointer is taken down on the field's blur, so the
+                      // list would close before the click landed on it.
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => chooseCustomer(c)}
+                      className="flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left transition hover:bg-stone-50"
+                    >
+                      <span className="font-mono text-sm text-stone-800" dir="ltr">
+                        {c.phone}
+                      </span>
+                      <span className="truncate text-xs text-stone-500">{c.city || '—'}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {phoneFocused && lookingCustomer && customers.length === 0 && (
+              <p className="mt-1 text-xs text-stone-400">{t('common', 'loading')}</p>
+            )}
+
+            {picked && (
+              <p className="mt-1 text-xs text-stone-500">
+                {t('admin', 'newOrderKnownCustomer')} — {picked.name}
+              </p>
+            )}
+
+            {unknownCustomer && (
+              <p className="mt-1 text-xs text-stone-500">{t('admin', 'newOrderNewCustomer')}</p>
+            )}
+
+            {noMatch && (
+              <p className="mt-1 text-xs text-stone-500">{t('admin', 'newOrderNoCustomer')}</p>
+            )}
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <TextInput
               label={t('checkout', 'name')}
@@ -330,27 +631,26 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               onChange={(e) => set({ name: e.target.value })}
               required
             />
-            <TextInput
-              label={t('checkout', 'phone')}
-              name="phone"
-              autoComplete="tel"
-              value={draft.phone}
-              onChange={(e) => set({ phone: e.target.value })}
-              dir="ltr"
-              inputMode="tel"
-              required
-            />
             <Select
               label={t('checkout', 'city')}
               name="city"
               value={draft.city}
               onChange={(e) => set({ city: e.target.value })}
+              // What the delivery will cost, taken from the carrier's own
+              // table for that city. It is a fact, not a guess: the same
+              // number the server will charge.
+              hint={
+                knownFee(cityFee)
+                  ? `${t('checkout', 'deliveryFee')}: ${money(cityFee)}`
+                  : undefined
+              }
               required
             >
               <option value="">{t('checkout', 'cityPlaceholder')}</option>
               {(options?.cities || []).map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
+                  {knownFee(c.fee) ? ` · ${money(c.fee)}` : ''}
                 </option>
               ))}
             </Select>
@@ -364,6 +664,56 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             onChange={(e) => set({ address: e.target.value })}
             required
           />
+
+          {/* What this order costs to deliver. The carrier's price for the
+              city is what it starts at; the owner is the one who decides
+              what this one costs. */}
+          <div className="grid items-start gap-3 sm:grid-cols-2">
+            <TextInput
+              label={t('admin', 'newOrderShippingFee')}
+              name="shipping_cost"
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              value={draft.shipping_cost}
+              onChange={(e) =>
+                set({ shipping_cost: e.target.value, shipping_manual: true })
+              }
+              hint={t('admin', 'newOrderShippingFeeHint')}
+              readOnly={draft.free_shipping}
+            />
+
+            <label className="flex items-start gap-2.5 rounded-xl border border-stone-200 px-3.5 py-3 text-sm text-stone-700 transition hover:border-stone-300">
+              <input
+                type="checkbox"
+                checked={draft.free_shipping}
+                onChange={(e) => {
+                  const free = e.target.checked
+
+                  set({
+                    free_shipping: free,
+                    // The owner's decision, and the server is told about it:
+                    // a free delivery is not something the threshold earned.
+                    shipping_manual: true,
+                    shipping_cost: free
+                      ? '0'
+                      : knownFee(cityFee)
+                        ? String(cityFee)
+                        : '',
+                  })
+                }}
+                className="mt-0.5 h-4 w-4 accent-gold"
+              />
+              <span>
+                {t('admin', 'newOrderFreeShipping')}
+                <span className="block text-xs text-stone-500">
+                  {t('admin', 'newOrderFreeShippingHint')}
+                </span>
+              </span>
+            </label>
+          </div>
+
           <TextInput
             label={t('checkout', 'notes')}
             name="notes"
@@ -489,18 +839,20 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             <div className="flex justify-between">
               <dt className="text-stone-500">{t('cart', 'shipping')}</dt>
               <dd>
-                {!draft.city
+                {/* What the order will really be charged: the owner's figure
+                    when they gave one, the server's quote otherwise — which is
+                    where the free-delivery threshold lives — and the carrier's
+                    price for the city before that. */}
+                {shippingFee === null
                   ? '—'
-                  : quote
-                    ? quote.shipping_cost === 0
-                      ? t('common', 'free')
-                      : money(quote.shipping_cost)
-                    : '…'}
+                  : shippingFee === 0
+                    ? t('common', 'free')
+                    : money(shippingFee)}
               </dd>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
               <dt>{t('cart', 'total')}</dt>
-              <dd>{quote ? money(quote.total) : '…'}</dd>
+              <dd>{totalFigure === null ? '…' : money(totalFigure)}</dd>
             </div>
           </dl>
         </fieldset>
@@ -524,6 +876,20 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             ))}
           </Select>
 
+          {/* The status is not a choice the owner makes here. An order written
+              in this panel is one that already happened — the customer called,
+              the parcel went out — so it is recorded as delivered rather than
+              left in the list waiting for somebody to remember to move it
+              along. */}
+          <div className="rounded-xl border border-stone-200 bg-stone-50/60 px-3.5 py-3 text-sm">
+            <span className="font-medium text-noir">
+              {t('admin', 'newOrderStatus')} · {t('admin', 'newOrderDelivered')}
+            </span>
+            <span className="mt-0.5 block text-xs text-stone-500">
+              {t('admin', 'newOrderDeliveredHint')}
+            </span>
+          </div>
+
           <label className="flex items-start gap-2.5 rounded-xl border border-stone-200 px-3.5 py-3 text-sm text-stone-700 transition hover:border-stone-300">
             <input
               type="checkbox"
@@ -534,8 +900,8 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               className="mt-0.5 h-4 w-4 accent-gold"
             />
             <span>
-              {t('admin', 'newOrderMarkPaid')}
-              <span className="block text-xs text-stone-500">{t('admin', 'newOrderMarkPaidHint')}</span>
+              {t('admin', 'newOrderPaid')}
+              <span className="block text-xs text-stone-500">{t('admin', 'newOrderPaidHint')}</span>
             </span>
           </label>
         </fieldset>

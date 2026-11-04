@@ -20,6 +20,8 @@ import AdminCategories from './pages/admin/Categories'
 import AdminBrands from './pages/admin/Brands'
 import AdminOrders from './pages/admin/Orders'
 import AdminOrderDetail from './pages/admin/OrderDetail'
+import AdminCustomers from './pages/admin/Customers'
+import AdminCustomerDetail from './pages/admin/CustomerDetail'
 import AdminSettings from './pages/admin/Settings'
 import AdminVisits from './pages/admin/Visits'
 import AdminWaitlist from './pages/admin/Waitlist'
@@ -164,6 +166,8 @@ export default function App() {
               <Route path="brands" element={<AdminBrands />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="customers/:id" element={<AdminCustomerDetail />} />
               <Route path="waitlist" element={<AdminWaitlist />} />
               <Route path="visits" element={<AdminVisits />} />
               <Route path="settings" element={<AdminSettings />} />

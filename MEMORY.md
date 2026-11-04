@@ -1,7 +1,7 @@
 # MEMORY
 
 Project: **Chamma** — perfume e-commerce, Laravel API backend + React/Vite frontend.
-Last updated: 2026-11-03.
+Last updated: 2026-11-04.
 
 > This is the project's whole memory, not the frontend's alone: it records what was done on
 > both sides and, more usefully, why. It lives in this repository because the workspace root
@@ -9,7 +9,249 @@ Last updated: 2026-11-03.
 > holds only files that belong to neither (the deploy script, `docker-compose.yml`, this
 > file). The pointer at the root says where it went.
 
-## Latest session (2026-11-03) — the admin panel's articles column, its pages, and the colour of a sold-out photo
+## Latest session (2026-11-04) — the customers, the delivered orders, and the containers serving four-week-old code
+
+The owner: *"AdminPanel orders should be created by 'delivered'"*, *"the form should contains (in
+order) a phone number (auto complete with from a new cutomer entity(id,name,phone,city,adress))"*,
+*"if i select a phone number from the autocomplete dropdown it should automaticaly fill the name
+input and adress city"*, *"delevery fees shoul be filled also from the city"*, *"if not we should
+create a new customer"*, *"each operation with phone should be after we normaliz the phone
+number"*, *"all numbers are moroccan start with 06/07 or 212"* and *"i should also select
+products"*.
+
+Then, after seeing none of it: *"you arent saving customer data for future orders and i cant see
+customers handling"* and *"also orders ar not created as delivered!!"*.
+
+One request with three parts to it — a customer the shop can recognise, a form that starts from
+the phone number, and an order that lands as delivered — and a second one that turned out to be
+about the containers, not the code.
+
+### A customer is a row with a number on it
+
+- **`customers` table** (`2026_11_04_090000_create_customers_table.php`): `id`, `name`, `phone`,
+  `phone_normalised`, `city`, `address`. **The number is the identity** — `phone_normalised` is
+  unique, which is what stops one person from being three customers because they wrote their
+  number three ways.
+- **`CustomerService`** is the only thing that touches a number: `findByPhone()`,
+  `searchByPhone()` (a **prefix**, because a number is typed from the left) and `record()`.
+  `record()` catches `UniqueConstraintViolationException` and retries as the update it was — the
+  same race the waiting list handles.
+- **A customer is written by an order, never by hand.** There is no "add a customer" button: a
+  row nobody ordered from is not a customer, it is a guess. `OrderService::place()` records it
+  **inside the order's transaction**, so a refused order (sold out) leaves no orphan behind — and
+  a checkout order records one too, so the panel finds website customers as well.
+- The **last order wins** on the name, the city and the address: a customer who moved is at their
+  new address now.
+- **`GET /api/admin/customers?phone=…`** is a read and nothing else. It answers the panel's
+  autocomplete.
+
+### Every operation on a number starts by reducing it
+
+- `PhoneNumber::normalise()` gained a sibling, **`PhoneNumber::nationalDigits()`**: the national
+  digits of a *partial* number ("612" for "0612"), because the panel searches while the owner is
+  still typing. `normalise()` is built on it and still decides whether a number is complete.
+- **The leading zero is now optional** — "612345678" is the same handset as "0612345678", and a
+  number read off a card often arrives without it. It used to be rejected outright.
+- The browser has its own copy in **`frontend/src/lib/phone.js`** (`nationalDigits`,
+  `normalisePhone`). The panel reduces the number **before** it looks anything up and **before**
+  it sends it; the server reduces it again, and the server is the one that decides.
+- The **admin order's phone is stored reduced** ("+212612345678"). The storefront's is not — it
+  keeps what the customer typed, as it always has.
+
+### Two decisions reversed, with the reasons
+
+1. **The admin phone is no longer a free string.** `Admin\StoreOrderRequest` used to accept thirty
+   characters of anything, because the owner is transcribing what someone said on the phone and
+   second-guessing it would fail a deliverable order. That was right while the number was only a
+   thing to call back on. It is not right now: **the number is how a customer is found again**, and
+   a number that cannot be reduced would file an order under a customer nobody will ever find. It
+   is reduced in `prepareForValidation()` and then held to `MoroccanPhone`.
+2. **A search that only understood one shape of a number would have found nothing.** The panel's
+   orders carry the reduced number, so the **admin orders list** now also matches the spoken
+   form ("0612345678", or even "0612"), and so does the **storefront's order lookup** — a customer
+   given a reference types their own number, not the shape this shop happens to write it in.
+
+### The order is created as delivered
+
+- `OrderService::place()` takes the status it creates the order with; the checkout path still
+  starts at `new`, the panel's path starts at **`delivered`**. The owner is recording a
+  conversation they just had — the customer called, the parcel went out, the money changed hands —
+  and an order that landed as "new" would sit in the list waiting for somebody to remember to
+  move it along.
+- **Delivered means collected**, so the payment is `paid` by default and the owner unticks it for
+  a transfer that has not arrived yet. The old "mark as paid" checkbox became "payment collected",
+  checked.
+- **A delivered order is closed**, so it cannot be moved afterwards — the same rule that already
+  applied to an order advanced to delivered. Worth saying plainly: a typo in a panel order can no
+  longer be corrected by changing its status.
+
+### The form starts from the number
+
+- The **phone is the first field**, and it is an autocomplete: typing it searches the customers,
+  and choosing one fills in the **name, the address and the city**.
+- **The delivery fee follows the city** — the carrier's own figure for that city, shown under the
+  city field, in the city list, and in the totals **before any product is picked**. What a parcel
+  costs to deliver does not depend on what is inside it. The server's quote takes over once there
+  are products, because the free-delivery threshold can then make it cost nothing.
+- **A number nobody knows is not an error**: the panel says it is a new customer, and the order
+  creates them.
+- The number is reduced **when the field is left**, not on every keystroke — rewriting the field
+  under the caret while somebody is still typing it is how a number ends up mangled.
+
+### The panel was never running this code
+
+- **The docker images bake the code in** (`COPY . .`), and only `public/images` and
+  the app-key are mounted. A container built four weeks ago keeps serving the
+  code of four weeks ago, whatever is on disk. The owner was testing the old
+  build: no delivered orders, no customers, and a 404 on the customer
+  endpoint.
+- **The backend and the frontend both have to be rebuilt** — `docker compose build
+  backend frontend && docker compose up -d` — and the entrypoint runs `migrate
+  --force` on boot, so the schema follows the code.
+- **The `dist/` in the repository is not what the container serves.** The
+  frontend image runs `npm run build` inside Docker, so its bundle hash differs
+  from the one committed locally. The committed `dist` is what the *shared
+  hosting* deploy publishes (`deploy_chamma.sh`), the image is what the local
+  stack serves. Two bundles, two purposes.
+
+### The customers screen — "i cant see customers handling"
+
+- **`/admin/customers`** (list) and **`/admin/customers/:id`** (one customer and
+  their orders), plus a nav entry.
+- The list says the two things that decide how to treat a person: **how many
+  times they have ordered** and **when they last did**, and it is searchable
+  by name or by number.
+- **`GET /api/admin/customers`** is the list, **`/search`** is the autocomplete
+  the order form uses, **`/{customer}`** is the detail. The search route is
+  registered before the parameter route so it is not swallowed by it.
+- **The orders the shop already had became customers.** They were sales, but
+  there was no record of *who* they were sold to — so the customer list would
+  have started empty while the order list was full, which reads as "we have no
+  customers" and is wrong. `2026_11_04_110000_backfill_customers_from_orders`
+  turns every existing order into its customer.
+- **A customer's orders are joined on the reduced number**, not the typed one:
+  a website order keeps what the customer typed, an order typed in the panel
+  keeps the reduced form, and they would not join otherwise. That is what
+  `2026_11_04_100000_add_phone_normalised_to_orders_table` adds — and it
+  **backfills the existing rows**, so the orders that predate the column are
+  still their customer's.
+- **The backfilled city is the carrier's spelling** ("RABAT", not "Rabat"), and
+  that matters: the panel's city list holds the carrier's spelling, so a
+  customer whose city is not in that list cannot be prefilled into the form and
+  the save would be refused for a field the owner cannot see. The panel also
+  refuses to prefill a city the shop no longer delivers to, rather than
+  putting an invisible value in the field.
+
+### The panel's order form, end to end
+
+- The **phone is the first field** and it is an autocomplete; choosing a
+  customer fills in the **name, the address and the city**, and the delivery
+  fee follows the city.
+- **The order is created as `delivered`, and `paid`.** Verified against the
+  running stack, not only in the tests.
+- **A number nobody knows is a new customer**, created with the order.
+
+### The phone field is an autocomplete that starts full
+
+- *"the phone input is not auto complete, it should also be pre-fillded with some rows and after the user enter a keyword you should filter the dropdown, if the user select nothing, a new customer should be created"*.
+- **The rows are loaded as soon as the form opens** — the customers the shop saw most recently — so clicking into the field brings them up at once rather than after a wait. A list that says "type to search" says nothing, and the owner is usually recording an order for somebody they have dealt with before. `GET /api/admin/customers/search` with no term answers with them.
+- **But the dropdown is closed until the owner is in the field.** It was open by default at first, and that was wrong: a list covering the form before anybody has touched anything is in the way, not a help. The rows are *loaded* by default; the list is not *shown*.
+- **Typing filters the rows.** The term is a **keyword**: a number typed as it is spoken **or a name**. `CustomerService::search()` does both, and the **exact number comes first** when the term is a whole one: it is the one the owner meant.
+- **A number is searched as a fragment, not only as a prefix.** *"you should search for phones with a part of it not only the start of it"*. The owner remembers "45678" or the middle of a number more often than the whole thing, and the middle is the part they are surest of. `PhoneNumber::searchDigits()` returns the digit strings a term could mean — the digits as typed, the digits with the country code taken off, and the digits with the leading zero taken off — and all of them are looked for. Two digits are too few ("61" would match most of the shop's customers); three is the floor.
+- **The server reduces the number**, not the panel: it is the one place that decides what a number is, and the panel does not second-guess it. The panel sends the term as typed.
+- **The list closes when the owner clicks away but the rows stay loaded**, so coming back to the field brings them straight back — clearing them would have meant the field could only be re-opened by typing.
+- **Selecting nothing is a decision, not a failure.** A number the shop does not know is announced as a new customer, and the order creates them.
+- **A row shows the number and the city, nothing else** — *"show only phone and
+  city"*. The number is how the owner recognises the person, and the city is
+  what decides the delivery fee. The name arrives *with* the customer when the
+  row is chosen.
+
+### Every phone is ten characters
+
+- *"all customers's number should start with 06/07 you should replace 212 or +212.. all phones
+  should be 10 characters"*.
+- **The canonical form is now the national one: "0612345678".** It used to be
+  "+212612345678". The country code is not part of how a Moroccan number is
+  written, and it is not what the owner dials to reach somebody in the next
+  town.
+- `PhoneNumber::normalise()` returns the ten-character form;
+  `PhoneNumber::whatsappDigits()` rebuilds the international digits for wa.me
+  ("212612345678"), because wa.me wants the country code and no national
+  leading zero. **The link did not change** — only the form it is built from.
+- **Every number the shop stores is that form**: the customers, the orders and
+  the waiting list. `2026_11_04_120000_put_every_phone_in_the_national_form`
+  rewrites the rows that carried the country code.
+- **The rewrite had to happen, not just the new writes.** The unique indexes
+  are on the reduced column, so a number stored one way and looked up another
+  would have stopped matching itself: the waiting list would have grown a
+  second entry for a customer who signed up twice, and a customer's orders
+  would have come apart.
+- **The waiting list's `phone` column now holds the canonical form too**,
+  reversing the older decision that it kept what the customer typed. One form
+  everywhere is worth more than the memory of how it was typed.
+- **05 landlines still work**: the number is written "0512345678", ten
+  characters as well. The `MoroccanPhone` rule has always accepted the 05
+  range, because some customers order on one.
+
+### The delivery fee follows the city, and the owner decides
+
+- *"i should have rectify order's delevery fees from the order form (it should be updated for
+  that city) i should have also possibility to free delevery"*.
+- **The fee field starts at the carrier's price for the city** and is rewritten when the city
+  changes — what a parcel costs to deliver is a fact about where it is going, and the old figure
+  belonged to the old city.
+- **The owner can change it, and make it free.** A negotiated rate, a free delivery for a regular,
+  a free delivery to make up for a late one. There is a "free delivery" switch that puts the fee
+  at zero.
+- **Only the owner's figure is sent.** When they have not touched the fee, the panel sends
+  nothing and the **server** decides — the carrier's price *and* the free-delivery threshold,
+  which the panel's own quote already reflects. Sending the city's price from the browser would
+  have quietly overridden the threshold: an order over it would have been charged delivery.
+- `OrderService::place()` takes the fee as an argument; the **checkout path never passes one**,
+  so the shopper cannot price their own delivery. There is a test for that.
+- **The bound is 1000 dirhams**, so a mistyped figure cannot turn a 35-dirham delivery into a
+  35 000-dirham one.
+- **The totals add up to what will be stored**: the server's subtotal plus the fee that will
+  really be charged.
+
+### Tests
+
+- New: `backend/tests/Feature/AdminCustomerLookupTest.php` (24),
+  `frontend/src/pages/admin/Customers.test.jsx` (4) and
+  `frontend/src/pages/admin/Orders.customers.test.jsx` (13). Suite now **356
+  backend / 1550 assertions**, **159 frontend** (was 149).
+- The frontend mocks of `useAdmin` now return a **stable `call`**. A fresh one on every render
+  restarted the customer lookup's debounce on every render, and the search never finished — the
+  test was waiting for an answer the mock had cancelled.
+- The frontend test's `type` helper **focuses the field first**, because nobody types into a
+  field they have not clicked into — and the panel only shows the list when the owner is in it.
+- **A checkbox is toggled by the click alone.** Setting `checked` by hand and then dispatching a
+  click toggles it *back* — jsdom runs the activation behaviour — so the switch never turned on.
+- **A form with a disabled default button does not submit**, so `requestSubmit()` silently did
+  nothing while the save button was disabled for want of a product.
+- `frontend/dist` is committed and is what the deploy publishes, so the bundle was rebuilt.
+
+### The order, the payment and the closed book
+
+- **The order is created as `delivered`** — `OrderService::place()` takes the status it creates the
+  order with; the checkout path still starts at `new`, the panel's path starts at `delivered`. The
+  owner is recording a conversation they just had: the customer called, the parcel went out, the
+  money changed hands. An order that landed as "new" would sit in the list waiting for somebody to
+  remember to move it along.
+- **Delivered means collected**, so the payment is `paid` by default and the owner unticks it for
+  a transfer that has not arrived yet. The old "mark as paid" checkbox became "payment collected",
+  checked.
+- **A delivered order is closed**, so it cannot be moved afterwards — the same rule that already
+  applied to an order advanced to delivered. Worth saying plainly: a typo in a panel order can no
+  longer be corrected by changing its status.
+- **The delivery fee follows the city** — the carrier's own figure for that city, shown under the
+  city field, in the city list, and in the totals *before any product is picked*. What a parcel
+  costs to deliver does not depend on what is inside it. The server's quote takes over once there
+  are products, because the free-delivery threshold can then make it cost nothing.
+- The number is reduced **when the field is left**, not on every keystroke — rewriting the field
+  under the caret while somebody is still typing it is how a number ends up mangled.
+
+## Previous session (2026-11-03) — the admin panel's articles column, its pages, and the colour of a sold-out photo
 
 The owner: *"Articles column's text on adminPanel shows outside its border"*, *"when
 pagination to another page the browser should start from the top not keeping the user on the
@@ -801,9 +1043,12 @@ peach/nude, and a minimal soften-only pass).
   panel cannot offer a city checkout would reject. Note the values are the carrier's own spelling
   and are **upper case** (`CASABLANCA`), because that is what the config holds and what the city
   `<select>` sends. Do not "tidy" these to title case in tests.
-- Admin `phone` is `max:30` string, deliberately **not** the storefront's `MoroccanPhone` rule.
+- Admin `phone` was `max:30` string, deliberately **not** the storefront's `MoroccanPhone` rule.
   That rule exists to catch a customer mistyping a number; here the owner is transcribing someone
   on the phone, and rejecting `+212 6 12 34 56 78` would fail a deliverable order.
+  **Reversed on 2026-11-04**: the number is now how a customer is found again, so it is reduced
+  to the one form the shop agrees on and then held to the Moroccan rule — a number that cannot be
+  reduced would file an order under a customer nobody will ever find. See the 2026-11-04 entry.
 - Frontend: `NewOrderModal` inside `pages/admin/Orders.jsx`. Debounced product search, repeat adds
   merge into one quantity, server-side 422 reasons are shown verbatim rather than replaced with a
   generic failure.

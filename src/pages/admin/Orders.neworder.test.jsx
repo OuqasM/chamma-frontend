@@ -22,22 +22,28 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 const orders = vi.fn(() => Promise.resolve({ data: [], meta: {} }))
 const createOrder = vi.fn(() => Promise.resolve({ order: { id: 1, reference: 'CP-2609-4821' } }))
 const products = vi.fn(() => Promise.resolve({ data: [] }))
+const customers = vi.fn(() => Promise.resolve({ customers: [] }))
 
 // Hoisted, and therefore the same function on every render — which is what the
 // real `useApp` does with its `useCallback`. A fresh `t` each render would
 // re-fire the options effect forever and the payment method would never settle.
 const t = (_group, key, vars) => (vars ? `${key}:${Object.values(vars)[0]}` : key)
 
+// Stable for the same reason: a fresh `call` on every render would restart the
+// customer lookup's debounce on every render, and the search would never
+// finish.
+const call = (fn) => fn(new AbortController().signal)
+
 vi.mock('../../context/AppContext', () => ({
   useApp: () => ({ locale: 'fr', t }),
 }))
 
 vi.mock('../../context/AdminContext', () => ({
-  useAdmin: () => ({ call: (fn) => fn(new AbortController().signal) }),
+  useAdmin: () => ({ call }),
 }))
 
 vi.mock('../../lib/api', () => ({
-  adminApi: { orders, createOrder, products },
+  adminApi: { orders, createOrder, products, searchCustomers: customers },
   api: {
     checkoutOptions: () =>
       Promise.resolve({
@@ -149,8 +155,10 @@ beforeEach(() => {
   orders.mockClear()
   createOrder.mockClear()
   products.mockClear()
+  customers.mockClear()
   createOrder.mockResolvedValue({ order: { id: 1, reference: 'CP-2609-4821' } })
   products.mockResolvedValue({ data: [product] })
+  customers.mockResolvedValue({ customers: [] })
 })
 
 describe('AdminOrders new order', () => {
@@ -180,6 +188,9 @@ describe('AdminOrders new order', () => {
 
     expect(body).toMatchObject({
       name: 'Amina Benali',
+      // The number goes out in the one form the shop agrees on, so the order,
+      // the customer record and the panel's own search all point at the same
+      // handset.
       phone: '0612345678',
       address: '12 rue Ibn Batouta',
       payment_method: 'cod',
