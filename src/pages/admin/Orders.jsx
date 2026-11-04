@@ -47,6 +47,10 @@ const emptyDraft = () => ({
   remember_fee: false,
   // A delivery the owner is not charging for.
   free_shipping: false,
+  // The owner's own figure for what the order earned. Empty means the sums
+  // work it out — the total minus the goods minus the parcel — and it keeps
+  // following the purchase prices when they are rectified.
+  benefit: '',
   items: [],
 })
 
@@ -467,6 +471,10 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
         // The stock decisions, made while writing the order and applied when
         // it is saved.
         stock_actions: stockActions,
+        // The owner's own figure for what the order earned, when they gave
+        // one: the sums do not know the rate the supplier actually gave, and
+        // the owner does. Empty, the order carries the calculation.
+        benefit: draft.benefit === '' ? null : Number(draft.benefit),
         // Only the fields the server needs. `name`/`price`/`stock` above
         // are for display; sending them would invite the server to trust a
         // label the owner typed.
@@ -988,11 +996,9 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               <dd>{totalFigure === null ? '…' : money(totalFigure)}</dd>
             </div>
 
-            {/* What the order will earn. The benefit is settled the moment the
-                order is written — an order recorded here is delivered already —
-                so it can be said while it is being written, as what it will be
-                rather than what it is: the purchase prices are read again from
-                the database when the order is saved. */}
+            {/* The goods cost the shop, and the parcel the courier is paid
+                for: both are costs of the sale, and the benefit is what is
+                left after them. */}
             <div className="flex justify-between">
               <dt className="text-stone-500">{t('admin', 'ordersCost')}</dt>
               <dd>{money(goodsCost)}</dd>
@@ -1001,13 +1007,33 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               <dt className="text-stone-500">{t('admin', 'courierCost')}</dt>
               {/* The courier is paid for the parcel whatever the customer is
                   charged: a delivery that was made free is paid out of the
-                  margin, so the parcel is stated as its own figure and the
-                  benefit is what is left after it. */}
+                  margin, so the parcel is stated as its own figure. */}
               <dd>{courierFee === null ? '—' : money(courierFee)}</dd>
             </div>
-            <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
-              <dt>{t('admin', 'expectedBenefit')}</dt>
-              <dd>{expectedBenefit === null ? '…' : money(expectedBenefit)}</dd>
+
+            {/* The benefit is the owner's to state. The field takes their
+                figure when they have one — the rate the supplier actually
+                gave, the courier that charged more than the shop billed — and
+                when they leave it empty the calculation stands, and keeps
+                following the purchase prices when they are rectified. */}
+            <div className="flex items-baseline justify-between gap-3 border-t border-stone-200 pt-2">
+              <dt className="font-medium text-noir">{t('admin', 'ordersBenefit')}</dt>
+              <dd className="text-right">
+                <input
+                  type="number"
+                  name="benefit"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={draft.benefit}
+                  onChange={(e) => set({ benefit: e.target.value })}
+                  placeholder={expectedBenefit === null ? '…' : String(Math.round(expectedBenefit))}
+                  aria-label={t('admin', 'ordersBenefit')}
+                  className="w-32 rounded-lg border border-stone-300 px-2 py-1 text-right text-sm font-medium text-stone-800 focus:border-stone-400 focus:outline-none"
+                />
+                <span className="mt-0.5 block text-[11px] text-stone-400">
+                  {t('admin', 'benefitHint')}
+                </span>
+              </dd>
             </div>
             {/* The calculation behind the figure, so a number the owner
                 doubts can be read rather than taken on trust. */}

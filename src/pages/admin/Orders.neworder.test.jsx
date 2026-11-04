@@ -163,6 +163,42 @@ beforeEach(() => {
 
 describe('AdminOrders new order', () => {
   /**
+   * The figure the owner gives while writing the order travels with it: the
+   * sums do not know the rate the supplier gave, and the owner does.
+   */
+  it('sends the figure the owner gave while writing the order', async () => {
+    await open()
+    await fillCustomer()
+    await addProduct()
+
+    await type(dialog().querySelector('[name="benefit"]'), '745')
+
+    await act(async () => {
+      dialog().querySelector('form').requestSubmit()
+    })
+
+    expect(createOrder).toHaveBeenCalledTimes(1)
+    const [, body] = createOrder.mock.calls[0]
+    expect(body.benefit).toBe(745)
+  })
+
+  /**
+   * An order written without a figure carries no figure: the server works it
+   * out, and it keeps following the purchase prices when they are rectified.
+   */
+  it('sends no figure when the owner gave none', async () => {
+    await open()
+    await fillCustomer()
+    await addProduct()
+
+    await act(async () => {
+      dialog().querySelector('form').requestSubmit()
+    })
+
+    const [, body] = createOrder.mock.calls[0]
+    expect(body.benefit).toBe(null)
+  })
+  /**
    * Two regressions in one place, because they are the same shape of mistake:
    * the form quietly sending something it should not, or failing to send
    * something it should.

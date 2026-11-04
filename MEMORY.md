@@ -1428,3 +1428,37 @@ and should not be "fixed" as part of an unrelated commit.
   zero when real purchase prices are typed into the products.
 - Strings: `expectedBenefit`, `benefitUnsettled` (fr/ar/en), reusing `ordersCost`/`ordersBenefit`.
 - Suite: 169 frontend tests. Bundle `dist/assets/index-C394VVDq.js`.
+
+## 2026-11-04 · THE BENEFIT: TOTAL − GOODS − PARCEL, EDITABLE, WITH ITS ARITHMETIC SHOWN
+
+- *“the benefice should be (total sell price - purshase price - delevery fees(either if it free bcuz i will
+  pay it anuyway)) → also the benefice should be editable → the benfice should shpw the calcul behind”*, then
+  *“benifice should be editable when creating / delivering order”*.
+- **The formula.** The benefit is the **total − the goods − the parcel**. The courier is paid for every
+  parcel, so a delivery made free to the customer is paid out of the margin: the parcel is a cost of the
+  sale in its own right, not a pass-through.
+- **Two shipping figures, not one.** `shipping_cost` is what the customer is charged (already there);
+  **`courier_cost`** is what the courier is paid — a new column on `orders`, settled with the sale:
+  `ShippingService::parcelCost()` is the city's price **without** the free-shipping threshold
+  (`cost()` keeps the threshold — that one decides what the customer pays).
+- **Where the parcel is settled.** `OrderService::place()` writes it when the order is created delivered
+  (a panel order); `OrderService::settleCost()` writes it when a website order is moved to delivered.
+  Never re-decided after that.
+- **The correction.** `orders.benefit_override` holds the owner’s own figure. It **replaces** the
+  calculation (it is not added to it) and it is the figure everywhere: the row, the list, the summary
+  (`summary.total_benefit` is computed per order in SQL: `COALESCE(benefit_override, total − courier −
+  goods)` with the goods read down the rows). `null` gives the calculation back.
+- **Editable in the two moments the owner named.** In the **order form** the benefit is a field
+  (`name="benefit"`, placeholder = the calculated figure, empty = the calculation stands and keeps
+  following rectified purchase prices). In the **handover** the figure sits next to the status controls and
+  travels with the status change that delivers the order. On a delivered order it can still be corrected
+  afterwards, and taken back.
+- **The arithmetic is shown.** Under the figure: `total − goods − courier`. In the form too.
+- **The orders that predate the parcel column have no `courier_cost`** — the price the courier charges
+  for a city can change, and writing today’s price into yesterday’s orders would invent a cost. They
+  read without one until the owner corrects them.
+- Verified live: an order written with `benefit: 820` → `benefit 820, override 820.00`; without one →
+  `349` (684 − 300 − 35); a website order delivered with `benefit: 450` → `450` (and the row restored
+  verbatim afterwards). Suite: **387 backend / 1720 assertions**, **177 frontend**.
+- Strings: `courierCost`, `editBenefit`, `benefitAdjusted`, `benefitSaved`, `benefitReset`, `resetBenefit`,
+  `benefitHint`, `benefitAtHandover`, `expectedBenefit`, `benefitUnsettled` (fr/ar/en).

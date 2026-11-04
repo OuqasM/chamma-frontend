@@ -47,6 +47,9 @@ export default function AdminOrderDetail() {
   // holding the figure they meant rather than the one stored.
   const [editingBenefit, setEditingBenefit] = useState(false)
   const [benefitDraft, setBenefitDraft] = useState('')
+  // The figure they want the order to carry, waiting for the handover: the
+  // parcel goes out, and the sale is worth what they say it is worth.
+  const [handoverBenefit, setHandoverBenefit] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -72,8 +75,13 @@ export default function AdminOrderDetail() {
     setNotice(null)
 
     try {
-      const res = await call(() => adminApi.updateOrderStatus(locale, id, next))
+      const res = await call(() =>
+        adminApi.updateOrderStatus(locale, id, next, handoverBenefit === '' ? null : Number(handoverBenefit)),
+      )
       setOrder(res.order)
+      // The figure went out with the order: it is the order's now, not a
+      // figure waiting to be sent.
+      setHandoverBenefit('')
       setNotice(t('admin', 'statusUpdated'))
     } catch (err) {
       setError(err.message)
@@ -358,6 +366,29 @@ export default function AdminOrderDetail() {
                   >
                     {saving ? t('admin', 'saving') : `${t('admin', 'advance')} →`}
                   </PrimaryButton>
+                </div>
+
+                {/* The figure for the handover. The parcel goes out, and the
+                    owner says what the sale was worth — the rate the supplier
+                    gave, the courier that charged more than the shop billed.
+                    It travels with the status change and settles the benefit
+                    when the order is delivered. */}
+                <div className="mt-3">
+                  <label className="block text-[11px] font-medium uppercase tracking-wider text-stone-400">
+                    {t('admin', 'benefitAtHandover')}
+                  </label>
+                  <input
+                    type="number"
+                    name="handover_benefit"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={handoverBenefit}
+                    onChange={(e) => setHandoverBenefit(e.target.value)}
+                    placeholder={order.benefit == null ? '…' : String(Math.round(order.benefit))}
+                    aria-label={t('admin', 'benefitAtHandover')}
+                    className="mt-1 w-40 rounded-lg border border-stone-300 px-2.5 py-1.5 text-right text-sm font-medium text-stone-800 focus:border-stone-400 focus:outline-none"
+                  />
+                  <p className="mt-1 text-[11px] text-stone-400">{t('admin', 'benefitHint')}</p>
                 </div>
                 {order.next_status && (
                   <p className="mt-2 text-xs text-stone-500">

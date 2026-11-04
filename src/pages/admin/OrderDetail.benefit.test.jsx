@@ -20,6 +20,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 const order = vi.fn()
 const listOrders = vi.fn()
 const updateOrderBenefit = vi.fn()
+const updateOrderStatus = vi.fn()
 
 const t = (_group, key, vars) => (vars ? `${key}:${vars[Object.keys(vars)[0]]}` : key)
 const call = (fn) => fn(new AbortController().signal)
@@ -33,7 +34,7 @@ vi.mock('../../context/AdminContext', () => ({
 }))
 
 vi.mock('../../lib/api', () => ({
-  adminApi: { order, orders: listOrders, updateOrderBenefit },
+  adminApi: { order, orders: listOrders, updateOrderBenefit, updateOrderStatus },
   imageUrl: (path) => path || null,
 }))
 
@@ -175,5 +176,64 @@ describe('the benefit on the order detail', () => {
       [...container.querySelectorAll('button')].find((b) => b.textContent === 'editBenefit'),
     ).toBeFalsy()
     expect(text()).toContain('benefitUnsettled')
+  })
+
+  /**
+   * The handover: the parcel goes out, and the figure the owner gives goes
+   * out with it. It settles the benefit the moment the order is delivered.
+   */
+  it('sends the figure with the handover that delivers the order', async () => {
+    updateOrderStatus.mockResolvedValue({
+      order: { ...savedOrder, status: 'delivered', benefit: 800, benefit_override: 800 },
+    })
+
+    await renderWith({
+      ...savedOrder,
+      status: 'confirmed',
+      next_status: 'delivered',
+      cost: null,
+      courier_cost: null,
+      benefit: null,
+    })
+
+    const input = container.querySelector('[name="handover_benefit"]')
+    expect(input).toBeTruthy()
+
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+    await act(async () => {
+      setter.call(input, '800')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    const advance = [...container.querySelectorAll('button')].find((b) => b.textContent.includes('advance'))
+    await act(async () => {
+      advance.click()
+    })
+
+    expect(updateOrderStatus).toHaveBeenCalled()
+    const [, , status, figure] = updateOrderStatus.mock.calls[0]
+    expect(status).toBe('delivered')
+    expect(figure).toBe(800)
+  })
+
+  it('hands over without a figure when the owner gave none', async () => {
+    updateOrderStatus.mockResolvedValue({ order: savedOrder })
+
+    await renderWith({
+      ...savedOrder,
+      status: 'confirmed',
+      next_status: 'delivered',
+      cost: null,
+      courier_cost: null,
+      benefit: null,
+    })
+
+    const advance = [...container.querySelectorAll('button')].find((b) => b.textContent.includes('advance'))
+    await act(async () => {
+      advance.click()
+    })
+
+    const [, , , figure] = updateOrderStatus.mock.calls[0]
+    expect(figure).toBe(null)
   })
 })

@@ -273,8 +273,16 @@ export const adminApi = {
   settings: (l, opts) => admin(l, '/admin/settings', opts),
   updateSettings: (l, body) => admin(l, '/admin/settings', { method: 'PUT', body }),
   order: (l, id, opts) => admin(l, `/admin/orders/${id}`, opts),
-  updateOrderStatus: (l, id, status) =>
-    admin(l, `/admin/orders/${id}/status`, { method: 'PATCH', body: { status } }),
+  updateOrderStatus: (l, id, status, benefit) =>
+    admin(l, `/admin/orders/${id}/status`, {
+      method: 'PATCH',
+      body: {
+        status,
+        // The figure the owner gives as the parcel goes out. Empty means the
+        // benefit is worked out when the sale happens.
+        benefit: benefit === undefined || benefit === null || benefit === '' ? null : Number(benefit),
+      },
+    }),
 
   // A benefit the owner sets by hand replaces the calculation; `null` gives
   // the calculation back.
