@@ -453,16 +453,20 @@ export default function AdminProductEdit() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {form.variants.map((v, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-1 text-xs text-stone-700">
+                    <span key={i} className="inline-flex items-center gap-2 rounded-full bg-stone-100 py-1 pl-3 pr-1 text-xs text-stone-700">
                       {v.name}
+                      {/* Removing a size is a decision — a 100 ml that is
+                          discontinued, not a typo to undo — so it is a button
+                          with a word on it rather than a mark that looks
+                          like a decoration. */}
                       <button
                         type="button"
                         onClick={() => {
                           setForm((f) => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }))
                         }}
-                        className="text-stone-500 hover:text-stone-800"
+                        className="rounded-full px-2 py-0.5 font-medium text-stone-500 transition hover:bg-rose-100 hover:text-rose-700"
                       >
-                        ×
+                        {t('admin', 'removeVariant')}
                       </button>
                     </span>
                   ))}

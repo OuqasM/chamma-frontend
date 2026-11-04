@@ -88,6 +88,8 @@ describe('AdminOrders figures', () => {
       summary: {
         orders: 12,
         total_sales: 2740,
+        settled_orders: 5,
+        settled_sales: 1500,
         total_cost: 1500,
         total_benefit: 1240,
       },
@@ -99,7 +101,10 @@ describe('AdminOrders figures', () => {
     expect(text).toContain('ordersTotalBenefit')
     expect(text).toContain('1.240')
     // And what the goods cost, so the benefit is a sum anybody can check.
-    expect(text).toContain('ordersCostHint:1.500')
+    expect(text).toContain('ordersCost')
+    expect(text).toContain('1.500')
+    // The benefit is counted over the delivered orders, and says so.
+    expect(text).toContain('ordersBenefitHint:5')
   })
 
   it('filters the orders by a window of dates', async () => {

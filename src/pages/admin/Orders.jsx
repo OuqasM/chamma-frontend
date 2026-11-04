@@ -6,6 +6,7 @@ import { useAdmin } from '../../context/AdminContext'
 import { EmptyState } from '../../components/Spinner'
 import { SOCIAL_ICONS } from '../../components/SocialIcons'
 import { Select, TextInput } from '../../components/admin/Form'
+import ProductActions from '../../components/admin/ProductActions'
 import { nationalDigits, normalisePhone } from '../../lib/phone'
 import { knownFee } from '../../lib/shipping'
 import {
@@ -882,6 +883,17 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
                     >
                       {t('admin', 'newOrderRemoveItem')}
                     </button>
+
+                    {/* The two decisions the owner makes while writing the
+                        order: this bottle has just sold out, or this size is
+                        discontinued for good. Both belong here — the parcel is
+                        going out now, and the shop's stock should say so. */}
+                    <ProductActions
+                      productId={item.product_id}
+                      productName={item.name}
+                      variant={item.variant}
+                      className="w-full"
+                    />
                   </li>
                 )
               })}
@@ -1069,16 +1081,22 @@ export default function AdminOrders() {
         <StatCard
           label={t('admin', 'ordersTotalSales')}
           value={money(summary.total_sales ?? 0)}
+          hint={t('admin', 'ordersCountHint', { count: summary.orders ?? 0 })}
           tone="accent"
         />
         <StatCard
           label={t('admin', 'ordersTotalBenefit')}
           value={money(summary.total_benefit ?? 0)}
+          // The benefit is settled when the sale happens, so it is counted
+          // over the delivered orders. An order still in flight has no
+          // benefit yet, and saying so is truer than counting a figure that
+          // may still change.
+          hint={t('admin', 'ordersBenefitHint', { count: summary.settled_orders ?? 0 })}
         />
         <StatCard
-          label={t('admin', 'ordersCount')}
-          value={summary.orders ?? 0}
-          hint={t('admin', 'ordersCostHint', { cost: money(summary.total_cost ?? 0) })}
+          label={t('admin', 'ordersCost')}
+          value={money(summary.total_cost ?? 0)}
+          hint={t('admin', 'ordersCostHint')}
         />
       </div>
 
@@ -1175,14 +1193,19 @@ export default function AdminOrders() {
                   }).format(o.total)}
                 </Td>
                 {/* What the order earned: the total minus the purchase price
-                    of what is in it. The purchase price is the one the line
-                    was written with, so this is the benefit the order had. */}
+                    of what is in it. It is settled when the sale happens, so
+                    an order still in flight shows a dash rather than a
+                    number that may still change. */}
                 <Td className="whitespace-nowrap text-stone-600">
-                  {new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
-                    style: 'currency',
-                    currency: o.currency || 'MAD',
-                    maximumFractionDigits: 0,
-                  }).format(o.benefit ?? 0)}
+                  {o.benefit === null || o.benefit === undefined ? (
+                    <span className="text-stone-400">—</span>
+                  ) : (
+                    new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
+                      style: 'currency',
+                      currency: o.currency || 'MAD',
+                      maximumFractionDigits: 0,
+                    }).format(o.benefit)
+                  )}
                 </Td>
                 <Td className="whitespace-nowrap text-stone-600">
                   {new Date(o.created_at).toLocaleString(locale)}

@@ -10,6 +10,7 @@ import {
   ActionMenu,
   Badge,
   Banner,
+  GhostButton,
   PageHeader,
   Pagination,
   Panel,
@@ -269,7 +270,19 @@ export default function AdminProducts() {
                     </div>
                   </Td>
                   <Td>
-                    <div className="flex flex-wrap items-center gap-1.5">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {/* Out of stock, as a button rather than a line in the
+                          menu. It is the thing the owner does most often when
+                          a bottle sells out, and burying it two clicks deep
+                          in a menu is what makes a shop keep selling what it
+                          does not have. */}
+                      <GhostButton
+                        onClick={() => toggleAvailability(p)}
+                        tone={p.is_available ? 'default' : 'danger'}
+                        className="whitespace-nowrap"
+                      >
+                        {p.is_available ? t('admin', 'markOutOfStock') : t('admin', 'markInStock')}
+                      </GhostButton>
                       <Link to={`/${locale}/admin/products/${p.id}`} className={buttonClass('ghost')}>
                         {t('admin', 'edit')}
                       </Link>
@@ -281,11 +294,6 @@ export default function AdminProducts() {
                             key: 'toggle',
                             label: p.is_active ? t('admin', 'inactive') : t('admin', 'active'),
                             onClick: () => toggle(p),
-                          },
-                          {
-                            key: 'availability',
-                            label: p.is_available ? t('admin', 'markUnavailable') : t('admin', 'markAvailable'),
-                            onClick: () => toggleAvailability(p),
                           },
                           {
                             key: 'delete',

@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext'
 import { useAdmin } from '../../context/AdminContext'
 import { ErrorState, Spinner } from '../../components/Spinner'
 import { Select } from '../../components/admin/Form'
+import ProductActions from '../../components/admin/ProductActions'
 import { Badge, Banner, Panel, PrimaryButton, StatusBadge, Table, Td, buttonClass } from '../../components/admin/Ui'
 
 /**
@@ -104,7 +105,7 @@ export default function AdminOrderDetail() {
               {order.items?.map((item) => (
                 <tr key={item.id}>
                   <Td>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       <span className="h-14 w-12 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                         {item.image && <img src={imageUrl(item.image)} alt="" className="h-full w-full object-cover" loading="lazy" />}
                       </span>
@@ -120,6 +121,18 @@ export default function AdminOrderDetail() {
                           </span>
                         )}
                         {item.sku && <span className="block font-mono text-xs text-stone-500">{item.sku}</span>}
+
+                        {/* The two decisions the owner makes while handing
+                            the order over: this bottle has just sold out, or
+                            this size is discontinued for good. The parcel is
+                            going out now, and the shop's stock should say
+                            so. */}
+                        <ProductActions
+                          productId={item.product_id}
+                          productName={item.name}
+                          variant={item.variant}
+                          className="mt-1.5"
+                        />
                       </span>
                     </div>
                   </Td>

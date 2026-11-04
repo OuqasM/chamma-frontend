@@ -256,11 +256,58 @@ about the containers, not the code.
   migration that has been applied must not be edited, so the local database was brought back to
   the state before them and re-run.
 
+### The benefit is settled when the sale happens
+
+- *"benefice should be while creating the order for admin created orders and while movine client
+  passed order to delivered so the user can rectify the benefis"*.
+- **The cost of an order is settled when the sale happens**: an order the owner writes in the panel
+  is delivered from the start, so it is settled when it is created; a **website order is settled
+  when it is moved to delivered**. Until then its benefit is **null** — the panel shows a dash and
+  the summary does not count it. An order still in flight has no benefit yet, and saying so is
+  truer than counting a figure that may still change.
+- **The owner rectifies a purchase price, and the benefit follows**: correcting a product's purchase
+  price re-reads it onto the delivered orders that contain it. The owner corrects prices from
+  memory, from a supplier's invoice, long after the sale — and the figure they read on the order
+  has to follow the correction.
+- The summary counts the **sales over every order in the filter** (what the shop took) and the
+  **benefit over the delivered ones** (what it earned), and says which is which.
+
+### Two buttons the owner asked for
+
+- *"admin can have a btn to mark that product as 'out of stock'"* — it was in the row's action
+  menu, two clicks deep. It is a button on the row now: it is the thing the owner does most often
+  when a bottle sells out, and burying it is what makes a shop keep selling what it does not have.
+- *"(for variats) remove variant"* — the size chip in the product form carried a bare `×`, which
+  reads as a decoration. It is a button with a word on it, because removing a size is a decision
+  (a discontinued 100 ml), not a typo to undo.
+
+### …and where the owner actually wanted them
+
+- *"where is can set a product as out of stock of remove variant in order form of when passing an
+  order to delivered???"* — **in the order form and on the order being handed over**, not in the
+  products list. The decision is made while the parcel is going out: the bottle has just sold out,
+  or the size is discontinued for good. Both are now in the order form's lines and in the order
+  detail's lines, through one shared component (`components/admin/ProductActions.jsx`).
+- **Marking out of stock now sets the state** rather than flipping it: `PATCH
+  /admin/products/{id}/availability` takes `{ available: false }`. The button means one thing and
+  says it the same way twice; the products list's button, which says which way it will go, still
+  flips.
+- **Removing a size is `DELETE /admin/products/{product}/variants/{name}`** — the size is *named*,
+  not numbered: an order remembers the name it was sold under, not the row it came from, and the
+  name is unique within the product.
+- **Neither touches the order.** The line keeps the name it was written with, which is what the
+  history means.
+
 ### Tests
 
-- New: `backend/tests/Feature/AdminSalesFiguresTest.php` (10) and
-  `frontend/src/pages/admin/Orders.figures.test.jsx` (3). Suite now **366 backend / 1560
-  assertions**, **162 frontend** (was 159).
+- New: `backend/tests/Feature/AdminProductStockActionsTest.php` (5),
+  `backend/tests/Feature/AdminSalesFiguresTest.php` (12),
+  `frontend/src/pages/admin/Orders.figures.test.jsx` (3),
+  `frontend/src/pages/admin/Products.stock.test.jsx` (2) and
+  `frontend/src/components/admin/ProductActions.test.jsx` (3). Suite now **373 backend / 1647
+  assertions**, **167 frontend** (was 164).
+- **A space in a path is `%20`, not `+`.** `urlencode()` writes it as `+`, which in a path is a
+  literal plus — so "100 ml" arrived as "100+ml" and the size was not found.
 - The frontend mocks of `useAdmin` now return a **stable `call`**. A fresh one on every render
   restarted the customer lookup's debounce on every render, and the search never finished — the
   test was waiting for an answer the mock had cancelled.

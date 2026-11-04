@@ -216,6 +216,16 @@ export const adminApi = {
   updateProduct: (l, id, body) => admin(l, `/admin/products/${id}`, { method: 'PUT', body }),
   toggleProduct: (l, id) => admin(l, `/admin/products/${id}/toggle`, { method: 'PATCH' }),
   toggleProductAvailability: (l, id) => admin(l, `/admin/products/${id}/availability`, { method: 'PATCH' }),
+  // Setting the state rather than flipping it: "mark this out of stock" says
+  // what it means, and says it the same way twice.
+  setProductAvailability: (l, id, available, opts) =>
+    admin(l, `/admin/products/${id}/availability`, { ...opts, method: 'PATCH', body: { available } }),
+  // Taking a size off the list for good.
+  removeVariant: (l, productId, variant, opts) =>
+    admin(l, `/admin/products/${productId}/variants/${encodeURIComponent(variant)}`, {
+      ...opts,
+      method: 'DELETE',
+    }),
   deleteProduct: (l, id) => admin(l, `/admin/products/${id}`, { method: 'DELETE' }),
   restoreProduct: (l, id) => admin(l, `/admin/products/${id}/restore`, { method: 'POST' }),
 
