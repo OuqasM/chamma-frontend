@@ -765,7 +765,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
           <div className="grid items-start gap-3 sm:grid-cols-2">
             <div>
               <TextInput
-                label={t('admin', 'newOrderShippingFee')}
+                label={t('admin', 'deliveryFee')}
                 name="shipping_cost"
                 type="number"
                 min="0"
@@ -978,7 +978,7 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               <dd>{money(quote ? quote.subtotal : estimate)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-stone-500">{t('cart', 'shipping')}</dt>
+              <dt className="text-stone-500">{t('admin', 'deliveryFee')}</dt>
               <dd>
                 {/* What the order will really be charged: the owner's figure
                     when they gave one, the server's quote otherwise — which is
@@ -1002,13 +1002,6 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             <div className="flex justify-between">
               <dt className="text-stone-500">{t('admin', 'ordersCost')}</dt>
               <dd>{money(goodsCost)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-stone-500">{t('admin', 'courierCost')}</dt>
-              {/* The courier is paid for the parcel whatever the customer is
-                  charged: a delivery that was made free is paid out of the
-                  margin, so the parcel is stated as its own figure. */}
-              <dd>{courierFee === null ? '—' : money(courierFee)}</dd>
             </div>
 
             {/* The benefit is the owner's to state. The field takes their
@@ -1036,11 +1029,18 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               </dd>
             </div>
             {/* The calculation behind the figure, so a number the owner
-                doubts can be read rather than taken on trust. */}
+                doubts can be read rather than taken on trust. The three terms
+                are named under it: the total the customer paid, the goods,
+                and the delivery the courier is paid for — the same price the
+                city costs, whether the customer was charged for it or the
+                shop gave it away. */}
             {expectedBenefit !== null && (
-              <p className="text-[11px] text-stone-400">
-                {money(totalFigure)} − {money(goodsCost)} − {money(courierFee)}
-              </p>
+              <>
+                <p className="text-[11px] text-stone-400">
+                  {money(totalFigure)} − {money(goodsCost)} − {money(courierFee)}
+                </p>
+                <p className="text-[10px] text-stone-300">{t('admin', 'benefitLegend')}</p>
+              </>
             )}
           </dl>
         </fieldset>

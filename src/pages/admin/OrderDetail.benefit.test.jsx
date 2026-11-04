@@ -101,10 +101,13 @@ const fmt = (n) =>
   new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(n)
 
 describe('the benefit on the order detail', () => {
-  it('states the parcel as its own figure, with the calculation spelled out', async () => {
+  it('states the delivery once, with the calculation spelled out', async () => {
     await renderWith(savedOrder)
 
-    expect(text()).toContain('courierCost')
+    // One delivery fee, not two: what the customer pays and what the courier
+    // costs are the same price, and the panel says it once.
+    expect(text()).toContain('deliveryFee')
+    expect(text()).not.toContain('courierCost')
     expect(text()).toContain(fmt(1000))
     expect(text()).toContain(fmt(745))
     expect(text()).toContain(`${fmt(1780)} − ${fmt(1000)} − ${fmt(35)}`)

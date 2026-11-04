@@ -188,7 +188,7 @@ export default function AdminOrderDetail() {
                 <dd>{money(order.subtotal, order.currency, locale)}</dd>
               </div>
               <div className="flex justify-between text-stone-600">
-                <dt>{t('admin', 'shipping')}</dt>
+                <dt>{t('admin', 'deliveryFee')}</dt>
                 <dd>{money(order.shipping_cost, order.currency, locale)}</dd>
               </div>
               <div className="flex justify-between text-base text-stone-900">
@@ -196,27 +196,18 @@ export default function AdminOrderDetail() {
                 <dd>{money(order.total, order.currency, locale)}</dd>
               </div>
 
-              {/* What the goods cost the shop, what the courier is paid for
-                  the parcel — a cost of the sale whether or not the delivery
-                  was charged — and what the order earned. Both figures are
-                  settled the moment the order is delivered — an order written
-                  in the panel is delivered already, a website one is settled
-                  right here, when the owner moves it along — so an order
-                  still in flight reads a dash rather than a guess. */}
+              {/* What the goods cost the shop, and what the order earned.
+                  Both figures are settled the moment the order is delivered —
+                  an order written in the panel is delivered already, a
+                  website one is settled right here, when the owner moves it
+                  along — so an order still in flight reads a dash rather than
+                  a guess. */}
               <div className="flex justify-between text-stone-600">
                 <dt>{t('admin', 'ordersCost')}</dt>
                 <dd>
                   {order.cost === null || order.cost === undefined
                     ? '—'
                     : money(order.cost, order.currency, locale)}
-                </dd>
-              </div>
-              <div className="flex justify-between text-stone-600">
-                <dt>{t('admin', 'courierCost')}</dt>
-                <dd>
-                  {order.courier_cost === null || order.courier_cost === undefined
-                    ? '—'
-                    : money(order.courier_cost, order.currency, locale)}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-stone-100 pt-2 text-base font-medium text-stone-900">
@@ -301,15 +292,20 @@ export default function AdminOrderDetail() {
               )}
 
               {/* The calculation behind the figure: the total the customer
-                  paid, the goods, the parcel. The owner's own figure shows the
-                  arithmetic it replaced, since what it replaced is the truth
-                  the sums know. */}
+                  paid, the goods, and the delivery the courier is paid for —
+                  the city's own price, which the shop pays whether the
+                  customer was charged for it or the delivery was given away.
+                  The owner's own figure shows the arithmetic it replaced,
+                  since what it replaced is the truth the sums know. */}
               {order.cost != null && order.courier_cost != null && (
-                <p className="text-[11px] text-stone-400">
-                  {money(order.total, order.currency, locale)} −{' '}
-                  {money(order.cost, order.currency, locale)} −{' '}
-                  {money(order.courier_cost, order.currency, locale)}
-                </p>
+                <>
+                  <p className="text-[11px] text-stone-400">
+                    {money(order.total, order.currency, locale)} −{' '}
+                    {money(order.cost, order.currency, locale)} −{' '}
+                    {money(order.courier_cost, order.currency, locale)}
+                  </p>
+                  <p className="text-[10px] text-stone-300">{t('admin', 'benefitLegend')}</p>
+                </>
               )}
               {order.benefit == null && (
                 <p className="text-xs text-stone-400">{t('admin', 'benefitUnsettled')}</p>

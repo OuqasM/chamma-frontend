@@ -1462,3 +1462,24 @@ and should not be "fixed" as part of an unrelated commit.
   verbatim afterwards). Suite: **387 backend / 1720 assertions**, **177 frontend**.
 - Strings: `courierCost`, `editBenefit`, `benefitAdjusted`, `benefitSaved`, `benefitReset`, `resetBenefit`,
   `benefitHint`, `benefitAtHandover`, `expectedBenefit`, `benefitUnsettled` (fr/ar/en).
+
+## 2026-11-04 · ONE DELIVERY FEE, AND A TABLE OF ITS OWN
+
+- *"Livraison payée au livreur should be the same as Frais de livraison"*, and *"for Frais de livraison
+  rectified (not free) it should be persisted in delivery_fees_city table"*.
+- **One delivery fee, said once.** The panel no longer shows a second line for the parcel: what the
+  customer is charged and what the courier costs are the same price — the city's — so the panel says
+  *"Frais de livraison"* (the charge, "Offerte" when it is free) and the parcel appears in the benefit's
+  arithmetic (`total − marchandises − livraison`), now with a legend naming the three terms.
+- **The per-city price has a table of its own**: `delivery_fees` (one row per city) with a
+  `DeliveryFee` model. The prices were in the `settings` table under `shipping_fee.<CITY>` — a row per
+  city, read back with a `LIKE` and cast to a number. The migration carries the prices over and clears
+  the settings, so the price of a city lives in one place and is read by one service.
+- **A rectified price is kept there** (`ShippingFeeService::set()` → the table), and a free delivery
+  for one order still does not price the city (`remember_fee: false`).
+- **Worth knowing: the container re-seeds the demo catalog on every boot** (`docker/entrypoint.sh` runs
+  `db:seed --force`). The demo products' stock and the demo orders are rewritten each time
+  `docker compose up -d` runs — the stock of those products is the seeder's business, not the orders'.
+- The live environment has `STORE_FREE_SHIPPING_THRESHOLD=1000`: a basket over 1000 MAD ships free to
+  the customer while the shop still pays the courier — exactly the case the benefit rule exists for.
+- Suite: **388 backend / 1728 assertions**, **177 frontend**.
