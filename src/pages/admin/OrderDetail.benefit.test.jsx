@@ -72,6 +72,7 @@ const savedOrder = {
   cost: 1000,
   courier_cost: 35,
   benefit: 745,
+  expected_benefit: 745,
   benefit_override: null,
   currency: 'MAD',
   customer: { name: 'Amina Benali', phone: '0612345678' },
@@ -165,7 +166,7 @@ describe('the benefit on the order detail', () => {
     expect(updateOrderBenefit.mock.calls[0][2]).toBe(null)
   })
 
-  it('offers no correction on an order that has not been delivered', async () => {
+  it('offers no correction on an order that has not been delivered, but says what it would earn', async () => {
     await renderWith({
       ...savedOrder,
       status: 'new',
@@ -173,12 +174,15 @@ describe('the benefit on the order detail', () => {
       cost: null,
       courier_cost: null,
       benefit: null,
+      expected_benefit: 390,
     })
 
     expect(
       [...container.querySelectorAll('button')].find((b) => b.textContent === 'editBenefit'),
     ).toBeFalsy()
     expect(text()).toContain('benefitUnsettled')
+    // The dash is followed by the figure the sale would earn as it stands.
+    expect(text()).toContain(fmt(390))
   })
 
   /**
@@ -197,10 +201,14 @@ describe('the benefit on the order detail', () => {
       cost: null,
       courier_cost: null,
       benefit: null,
+      expected_benefit: 390,
     })
 
     const input = container.querySelector('[name="handover_benefit"]')
     expect(input).toBeTruthy()
+    // And it comes pre-calculated with what the order would earn as it
+    // stands, so the figure is a starting point rather than a guess.
+    expect(input.placeholder).toBe('390')
 
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
     await act(async () => {
@@ -229,6 +237,7 @@ describe('the benefit on the order detail', () => {
       cost: null,
       courier_cost: null,
       benefit: null,
+      expected_benefit: 390,
     })
 
     const advance = [...container.querySelectorAll('button')].find((b) => b.textContent.includes('advance'))

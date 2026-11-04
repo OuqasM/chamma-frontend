@@ -223,7 +223,18 @@ export default function AdminOrderDetail() {
                 </dt>
                 <dd className="flex items-baseline gap-2">
                   {order.benefit === null || order.benefit === undefined ? (
-                    '—'
+                    <span>
+                      <span className="text-stone-300">—</span>
+                      {/* The order in flight still says what it would earn if
+                          it were settled now, so the figure the handover
+                          field is pre-calculated with is stated here too. */}
+                      {order.expected_benefit != null && (
+                        <span className="text-stone-400">
+                          {' '}
+                          · {money(order.expected_benefit, order.currency, locale)}
+                        </span>
+                      )}
+                    </span>
                   ) : (
                     <span className={order.benefit < 0 ? 'text-rose-600' : 'text-emerald-700'}>
                       {money(order.benefit, order.currency, locale)}
@@ -368,7 +379,10 @@ export default function AdminOrderDetail() {
                     owner says what the sale was worth — the rate the supplier
                     gave, the courier that charged more than the shop billed.
                     It travels with the status change and settles the benefit
-                    when the order is delivered. */}
+                    when the order is delivered. The field comes
+                    pre-calculated with what the order would earn as it
+                    stands, so the figure is a starting point rather than a
+                    guess. */}
                 <div className="mt-3">
                   <label className="block text-[11px] font-medium uppercase tracking-wider text-stone-400">
                     {t('admin', 'benefitAtHandover')}
@@ -380,7 +394,11 @@ export default function AdminOrderDetail() {
                     inputMode="decimal"
                     value={handoverBenefit}
                     onChange={(e) => setHandoverBenefit(e.target.value)}
-                    placeholder={order.benefit == null ? '…' : String(Math.round(order.benefit))}
+                    placeholder={
+                      order.expected_benefit == null
+                        ? '…'
+                        : String(Math.round(order.expected_benefit))
+                    }
                     aria-label={t('admin', 'benefitAtHandover')}
                     className="mt-1 w-40 rounded-lg border border-stone-300 px-2.5 py-1.5 text-right text-sm font-medium text-stone-800 focus:border-stone-400 focus:outline-none"
                   />

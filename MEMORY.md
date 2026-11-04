@@ -1499,3 +1499,21 @@ and should not be "fixed" as part of an unrelated commit.
   rectified fee matters in the figures it records, and in the free case it is the whole cost.
 - Verified live: rectified to 20 → parcel 20, benefit 349; free → parcel 35 (the city's price),
   benefit 314. Suite: **390 backend / 1742 assertions**, **177 frontend**.
+
+## 2026-11-04 · THE HANDOVER FIELD COMES PRE-CALCULATED
+
+- *"the Bénéfice à la livraison should also be pre calculated in order details page"*.
+- The handover field's placeholder read `order.benefit`, which is **null until the order is
+  delivered** — so an order in flight showed "…" instead of a figure.
+- **The API now says what an order would earn if it were settled now**: `expected_benefit` in
+  `OrderResource` — the same arithmetic the settlement will do, from what the order already carries:
+  the total, the goods (the line snapshots before delivery, the settled figure after), and the parcel
+  (the rectified fee, the city's own price when the delivery was free). For a delivered order it is
+  the calculation behind its benefit — a set figure replaces the figure, not the arithmetic.
+- The handover field is **pre-calculated with it** (a placeholder, like the order form: empty means
+  the settlement calculates, typed means the figure is the owner's), and the benefit row of an order
+  in flight states it next to the dash (`— · 390 MAD`).
+- Verified live on a pending order: `expected_benefit: -14` — its products have `cost_price == price`
+  (zero margin) and a free delivery the shop pays 14 for, so the preview reads the truth: the sale
+  loses the courier's fee.
+- Suite: **391 backend / 1753 assertions**, **177 frontend**.
