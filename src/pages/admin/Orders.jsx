@@ -598,9 +598,18 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
 
   // The parcel is a cost of the sale in its own right: the courier is paid
   // whether the customer is charged for the delivery or it is given free, so
-  // the benefit is what is left after the parcel too. The price is the city's
-  // own — the figure the owner has priced there, or the carrier's tariff.
-  const courierFee = knownFee(cityFee) ? cityFee : null
+  // the benefit is what is left after the parcel too.
+  //
+  // The parcel costs what the delivery of this order costs: the fee the owner
+  // rectified — they are the one who knows what the courier was paid for it —
+  // and the city's own price when the delivery was given free, because the
+  // courier is paid for the parcel all the same.
+  const courierFee =
+    shippingFee !== null && shippingFee > 0
+      ? shippingFee
+      : knownFee(cityFee)
+        ? cityFee
+        : null
 
   // What the order will earn, stated the way the order will state it when it
   // is written: the total minus the goods minus the parcel.

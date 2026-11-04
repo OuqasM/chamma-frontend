@@ -1483,3 +1483,19 @@ and should not be "fixed" as part of an unrelated commit.
 - The live environment has `STORE_FREE_SHIPPING_THRESHOLD=1000`: a basket over 1000 MAD ships free to
   the customer while the shop still pays the courier — exactly the case the benefit rule exists for.
 - Suite: **388 backend / 1728 assertions**, **177 frontend**.
+
+## 2026-11-04 · THE RECTIFIED FEE IS WHAT THE PARCEL COSTS
+
+- *"please you forgot to apply the rectified delevery fees when calculating the shiti benifice"*.
+- The parcel was still settled at the city's default price, so an order whose fee the owner rectified
+  to 14 had its benefit subtract 25 — the zone's price — instead of the 14 the courier was actually
+  paid.
+- **The rule now**: the parcel costs what the delivery of *that* order costs — the fee the owner
+  rectified, and the city's own price only when the delivery was given free (the courier is paid for
+  the parcel all the same). Applied in `OrderService::place()` and in `settleCost()`, and in the
+  order form's arithmetic (`courierFee = shippingFee > 0 ? shippingFee : cityFee`).
+- A consequence worth knowing: when the delivery is charged, the fee is a pass-through — the benefit
+  is `subtotal − goods` whatever the fee was (charged 20 or 35, the benefit reads the same). The
+  rectified fee matters in the figures it records, and in the free case it is the whole cost.
+- Verified live: rectified to 20 → parcel 20, benefit 349; free → parcel 35 (the city's price),
+  benefit 314. Suite: **390 backend / 1742 assertions**, **177 frontend**.
