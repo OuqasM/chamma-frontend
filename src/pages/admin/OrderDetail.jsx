@@ -43,6 +43,10 @@ export default function AdminOrderDetail() {
   const [notice, setNotice] = useState(null)
   const [statuses, setStatuses] = useState([])
   const [saving, setSaving] = useState(false)
+  // The owner restating what an order earned by hand. Open while they type,
+  // holding the figure they meant rather than the one stored.
+  const [editingBenefit, setEditingBenefit] = useState(false)
+  const [benefitDraft, setBenefitDraft] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -71,6 +75,33 @@ export default function AdminOrderDetail() {
       const res = await call(() => adminApi.updateOrderStatus(locale, id, next))
       setOrder(res.order)
       setNotice(t('admin', 'statusUpdated'))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /**
+   * The owner puts in what the order earned: the rate the supplier actually
+   * gave, the courier that charged more than the shop billed — the things the
+   * sums were never told. An empty input gives the calculation back.
+   *
+   * `figure` set as `null` is the "back to the calculation" click.
+   */
+  const saveBenefit = async (figure) => {
+    setSaving(true)
+    setError(null)
+    setNotice(null)
+
+    const typed = figure === undefined ? benefitDraft.trim() : ''
+    const value = figure === undefined ? (typed === '' ? null : Number(typed)) : figure
+
+    try {
+      const res = await call(() => adminApi.updateOrderBenefit(locale, id, value))
+      setOrder(res.order)
+      setEditingBenefit(false)
+      setNotice(value === null ? t('admin', 'benefitReset') : t('admin', 'benefitSaved'))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -157,11 +188,13 @@ export default function AdminOrderDetail() {
                 <dd>{money(order.total, order.currency, locale)}</dd>
               </div>
 
-              {/* What the goods cost the shop, and what the order earned. Both
-                  are settled the moment the order is delivered — an order
-                  written in the panel is delivered already, a website one is
-                  settled right here, when the owner moves it along — so an
-                  order still in flight reads a dash rather than a guess. */}
+              {/* What the goods cost the shop, what the courier is paid for
+                  the parcel — a cost of the sale whether or not the delivery
+                  was charged — and what the order earned. Both figures are
+                  settled the moment the order is delivered — an order written
+                  in the panel is delivered already, a website one is settled
+                  right here, when the owner moves it along — so an order
+                  still in flight reads a dash rather than a guess. */}
               <div className="flex justify-between text-stone-600">
                 <dt>{t('admin', 'ordersCost')}</dt>
                 <dd>
@@ -170,14 +203,106 @@ export default function AdminOrderDetail() {
                     : money(order.cost, order.currency, locale)}
                 </dd>
               </div>
-              <div className="flex justify-between border-t border-stone-100 pt-2 text-base font-medium text-stone-900">
-                <dt>{t('admin', 'ordersBenefit')}</dt>
-                <dd className={order.benefit ? 'text-emerald-700' : ''}>
-                  {order.benefit === null || order.benefit === undefined
+              <div className="flex justify-between text-stone-600">
+                <dt>{t('admin', 'courierCost')}</dt>
+                <dd>
+                  {order.courier_cost === null || order.courier_cost === undefined
                     ? '—'
-                    : money(order.benefit, order.currency, locale)}
+                    : money(order.courier_cost, order.currency, locale)}
                 </dd>
               </div>
+              <div className="flex justify-between border-t border-stone-100 pt-2 text-base font-medium text-stone-900">
+                <dt className="flex items-baseline gap-2">
+                  {t('admin', 'ordersBenefit')}
+                  {/* A figure the owner put in is theirs, and the panel says
+                      so rather than passing it off as the calculation's. */}
+                  {order.benefit_override != null && (
+                    <span className="text-[10px] font-normal uppercase tracking-wider text-stone-400">
+                      {t('admin', 'benefitAdjusted')}
+                    </span>
+                  )}
+                </dt>
+                <dd className="flex items-baseline gap-2">
+                  {order.benefit === null || order.benefit === undefined ? (
+                    '—'
+                  ) : (
+                    <span className={order.benefit < 0 ? 'text-rose-600' : 'text-emerald-700'}>
+                      {money(order.benefit, order.currency, locale)}
+                    </span>
+                  )}
+                  {/* Editable while the benefit exists: the owner replies to
+                      what they know, and an empty answer gives the
+                      calculation's figure back. */}
+                  {order.benefit != null && !editingBenefit && (
+                    <button
+                      type="button"
+                      className={`${buttonClass} border-stone-200 px-2 py-0.5 text-[11px] text-stone-500 transition hover:border-stone-300 hover:text-noir`}
+                      onClick={() => {
+                        // The stored figure opens the input, whatever last
+                        // typed there: the owner edits what is on the page.
+                        setBenefitDraft(String(order.benefit ?? ''))
+                        setEditingBenefit(true)
+                      }}
+                    >
+                      {t('admin', 'editBenefit')}
+                    </button>
+                  )}
+                </dd>
+              </div>
+
+              {editingBenefit ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-32 rounded-lg border border-stone-300 px-2 py-1 text-sm text-stone-800 focus:border-stone-400 focus:outline-none"
+                    value={benefitDraft}
+                    onChange={(e) => setBenefitDraft(e.target.value)}
+                    aria-label={t('admin', 'editBenefit')}
+                  />
+                  <button
+                    type="button"
+                    disabled={saving}
+                    className={`${buttonClass} border-stone-800 bg-stone-800 px-2.5 py-1 text-[11px] text-white transition hover:bg-stone-700 disabled:opacity-50`}
+                    onClick={() => saveBenefit()}
+                  >
+                    {t('admin', 'save')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${buttonClass} border-stone-200 px-2 py-1 text-[11px] text-stone-500 transition hover:border-stone-300`}
+                    onClick={() => setEditingBenefit(false)}
+                  >
+                    {t('admin', 'cancel')}
+                  </button>
+                </div>
+              ) : (
+                // The way back: someone pressed in, so the calculation's own
+                // figure is one click away instead of hidden behind it.
+                order.benefit_override != null && (
+                  <div>
+                    <button
+                      type="button"
+                      className={`${buttonClass} border-stone-200 px-2 py-0.5 text-[11px] text-stone-500 transition hover:border-stone-300 hover:text-noir`}
+                      onClick={() => saveBenefit(null)}
+                    >
+                      {t('admin', 'resetBenefit')}
+                    </button>
+                  </div>
+                )
+              )}
+
+              {/* The calculation behind the figure: the total the customer
+                  paid, the goods, the parcel. The owner's own figure shows the
+                  arithmetic it replaced, since what it replaced is the truth
+                  the sums know. */}
+              {order.cost != null && order.courier_cost != null && (
+                <p className="text-[11px] text-stone-400">
+                  {money(order.total, order.currency, locale)} −{' '}
+                  {money(order.cost, order.currency, locale)} −{' '}
+                  {money(order.courier_cost, order.currency, locale)}
+                </p>
+              )}
               {order.benefit == null && (
                 <p className="text-xs text-stone-400">{t('admin', 'benefitUnsettled')}</p>
               )}

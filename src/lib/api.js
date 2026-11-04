@@ -276,6 +276,11 @@ export const adminApi = {
   updateOrderStatus: (l, id, status) =>
     admin(l, `/admin/orders/${id}/status`, { method: 'PATCH', body: { status } }),
 
+  // A benefit the owner sets by hand replaces the calculation; `null` gives
+  // the calculation back.
+  updateOrderBenefit: (l, id, benefit) =>
+    admin(l, `/admin/orders/${id}/benefit`, { method: 'PATCH', body: { benefit } }),
+
   // Uploads. `upload` takes a File, `artwork` renders a bottle shot server-side.
   upload: (l, file) => {
     const body = new FormData()

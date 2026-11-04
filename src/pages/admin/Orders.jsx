@@ -588,6 +588,17 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
   const subtotalFigure = quote ? quote.subtotal : estimate
   const totalFigure = quote && shippingFee !== null ? quote.subtotal + shippingFee : null
 
+  // The parcel is a cost of the sale in its own right: the courier is paid
+  // whether the customer is charged for the delivery or it is given free, so
+  // the benefit is what is left after the parcel too. The price is the city's
+  // own — the figure the owner has priced there, or the carrier's tariff.
+  const courierFee = knownFee(cityFee) ? cityFee : null
+
+  // What the order will earn, stated the way the order will state it when it
+  // is written: the total minus the goods minus the parcel.
+  const expectedBenefit =
+    totalFigure !== null && courierFee !== null ? totalFigure - goodsCost - courierFee : null
+
   // Whether the number is one the shop can work with, and whether the shop
   // has met it before.
   const phoneComplete = normalisePhone(draft.phone) !== null
@@ -986,12 +997,25 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
               <dt className="text-stone-500">{t('admin', 'ordersCost')}</dt>
               <dd>{money(goodsCost)}</dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-stone-500">{t('admin', 'courierCost')}</dt>
+              {/* The courier is paid for the parcel whatever the customer is
+                  charged: a delivery that was made free is paid out of the
+                  margin, so the parcel is stated as its own figure and the
+                  benefit is what is left after it. */}
+              <dd>{courierFee === null ? '—' : money(courierFee)}</dd>
+            </div>
             <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
               <dt>{t('admin', 'expectedBenefit')}</dt>
-              <dd>
-                {totalFigure === null ? '…' : money(totalFigure - goodsCost)}
-              </dd>
+              <dd>{expectedBenefit === null ? '…' : money(expectedBenefit)}</dd>
             </div>
+            {/* The calculation behind the figure, so a number the owner
+                doubts can be read rather than taken on trust. */}
+            {expectedBenefit !== null && (
+              <p className="text-[11px] text-stone-400">
+                {money(totalFigure)} − {money(goodsCost)} − {money(courierFee)}
+              </p>
+            )}
           </dl>
         </fieldset>
 
