@@ -1404,3 +1404,27 @@ DB_CONNECTION=sqlite DB_DATABASE=/tmp/opencode/wl.sqlite php artisan migrate --f
 
 Pint reports pre-existing `single_quote` findings in `lang/{fr,ar,en}/api.php`. They are not new
 and should not be "fixed" as part of an unrelated commit.
+
+## 2026-11-04 · WHY THE BENEFIT SHOWED NOWHERE WHILE WRITING OR HANDING OVER
+
+- *“why i cant see the benifit when creating order or passing it to delivered ??”*
+- The figures existed end to end — `OrderResource` returns `cost` and `benefit`, they settle the
+  moment an order is delivered (panel orders at creation, website ones when the owner moves them
+  along) — but the panel only showed them in the **list row**. The two places the owner is looking
+  had none: the **order form’s figure box** (Subtotal / Shipping / Total) and the **order detail
+  page**, which is where "passing to delivered" actually happens.
+- **The form** now shows *Cost of goods* and *Expected benefit* under the total. The draft line
+  carries `cost_price` from the product it was added from, and the benefit figure waits for the
+  delivery fee exactly like the total does (`…` until the fee is known), because the benefit counts
+  the fee in: it is the **total** minus the goods.
+- **The detail page** shows the same two rows under the total: cost, then benefit (emerald when
+  settled, a dash otherwise), and when there is no benefit yet a line saying it is fixed when the
+  order is delivered — `benefitUnsettled`.
+- Verified live: an order created by the API comes back with `benefit`; a website order (id 35,
+  new/pending) advanced to `delivered` returned `cost`/`benefit` immediately, then was restored
+  verbatim (status `new`, payment `pending`).
+- **On this database every benefit reads 0** for now: no product has a purchase price below its
+  selling price (the backfill set `cost_price = price`). The figures are correct; they stop being
+  zero when real purchase prices are typed into the products.
+- Strings: `expectedBenefit`, `benefitUnsettled` (fr/ar/en), reusing `ordersCost`/`ordersBenefit`.
+- Suite: 169 frontend tests. Bundle `dist/assets/index-C394VVDq.js`.

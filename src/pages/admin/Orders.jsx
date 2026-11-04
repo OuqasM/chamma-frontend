@@ -372,6 +372,9 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             product_id: product.id,
             name: product.name,
             price: product.price,
+            // What the shop paid for it: the benefit the order will earn is
+            // worked out from this, and the owner should see it while writing.
+            cost_price: product.cost_price,
             stock: product.stock,
             has_variants: hasVariants,
             variants: hasVariants
@@ -497,6 +500,14 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
   // mismatch here is exactly the sort of thing that must not become the charge.
   const estimate = useMemo(
     () => draft.items.reduce((sum, i) => sum + (Number(i.price) || 0) * i.quantity, 0),
+    [draft.items],
+  )
+
+  // What the goods in the draft cost the shop. The server reads the same
+  // purchase prices when it writes the order, and what the order earned —
+  // its benefit — is the total minus this.
+  const goodsCost = useMemo(
+    () => draft.items.reduce((sum, i) => sum + (Number(i.cost_price) || 0) * i.quantity, 0),
     [draft.items],
   )
 
@@ -964,6 +975,22 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
             <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
               <dt>{t('cart', 'total')}</dt>
               <dd>{totalFigure === null ? '…' : money(totalFigure)}</dd>
+            </div>
+
+            {/* What the order will earn. The benefit is settled the moment the
+                order is written — an order recorded here is delivered already —
+                so it can be said while it is being written, as what it will be
+                rather than what it is: the purchase prices are read again from
+                the database when the order is saved. */}
+            <div className="flex justify-between">
+              <dt className="text-stone-500">{t('admin', 'ordersCost')}</dt>
+              <dd>{money(goodsCost)}</dd>
+            </div>
+            <div className="flex justify-between border-t border-stone-200 pt-2 font-medium text-noir">
+              <dt>{t('admin', 'expectedBenefit')}</dt>
+              <dd>
+                {totalFigure === null ? '…' : money(totalFigure - goodsCost)}
+              </dd>
             </div>
           </dl>
         </fieldset>

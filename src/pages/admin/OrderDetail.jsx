@@ -156,6 +156,31 @@ export default function AdminOrderDetail() {
                 <dt>{t('admin', 'total')}</dt>
                 <dd>{money(order.total, order.currency, locale)}</dd>
               </div>
+
+              {/* What the goods cost the shop, and what the order earned. Both
+                  are settled the moment the order is delivered — an order
+                  written in the panel is delivered already, a website one is
+                  settled right here, when the owner moves it along — so an
+                  order still in flight reads a dash rather than a guess. */}
+              <div className="flex justify-between text-stone-600">
+                <dt>{t('admin', 'ordersCost')}</dt>
+                <dd>
+                  {order.cost === null || order.cost === undefined
+                    ? '—'
+                    : money(order.cost, order.currency, locale)}
+                </dd>
+              </div>
+              <div className="flex justify-between border-t border-stone-100 pt-2 text-base font-medium text-stone-900">
+                <dt>{t('admin', 'ordersBenefit')}</dt>
+                <dd className={order.benefit ? 'text-emerald-700' : ''}>
+                  {order.benefit === null || order.benefit === undefined
+                    ? '—'
+                    : money(order.benefit, order.currency, locale)}
+                </dd>
+              </div>
+              {order.benefit == null && (
+                <p className="text-xs text-stone-400">{t('admin', 'benefitUnsettled')}</p>
+              )}
             </dl>
           </Panel>
         </div>
