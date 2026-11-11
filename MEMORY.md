@@ -1,7 +1,7 @@
 # MEMORY
 
 Project: **Chamma** — perfume e-commerce, Laravel API backend + React/Vite frontend.
-Last updated: 2026-11-04.
+Last updated: 2026-11-11.
 
 > This is the project's whole memory, not the frontend's alone: it records what was done on
 > both sides and, more usefully, why. It lives in this repository because the workspace root
@@ -9,7 +9,68 @@ Last updated: 2026-11-04.
 > holds only files that belong to neither (the deploy script, `docker-compose.yml`, this
 > file). The pointer at the root says where it went.
 
-## Latest session (2026-11-04) — the customers, the delivered orders, and the containers serving four-week-old code
+## Latest session (2026-11-11) — the product that came back to stock leads both listings
+
+The owner: *"product returned to stock should apear first in client side and also in admin"*.
+
+One sentence, two lists, and the question under both: when the owner marks a sold-out
+perfume available again, where does a shopper — and the owner — meet it? Before this
+session: nowhere in particular. On the storefront it kept its place among the featured and
+best sellers; in the panel it led only until the next product was edited, because the list
+was ordered on `updated_at`, which any edit to any row moves.
+
+### A restock is a moment, so it gets a timestamp
+
+- **`products.restocked_at`** (nullable timestamp, migration
+  `2026_11_11_000000_remember_when_each_product_came_back_to_stock`). Written on the
+  **unavailable -> available edge only** — the same edge `announceRestock()` already detects
+  for the waitlist alert, so the shop keeps one definition of "came back to stock" and does
+  not grow a second one. It is written inside `announceRestock()` *before* the waitlist is
+  read: a product nobody was waiting for is still a product that came back.
+- Written with `forceFill`, kept out of `$fillable`: the form must not set it. It is derived
+  from the state change, never from a field an owner could type.
+- **Not a restock:** re-saving an already available product (a price correction), and marking
+  a product *out of* stock. Both leave the timestamp alone — pinned by tests.
+- Deliberately the `is_available` edge, not a `stock` 0 -> positive watcher. The
+  storefront's out-of-stock label reads `is_available`, and the open to-do question about
+  stock-only movement (to-do #4) stays open — this change follows the existing definition
+  rather than answering that question sideways.
+
+### The ordering
+
+- **Storefront default listing (`sort=featured`)**: `restocked_at DESC` leads, ahead of
+  `is_featured` and `sales_count`. A restock outranks curation because it *is* one, and more
+  recent than any tick. NULL sorts last on a descending order in both MySQL and SQLite, so
+  products never restocked keep the featured/best-seller order beneath every restock.
+- **Admin products list**: `restocked_at DESC`, then `updated_at DESC` — the bottle that came
+  back leads even when other products are edited afterwards.
+- **Only the default sort.** `newest` keeps its meaning (what arrived last — a bottle that
+  came back is not a new arrival), and the price/name sorts are untouched: a shopper who
+  chose a sort must not have it hijacked. Pinned by a test.
+- No new flush wiring: every admin product write already calls `flushStorefrontCaches()`,
+  which drops the cached listings, so the restocked product leads on the very next catalogue
+  read.
+
+### Not everything that lists products leads with it
+
+- Related products (`CatalogService::related`, sales_count order), the Google feed and the
+  dashboard's low-stock panel are untouched. The owner asked for the two listings.
+
+### Tests, deploy, and the cost of the sort
+
+- New: `backend/tests/Feature/RestockedProductOrderingTest.php` (8). The two ordering tests
+  were **verified to fail against the old behaviour** — the sort clauses were temporarily
+  reverted and the suite run before the change was trusted. Suite now **403 backend /
+  1809 assertions**.
+- **No frontend change**: both lists are server-ordered, so no bundle rebuild.
+- Deploy needs `php artisan migrate --force` (the Docker entrypoint runs it on boot).
+- `restocked_at` is **unindexed**, like `sales_count`: both listings filesort the products
+  table, which is fine at catalogue scale. If a slow-query log ever names it, the fix is an
+  index, not a restructure.
+
+Backend `main`: `d056a20` — *Lead the listings with the product that came back to stock*.
+
+## Previous session (2026-11-04) — the customers, the delivered orders, and the containers serving four-week-old code
 
 The owner: *"AdminPanel orders should be created by 'delivered'"*, *"the form should contains (in
 order) a phone number (auto complete with from a new cutomer entity(id,name,phone,city,adress))"*,
@@ -784,7 +845,7 @@ bigger conversion pass (selling hero headline, trust strip, i18n CTA keys, Playf
   `ensureLink` matches on the `href` it is about to overwrite and so appends duplicates.
   Canonicals use `upsertLink` (match on `rel`, update in place). The hreflang tags remove-
   and-rebuild, which is why they never had this problem.
-- Backend suite: **311 tests / 1294 assertions passing**. Frontend: 130 tests across 21 files.
+- Backend suite: **403 tests / 1809 assertions passing** (2026-11-11). Frontend: 167 tests (per the 2026-11-04 session).
 - Backend Pint reports pre-existing findings on `lang/{fr,ar,en}/api.php`, `Product`,
   `ProductResource`, `StoreCatalogSeeder` and `Admin/ProductController.php`. They are
   pre-existing — they fail with local changes stashed — and are mass-rewrites of files not
