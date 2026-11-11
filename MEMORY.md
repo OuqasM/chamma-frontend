@@ -9,7 +9,68 @@ Last updated: 2026-11-11.
 > holds only files that belong to neither (the deploy script, `docker-compose.yml`, this
 > file). The pointer at the root says where it went.
 
-## Latest session (2026-11-11) — the product that came back to stock leads both listings
+## Latest session (2026-11-11) — the numbers after the dot of the benefit
+
+The owner: *"numbers after docs must be taken in consideration in all calcules of benefice for
+orders"* — the numbers after the **dot**: the centimes.
+
+The arithmetic itself was never the problem. Every money column is `decimal(10,2)`, every
+figure travels as a float and lands `round(..., 2)` — the benefit of an order is exact in the
+database, in the resources and in the summaries. What the owner read was rounded: **every
+money display formatted itself to the whole dirham**, and two figures the panel *suggested*
+were rounded before they were ever typed.
+
+### Where the decimals were being lost
+
+- `lib/format.js` `formatPrice` — `maximumFractionDigits: 0`. It is the storefront's price
+  formatter and the panel's too: the products list and its **purchase prices** (the figures
+  the benefit is worked out from), the product form's previews, the dashboard, the checkout
+  totals. A price of 89,90 read as 90.
+- `Orders.jsx` — three hand-rolled currency formatters (`maximumFractionDigits: 0`): the
+  new-order form's figures, the summary cards, and the orders list's total and **benefit**
+  columns. A summary rounded term by term does not add up on screen even when it is exact
+  in the database — which is precisely what the owner was reading.
+- `OrderDetail.jsx` `money()` — the page that states the benefit and the arithmetic under it.
+- `Customers.jsx` / `CustomerDetail.jsx` — what a customer spent.
+- **Two placeholders rounded the figure they suggested**: the new-order benefit field
+  (`String(Math.round(expectedBenefit))`) and the handover field on the order being
+  delivered. The owner reads the suggestion and types it in — a benefit settled at
+  390,25 MAD was one tap away from being recorded as 390.
+
+### The shape of the fix
+
+- **Panel money formatters: `maximumFractionDigits: 2`.** With the currency style the
+  minimum defaults to 2 as well, so panel money now always shows two decimals —
+  "890,00 MAD" where "890 MAD" used to be. Deliberate: back-office figures read at full
+  precision, and one rule for every figure is cheaper to keep correct than whole-amount
+  special cases.
+- **`formatPrice` carries centimes only when there are centimes.** The amount is rounded to
+  two decimals *first* — float dust (`179.79999999999997`) must neither read as a figure
+  with centimes nor hide the 179,80 it is — and an amount with a fractional part shows
+  exactly two decimals, while a whole amount keeps the clean "890 MAD" the shop has always
+  shown. No storefront price changes unless the price actually has decimals.
+- **The two placeholders suggest the exact figure**: `String(Number(x.toFixed(2)))` —
+  "390.25", float dust trimmed to the cents the arithmetic means.
+- **Nothing changed in the backend** — verified, not assumed: `Order`'s benefit/cost
+  accessors, `OrderController::summary` and `OrderResource` are all float math over
+  decimal(10,2) with `round(..., 2)`. The loss was entirely on the way to the screen.
+
+### Tests
+
+- New: `frontend/src/lib/format.test.js` (4), plus decimal cases in
+  `OrderDetail.benefit.test.jsx` (2) and `Orders.figures.test.jsx` (1). The `fmt` helper in
+  the benefit test was rebuilt at two decimals — the component's currency formatting
+  defaults its *minimum* to 2, so whole figures render "745,00 MAD" there, and the old
+  helper's "745 MAD" no longer matched.
+- **The eight decimal assertions were verified to fail against the old rendering** (the five
+  component files stashed, the new tests kept) before being trusted. Suite now **184
+  frontend** (was 177).
+- dist rebuilt: `dist/assets/index-BD68UdBe.js`, `dist/assets/index-BsBmdvFT.css`;
+  `.htaccess` survived; sitemap rebuilt (its `lastmod` dates refreshed).
+
+Frontend `main`: `bcafbf8` — *Keep the numbers after the dot in every money figure*.
+
+## Previous session (2026-11-11) — the product that came back to stock leads both listings
 
 The owner: *"product returned to stock should apear first in client side and also in admin"*.
 
@@ -68,6 +129,7 @@ was ordered on `updated_at`, which any edit to any row moves.
   table, which is fine at catalogue scale. If a slow-query log ever names it, the fix is an
   index, not a restructure.
 
+Frontend `main`: `bcafbf8` — *Keep the numbers after the dot in every money figure*.
 Backend `main`: `d056a20` — *Lead the listings with the product that came back to stock*.
 
 ## Previous session (2026-11-04) — the customers, the delivered orders, and the containers serving four-week-old code
@@ -816,8 +878,8 @@ bigger conversion pass (selling hero headline, trust strip, i18n CTA keys, Playf
 - Frontend `main`: `9d458c1` — *Add a name to the waitlist form and a way to record an order by hand*
 - Frontend `main`: `cba4d09` — *Move the home carousel every 2.5 seconds*
 - Frontend `main`: `98396c8` — *Let sold-out products collect a phone number*
-- Frontend bundle: `dist/assets/index-BYxSn9dO.js`, `dist/assets/index-Ce5fB1iE.css`
-  (2026-10-30; `.htaccess` survived, sitemap rebuilt)
+- Frontend bundle: `dist/assets/index-BD68UdBe.js`, `dist/assets/index-BsBmdvFT.css`
+  (2026-11-11; `.htaccess` survived, sitemap rebuilt)
   - Vite emits content-hashed filenames and **that is correct** — commit whatever
     `npm run build` produces, deletions included. `deploy_chamma.sh` does `rm -rf` on the
     staged tree and copies `dist/.` fresh, so old asset names must be *deleted*, not
@@ -845,7 +907,7 @@ bigger conversion pass (selling hero headline, trust strip, i18n CTA keys, Playf
   `ensureLink` matches on the `href` it is about to overwrite and so appends duplicates.
   Canonicals use `upsertLink` (match on `rel`, update in place). The hreflang tags remove-
   and-rebuild, which is why they never had this problem.
-- Backend suite: **403 tests / 1809 assertions passing** (2026-11-11). Frontend: 167 tests (per the 2026-11-04 session).
+- Backend suite: **403 tests / 1809 assertions passing** (2026-11-11). Frontend: **184 tests / 31 files** (2026-11-11).
 - Backend Pint reports pre-existing findings on `lang/{fr,ar,en}/api.php`, `Product`,
   `ProductResource`, `StoreCatalogSeeder` and `Admin/ProductController.php`. They are
   pre-existing — they fail with local changes stashed — and are mass-rewrites of files not
