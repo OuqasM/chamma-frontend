@@ -501,7 +501,11 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
     new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
       style: 'currency',
       currency: 'MAD',
-      maximumFractionDigits: 0,
+      // The numbers after the dot are part of every figure here: what the
+      // order takes, what the goods cost and what is left after the parcel
+      // have to add up, and a figure rounded to the whole dirham is how they
+      // stop doing that.
+      maximumFractionDigits: 2,
     }).format(Number(value) || 0)
 
   // Indicative only. The server recomputes this from the database, and a
@@ -1028,7 +1032,13 @@ function NewOrderModal({ locale, t, open, onClose, call }) {
                   inputMode="decimal"
                   value={draft.benefit}
                   onChange={(e) => set({ benefit: e.target.value })}
-                  placeholder={expectedBenefit === null ? '…' : String(Math.round(expectedBenefit))}
+                  // The suggested figure is the exact one: the numbers after
+                  // the dot are part of what the order earns, and a placeholder
+                  // rounded to the whole dirham is how a corrected benefit
+                  // ends up 0,25 MAD off from the figure it was meant to be.
+                  placeholder={
+                    expectedBenefit === null ? '…' : String(Number(expectedBenefit.toFixed(2)))
+                  }
                   aria-label={t('admin', 'ordersBenefit')}
                   className="w-32 rounded-lg border border-stone-300 px-2 py-1 text-right text-sm font-medium text-stone-800 focus:border-stone-400 focus:outline-none"
                 />
@@ -1175,7 +1185,10 @@ export default function AdminOrders() {
     new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
       style: 'currency',
       currency: 'MAD',
-      maximumFractionDigits: 0,
+      // The benefit is read off these figures, so they carry their decimals:
+      // a summary rounded to the whole dirham is a summary that does not
+      // add up.
+      maximumFractionDigits: 2,
     }).format(Number(value) || 0)
 
   const created = (result) => {
@@ -1313,13 +1326,16 @@ export default function AdminOrders() {
                   {new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
                     style: 'currency',
                     currency: o.currency || 'MAD',
-                    maximumFractionDigits: 0,
+                    maximumFractionDigits: 2,
                   }).format(o.total)}
                 </Td>
                 {/* What the order earned: the total minus the purchase price
                     of what is in it. It is settled when the sale happens, so
                     an order still in flight shows a dash rather than a
-                    number that may still change. */}
+                    number that may still change. The figure carries its
+                    decimals — the numbers after the dot are part of what the
+                    order earned, and rounding them away here is how the
+                    column stops matching the summary above it. */}
                 <Td className="whitespace-nowrap text-stone-600">
                   {o.benefit === null || o.benefit === undefined ? (
                     <span className="text-stone-400">—</span>
@@ -1327,7 +1343,7 @@ export default function AdminOrders() {
                     new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
                       style: 'currency',
                       currency: o.currency || 'MAD',
-                      maximumFractionDigits: 0,
+                      maximumFractionDigits: 2,
                     }).format(o.benefit)
                   )}
                 </Td>

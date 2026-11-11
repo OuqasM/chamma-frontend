@@ -149,4 +149,36 @@ describe('AdminOrders figures', () => {
     expect(container.querySelector('thead').textContent).toContain('ordersBenefit')
     expect(container.querySelector('tbody tr').textContent).toContain('815')
   })
+
+  it('carries the decimals of the figures it reads', async () => {
+    // A purchase price of 1.000,25 or a benefit of 815,25 read rounded to the
+    // whole dirham is how the summary stops adding up: the numbers after the
+    // dot are part of every figure here.
+    await renderWith({
+      data: [
+        {
+          id: 3,
+          reference: 'CP-2611-4182',
+          customer: { name: 'Amina Benali', phone: '0612345678' },
+          items: [],
+          shipping: { city: 'CASABLANCA' },
+          total: 1815.5,
+          benefit: 815.25,
+          currency: 'MAD',
+          locale: 'fr',
+          status: 'delivered',
+          status_label: 'Livrée',
+          status_color: 'emerald',
+          created_at: '2026-11-04T10:00:00+00:00',
+        },
+      ],
+      meta: {},
+      summary: { orders: 1, total_sales: 1815.5, total_cost: 1000.25, total_benefit: 815.25 },
+    })
+
+    const text = container.textContent
+    expect(text).toContain('1.815,50')
+    expect(text).toContain('1.000,25')
+    expect(text).toContain('815,25')
+  })
 })

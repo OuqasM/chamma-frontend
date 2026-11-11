@@ -50,7 +50,9 @@ export default function AdminCustomerDetail() {
     new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
       style: 'currency',
       currency: 'MAD',
-      maximumFractionDigits: 0,
+      // A customer's orders and their total are order money: the figures
+      // carry their decimals like every term of the benefit's arithmetic.
+      maximumFractionDigits: 2,
     }).format(Number(value) || 0)
 
   return (

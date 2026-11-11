@@ -98,8 +98,10 @@ const renderWith = async (payload) => {
 
 const text = () => container.textContent
 
+// The panel's money figures carry their decimals — maximumFractionDigits: 2 —
+// so the expected strings are built the same way.
 const fmt = (n) =>
-  new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(n)
+  new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 2 }).format(n)
 
 describe('the benefit on the order detail', () => {
   it('states the delivery once, with the calculation spelled out', async () => {
@@ -164,6 +166,22 @@ describe('the benefit on the order detail', () => {
     })
 
     expect(updateOrderBenefit.mock.calls[0][2]).toBe(null)
+  })
+
+  it('carries the decimals of what the order earned', async () => {
+    await renderWith({
+      ...savedOrder,
+      total: 1780.75,
+      cost: 1000.5,
+      courier_cost: 35,
+      benefit: 745.25,
+      expected_benefit: 745.25,
+    })
+
+    // The benefit and the terms it is read from keep their numbers after the
+    // dot: the three figures under the calculation have to add up to it.
+    expect(text()).toContain(fmt(745.25))
+    expect(text()).toContain(`${fmt(1780.75)} − ${fmt(1000.5)} − ${fmt(35)}`)
   })
 
   it('offers no correction on an order that has not been delivered, but says what it would earn', async () => {
@@ -247,5 +265,24 @@ describe('the benefit on the order detail', () => {
 
     const [, , , figure] = updateOrderStatus.mock.calls[0]
     expect(figure).toBe(null)
+  })
+
+  it('suggests the handover figure with its decimals', async () => {
+    updateOrderStatus.mockResolvedValue({ order: savedOrder })
+
+    await renderWith({
+      ...savedOrder,
+      status: 'confirmed',
+      next_status: 'delivered',
+      cost: null,
+      courier_cost: null,
+      benefit: null,
+      expected_benefit: 390.25,
+    })
+
+    // The suggested figure is the exact one: the owner reads it and types it,
+    // and a placeholder rounded to the whole dirham is how a benefit that was
+    // settled at 390,25 MAD gets recorded as 390.
+    expect(container.querySelector('[name="handover_benefit"]').placeholder).toBe('390.25')
   })
 })

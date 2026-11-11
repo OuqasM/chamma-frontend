@@ -85,7 +85,9 @@ export default function AdminCustomers() {
     new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
       style: 'currency',
       currency: 'MAD',
-      maximumFractionDigits: 0,
+      // What a customer has spent is order money, and it carries its
+      // decimals like every figure the benefit is read from.
+      maximumFractionDigits: 2,
     }).format(Number(value) || 0)
 
   return (

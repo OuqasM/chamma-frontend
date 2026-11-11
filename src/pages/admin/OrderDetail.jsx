@@ -30,7 +30,10 @@ const money = (value, currency, locale) =>
   new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-MA' : 'fr-MA', {
     style: 'currency',
     currency: currency || 'MAD',
-    maximumFractionDigits: 0,
+    // Every figure on this page is one term of the benefit's arithmetic —
+    // the total, the goods, the parcel, what is left. Rounded terms are how
+    // the numbers stop adding up to the benefit they are meant to explain.
+    maximumFractionDigits: 2,
   }).format(value || 0)
 
 export default function AdminOrderDetail() {
@@ -379,10 +382,9 @@ export default function AdminOrderDetail() {
                     owner says what the sale was worth — the rate the supplier
                     gave, the courier that charged more than the shop billed.
                     It travels with the status change and settles the benefit
-                    when the order is delivered. The field comes
-                    pre-calculated with what the order would earn as it
-                    stands, so the figure is a starting point rather than a
-                    guess. */}
+                    when the order is delivered. The field suggests what the
+                    order would earn as it stands, so the figure is a starting
+                    point rather than a guess. */}
                 <div className="mt-3">
                   <label className="block text-[11px] font-medium uppercase tracking-wider text-stone-400">
                     {t('admin', 'benefitAtHandover')}
@@ -395,9 +397,14 @@ export default function AdminOrderDetail() {
                     value={handoverBenefit}
                     onChange={(e) => setHandoverBenefit(e.target.value)}
                     placeholder={
+                      // The exact figure, decimals included: the owner reads
+                      // this as the starting point and types it in — a
+                      // placeholder rounded to the whole dirham is how a
+                      // benefit that was settled at 390,25 MAD is recorded as
+                      // 390.
                       order.expected_benefit == null
                         ? '…'
-                        : String(Math.round(order.expected_benefit))
+                        : String(Number(order.expected_benefit.toFixed(2)))
                     }
                     aria-label={t('admin', 'benefitAtHandover')}
                     className="mt-1 w-40 rounded-lg border border-stone-300 px-2.5 py-1.5 text-right text-sm font-medium text-stone-800 focus:border-stone-400 focus:outline-none"
