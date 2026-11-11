@@ -27,6 +27,9 @@ vi.mock('./lib/api', () => ({
     products: vi.fn(() => Promise.resolve({ data: [], meta: {} })),
     offers: vi.fn(() => Promise.resolve({ data: [], meta: {} })),
     search: vi.fn(() => Promise.resolve({ data: [], meta: {} })),
+    // The shell mounts the reviews prompt on every storefront page, so the
+    // mock answers the read it makes (an empty list keeps the prompt down).
+    reviews: vi.fn(() => Promise.resolve({ data: [] })),
     checkoutOptions: vi.fn(() =>
       Promise.resolve({ cities: [], payment_methods: [], payment: { default: 'cod', bank: {} } }),
     ),

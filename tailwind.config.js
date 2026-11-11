@@ -92,6 +92,16 @@ export default {
         // subsets cover Arabic prices too.
         price: ['Oswald', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
+      keyframes: {
+        // The reviews prompt's entrance: it rises out of the corner the way
+        // a chat notification does, rather than popping in. Named rather
+        // than inlined because Tailwind needs the keyframes to exist once in
+        // the stylesheet for the arbitrary `animate-[...]` class to reference.
+        'reviews-prompt-in': {
+          '0%': { opacity: '0', transform: 'translateY(12px) scale(.9)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+      },
     },
   },
   plugins: [],

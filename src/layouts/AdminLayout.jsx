@@ -9,6 +9,7 @@ const NAV = [
   { to: 'products', key: 'products' },
   { to: 'categories', key: 'categories' },
   { to: 'brands', key: 'brands' },
+  { to: 'reviews', key: 'reviews' },
   { to: 'orders', key: 'orders' },
   { to: 'customers', key: 'customers' },
   { to: 'waitlist', key: 'waitlist' },
@@ -39,6 +40,13 @@ const ICON_PATHS = {
     </>
   ),
   brands: <path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3Z" />,
+  // A chat bubble with a star in it: what people say, said well.
+  reviews: (
+    <>
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+      <path d="m12 7.2 1.15 2.33 2.57.37-1.86 1.82.44 2.56L12 12.97l-2.3 1.21.44-2.56-1.86-1.82 2.57-.37Z" />
+    </>
+  ),
   orders: (
     <>
       <path d="M6 2h9l5 5v15H6z" />

@@ -20,6 +20,7 @@ export function Footer() {
     { to: `/${locale}/products`, label: t('nav', 'shop') },
     { to: `/${locale}/offers`, label: t('nav', 'offers') },
     { to: `/${locale}/products?sort=newest`, label: t('nav', 'new') },
+    { to: `/${locale}/reviews`, label: t('footer', 'reviews') },
   ]
 
   // Order lookup is deliberately absent here. The page still exists at

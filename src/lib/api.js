@@ -175,6 +175,11 @@ export const api = {
   category: (l, slug, opts) => scoped(l)(`/categories/${encodeURIComponent(slug)}`, opts),
   search: (l, params, opts) => scoped(l)('/search', { ...opts, params }),
 
+  // Customer reviews: WhatsApp conversation screenshots. Read by the reviews
+  // page and by the floating prompt, which only needs to know whether the
+  // shop has any to show off.
+  reviews: (l, opts) => scoped(l)('/reviews', opts),
+
   // Checkout.
   checkoutOptions,
   quote,
@@ -240,6 +245,13 @@ export const adminApi = {
   createCategory: (l, body) => admin(l, '/admin/categories', { method: 'POST', body }),
   updateCategory: (l, id, body) => admin(l, `/admin/categories/${id}`, { method: 'PUT', body }),
   deleteCategory: (l, id) => admin(l, `/admin/categories/${id}`, { method: 'DELETE' }),
+
+  // Customer reviews. The screenshot itself is uploaded through `upload`
+  // first; these calls carry the path it returned, like the brands' logos.
+  reviews: (l, opts) => admin(l, '/admin/reviews', opts),
+  createReview: (l, body) => admin(l, '/admin/reviews', { method: 'POST', body }),
+  updateReview: (l, id, body) => admin(l, `/admin/reviews/${id}`, { method: 'PUT', body }),
+  deleteReview: (l, id) => admin(l, `/admin/reviews/${id}`, { method: 'DELETE' }),
 
   // Orders. `createOrder` records one the owner took over the phone or at the
   // counter. It is the same endpoint the storefront uses internally, so a typed

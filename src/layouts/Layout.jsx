@@ -2,6 +2,7 @@ import { Header } from '../components/Header'
 import { Footer } from '../components/Footer'
 import CartDrawer from '../components/CartDrawer'
 import WhatsappButton from '../components/WhatsappButton'
+import ReviewsPrompt from '../components/ReviewsPrompt'
 
 export function Layout({ children }) {
   return (
@@ -14,6 +15,10 @@ export function Layout({ children }) {
           navigation to keep whatever the shopper has already filled in. */}
       <CartDrawer />
       <WhatsappButton />
+      {/* The reviews prompt: same floating corner as the WhatsApp button, one
+          slot above it. Mounted once for the storefront so its 5s timer and
+          its session flag survive navigation instead of restarting per page. */}
+      <ReviewsPrompt />
     </div>
   )
 }

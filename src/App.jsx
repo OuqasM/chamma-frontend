@@ -11,6 +11,7 @@ import Product from './pages/Product'
 import Taxonomy from './pages/Taxonomy'
 import Checkout from './pages/Checkout'
 import Wishlist from './pages/Wishlist'
+import Reviews from './pages/Reviews'
 import { OrderConfirmation, OrderLookup, NotFound } from './pages/Order'
 import AdminLogin from './pages/admin/Login'
 import AdminDashboard from './pages/admin/Dashboard'
@@ -22,6 +23,7 @@ import AdminOrders from './pages/admin/Orders'
 import AdminOrderDetail from './pages/admin/OrderDetail'
 import AdminCustomers from './pages/admin/Customers'
 import AdminCustomerDetail from './pages/admin/CustomerDetail'
+import AdminReviews from './pages/admin/Reviews'
 import AdminSettings from './pages/admin/Settings'
 import AdminVisits from './pages/admin/Visits'
 import AdminWaitlist from './pages/admin/Waitlist'
@@ -135,6 +137,8 @@ export default function App() {
             <Route path="categories/:slug" element={<Taxonomy kind="categories" />} />
             <Route path="offers" element={<Catalogue mode="offers" />} />
             <Route path="search" element={<Catalogue mode="search" />} />
+            {/* The customer reviews: the page the floating prompt opens. */}
+            <Route path="reviews" element={<Reviews />} />
             <Route path="new" element={<Navigate to="products?sort=newest" replace />} />
             {/* The cart page was merged into checkout: the order form and the
               lines it applies to are one screen now. Redirected rather than
@@ -164,6 +168,8 @@ export default function App() {
               <Route path="products/:id" element={<ProductEditRoute />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="brands" element={<AdminBrands />} />
+              {/* The WhatsApp screenshots the storefront shows off. */}
+              <Route path="reviews" element={<AdminReviews />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="customers" element={<AdminCustomers />} />

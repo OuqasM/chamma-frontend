@@ -65,7 +65,7 @@
       // left without a canonical so the two signals never disagree.
       ;(function () {
         var path = location.pathname.replace(/\/+$/, '')
-        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
         var origin = '%VITE_STOREFRONT_URL%'
         if (!/^https?:\/\//.test(origin)) origin = location.origin
         var link = document.createElement('link')

@@ -9,7 +9,68 @@ Last updated: 2026-11-11.
 > holds only files that belong to neither (the deploy script, `docker-compose.yml`, this
 > file). The pointer at the root says where it went.
 
-## Latest session (2026-11-11) — the numbers after the dot of the benefit
+## Latest session (2026-11-11) — the customer reviews and the prompt that opens them
+
+The owner: *"add a review feature where a client see screenshots from whatsapp conversations
+with customer, in admin panel i can add/remove them, and in the customer side a popup whith
+timer of 5 secands shows up in the bottom right above the whatsapp one, the popup should say
+in arabic darija 'بغيتي تعرف شنو كيقلوا علينا ؟', clicking it redirects to the reviews page
+where i can scroll (carousel) betw images."*
+
+Choreography confirmed with the owner mid-session: the prompt **appears after 5s, the message
+disappears after 3s, and the floating button persists**; translated per language (the Darija
+line is the Arabic value); **once per session**.
+
+### What was built
+
+- **Backend** — `review_screenshots` table (`image`, `position`, `is_active`), a barest model
+  `ReviewScreenshot` with the brands' ordering convention (`scopeOrdered`: edited positions
+  lead, never-numbered rows append in creation order), public `GET /api/{locale}/reviews`
+  (tracked, language-free payload, deliberately **not** cached — one indexed query, so no
+  flush wiring), admin CRUD under `/api/admin/reviews` (store requires `image`, update may
+  omit it; swapping the screenshot deletes the file it replaces; deleting a row deletes its
+  file — same `ImageLibrary` the brands use).
+- **Storefront** — `ReviewsPrompt` (floating button parked above the WhatsApp button, same
+  physical corner the WhatsApp button uses; message mounted only while it shows so hidden
+  text never sits in the accessibility tree; session flag in `sessionStorage`; stands down
+  on `/reviews` itself and when the shop has none), `pages/Reviews.jsx` (the shared
+  `Carousel` at 1/2/3 per view, every slide in a fixed-height frame because the carousel's
+  viewport clips vertical overflow), footer link in the shop column, `index.html` canonical
+  regex grew `|reviews`.
+- **Panel** — `pages/admin/Reviews.jsx` (upload → path, position, active toggle, two-step
+  delete), nav entry after brands with a chat-bubble icon.
+
+### The table-name trap (worth remembering)
+
+A `reviews` table **already exists in every database that ran `2026_10_02_090000_create_reviews_table`**
+— an October scaffold migration (product_id, rating, body, author_name) since **deleted from
+the tree**. `Schema::create('reviews')` collided with it on the dev DB and would have failed
+the deploy's `migrate --force`. The new table is therefore `review_screenshots`; the orphaned
+`reviews` table stays (empty, unreferenced) — dropping it is its own decision, not this
+session's.
+
+### Tests
+
+- New: `tests/Feature/ReviewsTest.php` (10): owner's order, inactive drops from the shop but
+  stays in the panel, resolved URL, add (defaults apply when the panel omits position/active —
+  a null must never reach the columns), anonymous write refused, 422 without a screenshot,
+  move + toggle, swap deletes the replaced file, delete takes the file. Suite now **413
+  backend** (was 403).
+- New frontend: `ReviewsPrompt.test.jsx` (10 — the 5s/3s/stays choreography, the session rule,
+  stand-down cases), `pages/Reviews.test.jsx` (3), `pages/admin/Reviews.test.jsx` (5), plus
+  `Footer.reviews.test.jsx` (1). The two shell mocks (`App.scroll`, `App.cartRedirect`) gained
+  an `api.reviews` answer — the shell now makes that read on every storefront page. Suite now
+  **203 frontend** (was 184).
+- Verified live against the dev stack: login → `POST /api/admin/uploads` → create → public
+  read → image served; the new migration ran on the dev MySQL.
+
+dist rebuilt: `dist/assets/index-BDyGqi6q.js`, `dist/assets/index-BGtRK6lT.css`; `.htaccess`
+survived; sitemap rebuilt (the sitemap's URL set stays deliberately narrow — the page is
+reachable through the footer link).
+
+Backend `main`: `7db7800` — *Add the customer reviews: WhatsApp screenshots the shop shows off*.
+
+## Previous session (2026-11-11) — the numbers after the dot of the benefit
 
 The owner: *"numbers after docs must be taken in consideration in all calcules of benefice for
 orders"* — the numbers after the **dot**: the centimes.

@@ -28,6 +28,8 @@ vi.mock('./lib/api', () => ({
   PER_PAGE: 24,
   api: {
     navigation: vi.fn(() => Promise.resolve({ brands: [], categories: [], contact: null })),
+    // The shell mounts the reviews prompt on every storefront page.
+    reviews: vi.fn(() => Promise.resolve({ data: [] })),
     checkoutOptions: vi.fn(() =>
       Promise.resolve({ cities: [], payment_methods: [], payment: { default: 'cod', bank: {} } }),
     ),

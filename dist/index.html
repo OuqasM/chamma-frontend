@@ -65,7 +65,7 @@
       // left without a canonical so the two signals never disagree.
       ;(function () {
         var path = location.pathname.replace(/\/+$/, '')
-        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
         var origin = 'https://chammastore.com'
         if (!/^https?:\/\//.test(origin)) origin = location.origin
         var link = document.createElement('link')
@@ -74,8 +74,8 @@
         document.head.appendChild(link)
       })()
     </script>
-    <script type="module" crossorigin src="/assets/index-BD68UdBe.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BsBmdvFT.css">
+    <script type="module" crossorigin src="/assets/index-BDyGqi6q.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BGtRK6lT.css">
   </head>
   <body>
     <div id="root"></div>
