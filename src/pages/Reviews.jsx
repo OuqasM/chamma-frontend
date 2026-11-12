@@ -89,7 +89,12 @@ export default function Reviews() {
           perViewClass="[--pv:1]"
           className="mt-10"
           renderItem={(review) => (
-            <figure className="h-[70vh] max-h-[760px] min-h-[440px] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
+            // `w-full` is load-bearing: the Carousel's slide is a flex container,
+            // so without a width this frame shrinks to the screenshot's natural
+            // pixel width and the image drifts off-centre in the slide. With it,
+            // the frame fills the slide and `object-contain` centres the
+            // screenshot on the stone background at whatever size fits.
+            <figure className="h-[70vh] w-full max-h-[760px] min-h-[440px] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
               <img
                 src={imageUrl(review.image)}
                 alt=""
