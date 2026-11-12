@@ -23,6 +23,10 @@ vi.mock('../lib/api', () => ({
   imageUrl: (u) => u,
 }))
 
+// The embedded store is its own page-sized component with its own reads; the
+// page test stubs it and only asserts that it is on the page.
+vi.mock('./Catalogue', () => ({ default: () => <div data-testid="embedded-catalogue" /> }))
+
 const Reviews = (await import('./Reviews')).default
 
 let container
@@ -65,6 +69,32 @@ describe('the reviews page', () => {
     expect(images).toHaveLength(2)
     expect(images[0].getAttribute('src')).toContain('first.png')
     expect(images[1].getAttribute('src')).toContain('second.png')
+  })
+
+  it('shows one screenshot per view on every screen size', async () => {
+    await render({
+      data: [
+        { id: 7, image: 'first.png' },
+        { id: 8, image: 'second.png' },
+      ],
+    })
+
+    // The carousel viewport carries the per-view custom property; one image
+    // per view means exactly `[--pv:1]` with no breakpoint overrides.
+    const viewport = container.querySelector('[class*="--pv"]')
+    expect(viewport).not.toBeNull()
+    expect(viewport.className).toContain('[--pv:1]')
+    expect(viewport.className).not.toContain('sm:[')
+    expect(viewport.className).not.toContain('lg:[')
+  })
+
+  it('the store follows the carousel, so the proof ends in a purchase', async () => {
+    await render({ data: [{ id: 7, image: 'first.png' }] })
+
+    // The embedded catalogue — the same cards and filters the home page
+    // carries — sits under the carousel, on the reviews page and on the
+    // empty one alike.
+    expect(container.querySelector('[data-testid="embedded-catalogue"]')).not.toBeNull()
   })
 
   it('says so plainly when the shop has no reviews yet', async () => {

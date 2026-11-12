@@ -3,19 +3,32 @@ import { api, imageUrl } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import useSeo from '../hooks/useSeo'
 import Carousel from '../components/Carousel'
+import Catalogue from './Catalogue'
 import { absolute } from '../lib/seo'
 import { ErrorState, Spinner } from '../components/Spinner'
 
 /**
- * The customer reviews: WhatsApp conversation screenshots, one carousel the
- * visitor swipes through.
+ * The customer reviews: WhatsApp conversation screenshots, one at a time,
+ * swiped through — with the store right underneath.
  *
- * The page is deliberately nothing but the conversations — the screenshots
- * are the copy, the proof, and the entertainment at once. A frame holds every
- * slide to one height (the Carousel's viewport clips vertical overflow, so
- * `object-contain` on a fixed frame is what keeps a tall screenshot whole),
- * and the shared `Carousel` supplies the swipe, the arrows and the dots,
- * including their RTL flipping.
+ * Two decisions shape it, both the owner's:
+ *
+ * - **One image per view, on every screen.** A screenshot is a conversation
+ *   between two people; two of them side by side read as clutter and neither
+ *   gets looked at properly. So the carousel runs `[--pv:1]` at every
+ *   breakpoint — a visitor swipes (or uses the arrows) from one conversation
+ *   to the next, each shown at the largest size the screen allows. The frame
+ *   is viewport-height rather than fixed so a tall screenshot fills a desktop
+ *   without ever being asked to fit a row it cannot fill.
+ *
+ * - **The store follows.** The page's job does not end at "look how happy
+ *   they are": a visitor convinced by the conversations is exactly one
+ *   product grid away from buying, so the boutique's own catalogue — the same
+ *   filters, the same sorting, the same page row the home page embeds — sits
+ *   under the carousel. Embedded, not linked: going back to the menu to then
+ *   find "Boutique" is the detour this page exists to remove. `embedded`
+ *   leaves the page's metadata to the useSeo above and renders its heading
+ *   as an `h2`.
  */
 export default function Reviews() {
   const { locale, t } = useApp()
@@ -68,10 +81,15 @@ export default function Reviews() {
         <Carousel
           items={reviews}
           ariaLabel={title}
-          perViewClass="[--pv:1] sm:[--pv:2] lg:[--pv:3]"
+          // One conversation at a time, on every screen — swiped on a touch
+          // screen, arrowed on a desktop. The frame is the viewport's height
+          // (bounded), so a portrait screenshot is shown as large as the
+          // screen can hold it and the carousel's vertical clipping never
+          // cuts one.
+          perViewClass="[--pv:1]"
           className="mt-10"
           renderItem={(review) => (
-            <figure className="h-[480px] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 sm:h-[560px]">
+            <figure className="h-[70vh] max-h-[760px] min-h-[440px] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
               <img
                 src={imageUrl(review.image)}
                 alt=""
@@ -82,6 +100,9 @@ export default function Reviews() {
           )}
         />
       )}
+
+      {/* The store, so the proof ends in a purchase. */}
+      <Catalogue mode="all" embedded />
     </div>
   )
 }

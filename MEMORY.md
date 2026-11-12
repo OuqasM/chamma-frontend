@@ -39,8 +39,11 @@ with the message itself `dir="auto"`.
   physical corner the WhatsApp button uses; message mounted only while it shows so hidden
   text never sits in the accessibility tree; session flag in `sessionStorage`; stands down
   on `/reviews` itself and when the shop has none), `pages/Reviews.jsx` (the shared
-  `Carousel` at 1/2/3 per view, every slide in a fixed-height frame because the carousel's
-  viewport clips vertical overflow), footer link in the shop column, `index.html` canonical
+  `Carousel` at **one image per view on every screen** — the owner's second pass on the
+  page: one conversation at a time, swiped or arrowed, framed viewport-height so a portrait
+  screenshot fills the screen; **and the boutique's own `Catalogue mode="all" embedded`
+  underneath** — cards and filters — so the proof ends in a purchase, exactly as the home
+  page embeds it), footer link in the shop column, `index.html` canonical
   regex grew `|reviews`.
 - **Panel** — `pages/admin/Reviews.jsx` (upload → path, position, active toggle, two-step
   delete), nav entry after brands with a chat-bubble icon.
@@ -70,7 +73,7 @@ session's.
 - Verified live against the dev stack: login → `POST /api/admin/uploads` → create → public
   read → image served; the new migration ran on the dev MySQL.
 
-dist rebuilt: `dist/assets/index-D6DPvrmQ.js`, `dist/assets/index-BGtRK6lT.css`; `.htaccess`
+dist rebuilt: `dist/assets/index-BHofAd2y.js`, `dist/assets/index-Dfy63ETN.css`; `.htaccess`
 survived; sitemap rebuilt (the sitemap's URL set stays deliberately narrow — the page is
 reachable through the footer link).
 
