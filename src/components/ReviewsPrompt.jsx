@@ -52,7 +52,7 @@ const markSeen = () => {
  * - The message shows once per browser session; the floating button
  *   persists (a reload in the same session brings the button straight
  *   back, without the 5s wait and without the message again).
- * - The line is the Darija the owner asked for ("بغيتي تعرف شنو كيقلوا
+ * - The line is the Darija the owner asked for ("بغيتي تعرف شنو كيقولوا
  *   علينا ؟") on **every** language — after seeing it translated he asked
  *   for Darija everywhere: the shop's customers read Darija whichever
  *   language they browse in. Only this line; the rest of the feature's

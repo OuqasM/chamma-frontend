@@ -14,7 +14,7 @@ Last updated: 2026-11-11.
 The owner: *"add a review feature where a client see screenshots from whatsapp conversations
 with customer, in admin panel i can add/remove them, and in the customer side a popup whith
 timer of 5 secands shows up in the bottom right above the whatsapp one, the popup should say
-in arabic darija 'بغيتي تعرف شنو كيقلوا علينا ؟', clicking it redirects to the reviews page
+in arabic darija 'بغيتي تعرف شنو كيقولوا علينا ؟', clicking it redirects to the reviews page
 where i can scroll (carousel) betw images."*
 
 Choreography confirmed with the owner mid-session: the prompt **appears after 5s, the message
