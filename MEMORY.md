@@ -18,8 +18,13 @@ in arabic darija 'بغيتي تعرف شنو كيقلوا علينا ؟', clicki
 where i can scroll (carousel) betw images."*
 
 Choreography confirmed with the owner mid-session: the prompt **appears after 5s, the message
-disappears after 3s, and the floating button persists**; translated per language (the Darija
-line is the Arabic value); **once per session**.
+disappears after 3s, and the floating button persists**; **once per session**. The copy started
+translated per language, but seeing it live the owner asked for **Darija everywhere** — the
+prompt's line is the Darija string on fr/ar/en alike (`i18n.darija.test.js` pins it); only that
+one key is language-free, the page title and labels stay translated. The prompt's row is pinned
+`dir="ltr"` so the round button stays exactly above the WhatsApp button on the RTL Arabic page
+too (an RTL flex row would otherwise park the message on the corner and shove the button away),
+with the message itself `dir="auto"`.
 
 ### What was built
 
@@ -57,14 +62,15 @@ session's.
   move + toggle, swap deletes the replaced file, delete takes the file. Suite now **413
   backend** (was 403).
 - New frontend: `ReviewsPrompt.test.jsx` (10 — the 5s/3s/stays choreography, the session rule,
-  stand-down cases), `pages/Reviews.test.jsx` (3), `pages/admin/Reviews.test.jsx` (5), plus
-  `Footer.reviews.test.jsx` (1). The two shell mocks (`App.scroll`, `App.cartRedirect`) gained
-  an `api.reviews` answer — the shell now makes that read on every storefront page. Suite now
-  **203 frontend** (was 184).
+  stand-down cases), `pages/Reviews.test.jsx` (3), `pages/admin/Reviews.test.jsx` (5),
+  `Footer.reviews.test.jsx` (1) and `lib/i18n.darija.test.js` (2 — the Darija-everywhere
+  decision). The two shell mocks (`App.scroll`, `App.cartRedirect`) gained an `api.reviews`
+  answer — the shell now makes that read on every storefront page. Suite now **205 frontend**
+  (was 184).
 - Verified live against the dev stack: login → `POST /api/admin/uploads` → create → public
   read → image served; the new migration ran on the dev MySQL.
 
-dist rebuilt: `dist/assets/index-BDyGqi6q.js`, `dist/assets/index-BGtRK6lT.css`; `.htaccess`
+dist rebuilt: `dist/assets/index-D6DPvrmQ.js`, `dist/assets/index-BGtRK6lT.css`; `.htaccess`
 survived; sitemap rebuilt (the sitemap's URL set stays deliberately narrow — the page is
 reachable through the footer link).
 

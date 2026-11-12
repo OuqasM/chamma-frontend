@@ -52,12 +52,26 @@ const markSeen = () => {
  * - The message shows once per browser session; the floating button
  *   persists (a reload in the same session brings the button straight
  *   back, without the 5s wait and without the message again).
- * - The copy is translated per language; the Arabic line is the Darija
- *   the owner asked for ("بغيتي تعرف شنو كيقلوا علينا ؟").
+ * - The line is the Darija the owner asked for ("بغيتي تعرف شنو كيقلوا
+ *   علينا ؟") on **every** language — after seeing it translated he asked
+ *   for Darija everywhere: the shop's customers read Darija whichever
+ *   language they browse in. Only this line; the rest of the feature's
+ *   copy stays translated per language.
  * - The whole thing stays hidden until the shop actually has reviews to
  *   show off — an empty pitch would advertise an empty page.
  * - On the reviews page itself the prompt stands down: a button pointing
  *   at the page it is already on is noise.
+ *
+ * The container is pinned to `dir="ltr"` on purpose. The WhatsApp button
+ * anchors to the physical bottom-right in every locale, and this prompt
+ * must sit exactly above it — but a plain flex row inside the Arabic
+ * document flows right-to-left, which would put the *message* on the
+ * corner and shove the round button a bubble's width away from the
+ * WhatsApp button it is meant to stack on. Forcing the row's direction
+ * keeps [message, button] physical; the Arabic line inside the message
+ * still reads right-to-left on its own (`dir="auto"`), and the message's
+ * tail corner is a physical `rounded-br` so it faces the button in every
+ * locale.
  */
 export default function ReviewsPrompt() {
   const { locale, t } = useApp()
@@ -120,17 +134,19 @@ export default function ReviewsPrompt() {
   const go = () => navigate(`/${locale}/reviews`)
 
   return (
-    <div className="fixed bottom-[84px] right-6 z-50 flex items-end gap-2.5 md:bottom-[96px] md:right-8">
+    <div dir="ltr" className="fixed bottom-[84px] right-6 z-50 flex items-end gap-2.5 md:bottom-[96px] md:right-8">
       {/* The message, mounted only while it shows — hidden text that stays in
           the accessibility tree would be announced to screen readers that can
           see nothing on screen. A button rather than a div: tapping it goes
           where the round button does, which is what a line pointing at
-          reviews implies. */}
+          reviews implies. `dir="auto"` lets the line set its own paragraph
+          direction: it is Darija now on every page, including the LTR ones. */}
       {message && (
         <button
           type="button"
+          dir="auto"
           onClick={go}
-          className="max-w-[240px] animate-[reviews-prompt-in_.3s_ease-out] rounded-2xl rounded-ee-md border border-stone-200/80 bg-ivory px-4 py-3 text-start text-[13px] font-medium leading-snug text-noir shadow-[0_10px_30px_-12px_rgba(58,29,39,0.45)] transition-colors hover:border-gold/60"
+          className="max-w-[240px] animate-[reviews-prompt-in_.3s_ease-out] rounded-2xl rounded-br-md border border-stone-200/80 bg-ivory px-4 py-3 text-start text-[13px] font-medium leading-snug text-noir shadow-[0_10px_30px_-12px_rgba(58,29,39,0.45)] transition-colors hover:border-gold/60"
         >
           {t('reviews', 'popupMessage')}
         </button>
