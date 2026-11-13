@@ -98,9 +98,21 @@ function ScrollToTop() {
   return null
 }
 
-/** Sends an unsupported or missing locale to a supported one, once. */
+/**
+ * Sends an unsupported or missing locale to a supported one, once.
+ *
+ * The missing-locale case used to follow the browser's language, which is
+ * how Google came to index the bare root as the English shop: the crawler
+ * browses as en-US, so chammastore.com redirected it to /en, and the brand
+ * result rendered with an English title and the Arabic pages surfacing
+ * beneath it. A URL without a locale is now the shop in its default
+ * language, French — a visitor who reads Arabic reaches /ar from the
+ * language switcher in the header. `/admin` keeps its own redirect to the
+ * browser's language: the panel is staff-only and unindexed, so no crawler
+ * ever sees it.
+ */
 function LocaleRedirect() {
-  return <Navigate to={`/${normalize(window.location.pathname.split('/')[1] || navigator.language?.slice(0, 2))}`} replace />
+  return <Navigate to={`/${normalize(window.location.pathname.split('/')[1])}`} replace />
 }
 
 /**
