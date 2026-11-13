@@ -6,6 +6,37 @@
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Chamma Store — Uniquement des produits originaux</title>
+
+    <!--
+      Link-preview tags, written statically into the document on purpose.
+      The rest of the page's metadata is applied by React (useSeo), but the
+      crawlers that build the previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The strings below are the default-locale (fr) home card; a crawler that
+      executes JS (Google, WhatsApp when the URL has been re-scraped) replaces
+      them in place with the per-page values from useSeo. The domain is
+      hardcoded rather than taken from https://chammastore.com because an unset
+      variable interpolates to an empty string here, and og:image needs an
+      absolute https:// URL to work in any of these apps.
+    -->
+    <meta property="og:title" content="Chamma Store — Uniquement des produits originaux" />
+    <meta property="og:description" content="Parfums authentiques femme et homme au Maroc. Paiement à la livraison, livraison partout au Maroc et prix en dirhams." />
+    <meta property="og:image" content="https://chammastore.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Chamma Store — parfums et cosmétiques originaux, chammastore.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Chamma Store" />
+    <meta property="og:url" content="https://chammastore.com/" />
+    <meta property="og:locale" content="fr_MA" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Chamma Store — Uniquement des produits originaux" />
+    <meta name="twitter:description" content="Parfums authentiques femme et homme au Maroc. Paiement à la livraison, livraison partout au Maroc et prix en dirhams." />
+    <meta name="twitter:image" content="https://chammastore.com/og-image.jpg" />
     <script>
       // Open the connections to the API host before the bundle asks for them.
       //
@@ -74,8 +105,8 @@
         document.head.appendChild(link)
       })()
     </script>
-    <script type="module" crossorigin src="/assets/index-rdDe8igH.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Dfy63ETN.css">
+    <script type="module" crossorigin src="/assets/index-BkmG3y7Z.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-HrqfLqv3.css">
   </head>
   <body>
     <div id="root"></div>

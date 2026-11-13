@@ -35,7 +35,12 @@ function upsert(head, kind, key, attrs, content) {
     if (name !== key) el.setAttribute(name, value)
   }
 
-  el.textContent = content ?? ''
+  // A <meta> is a void element: it cannot hold text, so assigning
+  // textContent does nothing and the value was silently dropped — every
+  // dynamic og:* tag shipped empty until the content arrived as an
+  // attribute instead. Scripts (JSON-LD) still carry their payload as text.
+  if (kind === 'meta') el.setAttribute('content', content ?? '')
+  else el.textContent = content ?? ''
 
   return el
 }
@@ -44,9 +49,17 @@ export const setTitle = (value) => {
   document.title = value
 }
 
+/**
+ * One metadata tag. OG tags are written with `property` — the attribute the
+ * Open Graph specification and facebookexternalhit expect, and the one the
+ * static block in index.html uses — so a page's values update the document's
+ * own tags in place instead of appending a second set next to them. Anything
+ * else (description, robots, twitter:*) keeps the conventional `name`.
+ */
 export const setMeta = (name, content) => {
   if (content === null || content === undefined || content === '') return
-  upsert(document.head, 'meta', 'name', { name }, content)
+  const attr = name.startsWith('og:') ? 'property' : 'name'
+  upsert(document.head, 'meta', attr, { [attr]: name }, content)
 }
 
 /**
@@ -60,7 +73,9 @@ export const setMetaOrRemove = (name, content) => {
     return
   }
 
-  const el = document.head.querySelector(`meta[name="${name}"]`)
+  // Either attribute: older builds wrote og:* with `name`, and a static tag
+  // that a page does not override must not survive into it either.
+  const el = document.head.querySelector(`meta[property="${name}"], meta[name="${name}"]`)
   if (el) el.remove()
 }
 

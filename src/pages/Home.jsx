@@ -83,7 +83,10 @@ export default function Home() {
   useSeo({
     title: t('seo', 'siteName'),
     description: t('seo', 'homeDescription'),
-    image: data?.hero?.image,
+    // No image of its own: the home URL is the one most often pasted into
+    // WhatsApp, and it shares the branded og-image card (useSeo's default)
+    // — the hero photograph with the logo and tagline set over it — rather
+    // than the raw photograph, which reads as any perfume shop's picture.
     // Home has no alternates of its own: it is the x-default target, so all
     // three locales point back here rather than at each other.
     alternates: { fr: absolute('/fr'), ar: absolute('/ar'), en: absolute('/en') },

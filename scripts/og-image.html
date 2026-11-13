@@ -1,0 +1,165 @@
+<!doctype html>
+<!--
+  The Open Graph card template. Rendered to public/og-image.jpg by
+  make-og-image.sh with headless Chrome — edit here, re-run the script.
+
+  Canvas is exactly 1200x630 because that is the ratio every link-preview
+  renderer agrees on (Facebook, WhatsApp, X, iMessage, LinkedIn). The brand
+  block sits in a centred card rather than on a side panel: WhatsApp crops
+  wide previews toward the centre, so anything bolted to an edge can be cut
+  off, while a centred card survives every crop shape tried so far.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html, body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      .photo {
+        position: absolute;
+        inset: 0;
+        background: url('../public/hero/hero-desktop.jpg') no-repeat;
+        /* 62% from the top keeps the row of bottles in frame after the
+           1536x1024 photo is cropped to the 1200x630 canvas. */
+        background-size: cover;
+        background-position: center 62%;
+      }
+
+      /* A bottom-up plum scrim, so the lower edge of the photo never
+         competes with the card and small previews still read as one image. */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(
+            to top,
+            rgba(42, 20, 29, 0.62) 0%,
+            rgba(42, 20, 29, 0.28) 26%,
+            rgba(42, 20, 29, 0) 52%
+          );
+      }
+
+      .card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 660px;
+        height: 540px;
+        /* Fully opaque: even at 98% the labels of the bottles in the
+           photograph printed through the card and looked like dirt. */
+        background: linear-gradient(170deg, #fdfaf7 0%, #f8f0ea 100%);
+        border-radius: 10px;
+        box-shadow:
+          0 24px 70px rgba(42, 20, 29, 0.45),
+          0 4px 18px rgba(42, 20, 29, 0.28);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 60px;
+      }
+
+      /* The classic double hairline, drawn with two borders rather than a
+         nested element, so the card's own shadow stays untouched. */
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 9px;
+        border: 1px solid rgba(185, 138, 62, 0.55);
+        border-radius: 5px;
+        pointer-events: none;
+      }
+      .card::after {
+        content: '';
+        position: absolute;
+        inset: 13px;
+        border: 1px solid rgba(185, 138, 62, 0.28);
+        border-radius: 3px;
+        pointer-events: none;
+      }
+
+      .logo {
+        width: 236px;
+        height: 236px;
+        object-fit: contain;
+      }
+
+      .divider {
+        width: 200px;
+        height: 1px;
+        margin: 18px 0 20px;
+        background: linear-gradient(to right, transparent, #b98a3e 20%, #b98a3e 80%, transparent);
+        position: relative;
+      }
+      .divider::after {
+        content: '✦';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -54%);
+        font-size: 13px;
+        color: #b98a3e;
+        background: #faf4ef;
+        padding: 0 9px;
+      }
+
+      .tagline {
+        font-family: 'Didot', 'Georgia', serif;
+        font-size: 30px;
+        font-weight: bold;
+        color: #804261;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+      }
+
+      .benefit {
+        margin-top: 13px;
+        font-family: 'Optima', 'Gill Sans', sans-serif;
+        font-size: 20px;
+        color: rgba(58, 29, 39, 0.86);
+        letter-spacing: 0.2px;
+      }
+      .benefit + .benefit { margin-top: 7px; }
+
+      .arabic {
+        margin-top: 14px;
+        font-family: 'Geeza Pro', 'Damascus', serif;
+        font-size: 21px;
+        color: rgba(58, 29, 39, 0.8);
+        direction: rtl;
+      }
+
+      .domain {
+        margin-top: 19px;
+        font-family: 'Optima', 'Gill Sans', sans-serif;
+        font-size: 17px;
+        font-weight: bold;
+        color: #8a6a35;
+        letter-spacing: 3.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="photo"></div>
+    <div class="scrim"></div>
+    <div class="card">
+      <img class="logo" src="../public/chamma-store-logo.png" alt="" />
+      <div class="divider"></div>
+      <div class="tagline">Uniquement des produits originaux</div>
+      <div class="benefit">Parfums authentiques femme &amp; homme</div>
+      <div class="benefit">Paiement à la livraison · Livraison partout au Maroc</div>
+      <div class="arabic">عطور أصلية 100% · الدفع عند الاستلام</div>
+      <div class="domain">CHAMMASTORE.COM</div>
+    </div>
+  </body>
+</html>
