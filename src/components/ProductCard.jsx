@@ -10,7 +10,10 @@ import WaitlistDialog from './WaitlistDialog'
 export function ProductCard({ product, showAdd = true }) {
   const { locale, t, toggleWishlist, inWishlist } = useApp()
   const [asking, setAsking] = useState(false)
-  const image = imageUrl(product.image?.url)
+  // The card-size thumbnail when the upload pipeline produced one: a ~300px
+  // card has no use for the 1920px ceiling file, and the API falls back to
+  // the full-size URL itself when a thumb does not exist.
+  const image = imageUrl(product.image?.thumb || product.image?.url)
   const href = productHref(product.url, locale)
   const soldOut = !product.in_stock
   const wished = inWishlist(product.id)
