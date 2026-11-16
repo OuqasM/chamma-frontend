@@ -28,15 +28,35 @@
     # the same fallback for hosts that do not run this .htaccess (nginx).
     RewriteRule ^/?$ https://chammastore.com/fr [R=301,L]
 
-    # The bundle is a single page app: React Router owns every path that is not
-    # a file on disk, so a refresh or a shared link on /checkout or /product/...
-    # has to return index.html instead of a 404. Without this rule the
-    # storefront only works on the home page and breaks on every client side
-    # navigation that is reloaded.
+    # The bundle is a single page app, but the SPA owns a known URL space, not
+    # every URL: every storefront route lives under a locale prefix
+    # (/{locale}/products/..., /{locale}/checkout, ...) and the admin panel
+    # under /admin. Those prefixes fall back to index.html, so a refresh or a
+    # shared link on a client-side route keeps working.
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ /index.html [L]
+    RewriteRule ^(fr|ar|en)(/|$) /index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin(/|$) /index.html [L]
+
+    # Anything else that is not a file on disk does not exist, and says so with
+    # a real 404 (the document it is served with is set by the ErrorDocument
+    # below). Falling back to index.html with HTTP 200 for *every* URL was how
+    # the shop accumulated soft 404s in Search Console: a deleted product or a
+    # mistyped link was answered "page not found" with the success status. For
+    # the URLs the SPA does own, the pages themselves answer for the dead
+    # slugs — product and brand pages render the 404 view with a noindex meta
+    # when the API says the resource is not there.
 </IfModule>
+
+# What a real 404 serves: still the bundle, so a human who follows a dead link
+# lands in the shop (the SPA's LocaleRedirect takes it home) rather than on the
+# host's bare error page — while a crawler reads the 404 status and drops the
+# URL. A local path, not a full URL: an ErrorDocument given a URL answers 302,
+# which would trade the hard 404 for a redirect.
+ErrorDocument 404 /index.html
 
 # Caching. Two kinds of file ship in this tree, and they need opposite
 # policies.

@@ -313,6 +313,13 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand, emb
 
   const isSearch = mode === 'search'
 
+  // A listing that came back empty (a filter nothing matches, an offers page
+  // between two promotions, a page number past the end) or one that failed:
+  // both render a bare message on a 200 document, which is the other shape a
+  // Google soft 404 takes. noindex asks for the URL's removal; the clean
+  // canonical above already points a filtered view at its listing.
+  const empty = !loading && !error && products.length === 0
+
   // Every listing view of the same products is one page as far as a crawler is
   // concerned. Search is the exception: it is noindex because the result set
   // changes with every query and there is nothing stable to rank.
@@ -327,7 +334,7 @@ export default function Catalogue({ mode = 'all', fixedCategory, fixedBrand, emb
           ar: absolute(`/ar/${mode === 'offers' ? 'offers' : 'products'}`),
           en: absolute(`/en/${mode === 'offers' ? 'offers' : 'products'}`),
         },
-    noindex: isSearch,
+    noindex: isSearch || Boolean(error) || empty,
     // An embedded catalogue leaves the metadata to the page it sits on.
     enabled: !embedded,
   })

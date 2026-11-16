@@ -12,6 +12,7 @@ import { absolute } from '../lib/seo'
 import { Spinner, ErrorState } from '../components/Spinner'
 import WaitlistForm from '../components/WaitlistForm'
 import ProductDescription from '../components/ProductDescription'
+import NotFound from './NotFound'
 
 export default function Product() {
   const { slug } = useParams()
@@ -32,13 +33,21 @@ export default function Product() {
       .product(locale, slug, { signal: controller.signal })
       .then(setData)
       .catch((e) => {
-        if (e.name !== 'AbortError') setError(e.message)
+        // The whole error, not just the message: the status is what tells a
+        // product that does not exist from a server that had a bad moment.
+        if (e.name !== 'AbortError') setError(e)
       })
 
     return () => controller.abort()
   }, [locale, slug])
 
   const p = data?.product
+  // The API answers firstOrFail() with a real 404 for a slug that is not in
+  // the catalogue. Serving this document at 200 with an error line on it —
+  // indexable, no different from a success to the web server — is exactly what
+  // Google reports as a soft 404, so a dead slug renders the shop's 404 page,
+  // which asks for its own removal with a client-side noindex.
+  const notFound = error?.status === 404
 
   useSeo({
     title: p ? `${p.seo?.title || p.name} | ${t('seo', 'siteName')}` : t('seo', 'siteName'),
@@ -48,9 +57,15 @@ export default function Product() {
     alternates: p?.alternates,
     type: 'product',
     jsonLd: p ? productJsonLd(p, locale) : null,
+    // A page that failed to load is never a page to rank. The 404 view owns
+    // the head itself — two writers on one <head> fight, and the child's tags
+    // run first, so this one stands down while it is on screen.
+    noindex: Boolean(error),
+    enabled: !notFound,
   })
 
-  if (error) return <ErrorState message={error} />
+  if (notFound) return <NotFound />
+  if (error) return <ErrorState message={error.message} />
   if (!data) return <Spinner label={t('common', 'loading')} />
 
   const gallery = p.images?.length ? p.images : p.image ? [p.image] : []

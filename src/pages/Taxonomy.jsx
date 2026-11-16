@@ -7,6 +7,7 @@ import { Pagination } from '../components/Pagination'
 import { Spinner, ErrorState } from '../components/Spinner'
 import useSeo from '../hooks/useSeo'
 import { absolute } from '../lib/seo'
+import NotFound from './NotFound'
 
 export default function Taxonomy({ kind }) {
   const { slug } = useParams()
@@ -31,7 +32,9 @@ export default function Taxonomy({ kind }) {
     })
       .then(setData)
       .catch((e) => {
-        if (e.name !== 'AbortError') setError(e.message)
+        // The whole error, not just the message: the status tells a brand or
+        // category that does not exist from a server that had a bad moment.
+        if (e.name !== 'AbortError') setError(e)
       })
 
     return () => controller.abort()
@@ -62,6 +65,16 @@ export default function Taxonomy({ kind }) {
 
   const entity = data?.meta?.[kind === 'brands' ? 'brand' : 'category']
 
+  // A slug the API does not know answers firstOrFail() with a real 404. This
+  // document still ships at 200 (the bundle is served for every URL under the
+  // locale prefix), so the dead link renders the shop's 404 page — whose
+  // client-side noindex is the only "this does not exist" signal a crawler
+  // gets here. An entity that exists but lists nothing gets noindex too: an
+  // "Aucun article" page on a 200 document is the other shape a soft 404
+  // takes, and it returns to the index the day it has something to show.
+  const notFound = error?.status === 404
+  const empty = data !== null && Array.isArray(data.data) && data.data.length === 0
+
   useSeo({
     title: entity ? `${entity.seo?.title || entity.name} | ${t('seo', 'siteName')}` : t('seo', 'siteName'),
     description: entity?.seo?.description || entity?.description,
@@ -71,9 +84,14 @@ export default function Taxonomy({ kind }) {
     canonical: entity?.canonical,
     alternates: entity?.alternates,
     jsonLd: entity ? breadcrumbJsonLd(entity, kind, locale) : null,
+    noindex: Boolean(error) || empty,
+    // The 404 view owns the head itself: two writers on one <head> fight, and
+    // the child's tags run first, so this one stands down while it is on screen.
+    enabled: !notFound,
   })
 
-  if (error) return <ErrorState message={error} />
+  if (notFound) return <NotFound />
+  if (error) return <ErrorState message={error.message} />
   if (!data) return <Spinner label={t('common', 'loading')} />
 
   // The paginator carries the entity alongside the product rows.

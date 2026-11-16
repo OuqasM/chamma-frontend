@@ -1,7 +1,7 @@
 # MEMORY
 
 Project: **Chamma** — perfume e-commerce, Laravel API backend + React/Vite frontend.
-Last updated: 2026-11-11.
+Last updated: 2026-11-16.
 
 > This is the project's whole memory, not the frontend's alone: it records what was done on
 > both sides and, more usefully, why. It lives in this repository because the workspace root
@@ -9,7 +9,86 @@ Last updated: 2026-11-11.
 > holds only files that belong to neither (the deploy script, `docker-compose.yml`, this
 > file). The pointer at the root says where it went.
 
-## Latest session (2026-11-11) — the customer reviews and the prompt that opens them
+## Latest session (2026-11-16) — the soft 404s Google started reporting
+
+Search Console wrote to the owner: *"New reason preventing your pages from being indexed …
+Soft 404"*. A soft 404 is a URL answered "not found" **with the success status** — and this
+shop answered every URL with a success status, by design of the SPA fallback.
+
+### Where the soft 404s came from
+
+- **The `.htaccess` fallback served `index.html` with HTTP 200 for *every* path that is not
+  a file on disk** — no URL check of any kind. A deleted product, a dead brand, a typo in a
+  link: all answered 200. The web server cannot know a slug is dead (routing is
+  client-side), so the status had to be answered for on both sides of the app.
+- **The storefront swallowed the API's real 404s.** The backend answers `firstOrFail()` with
+  a proper JSON 404 for an unknown product/brand/category, but `Product` and `Taxonomy`
+  caught the error, kept `e.message` only, and rendered a thin error line under the shop's
+  default metadata — title = the site name, robots **"index, follow"**. Google rendered
+  those pages, saw "not found" content marked indexable, and filed soft 404s.
+- **Empty listings were indexable too**: a brand with no products, a filter nothing matches,
+  a page number past the end — all rendered "Aucun article" on a 200 document, indexable.
+  (Search was already noindexed; it was the one listing that was.)
+- The **catch-all `NotFound` route** already noindexed itself — but only for paths React
+  Router matched nothing with. Dead *slugs* hit `products/:slug`, which matched fine.
+
+### The fix, in two halves
+
+**Server (`.htaccess`, mirrored in `nginx.conf`):** the SPA owns a *known* URL space, not
+every URL — storefront routes live under a locale prefix and the panel under `/admin`.
+Those prefixes fall back to `index.html` as before; **anything else that is not a file on
+disk is a real 404**, served with the bundle through `ErrorDocument 404 /index.html`. A
+local path, not a URL: an ErrorDocument given a full URL answers 302, which would trade the
+hard 404 for a redirect. A human following a dead link still lands in the shop (the SPA
+redirects home); a crawler reads the 404 and drops the URL. The `fr|ar|en` alternation is
+bounded with `(/|$)` so `/france` and `/FR` 404 too — tested: `/garbage` 404, `/xyz/deep`
+404, `/france` 404, `/FR/products` 404, and every owned shape (products, brands, checkout,
+admin, assets, robots.txt, sitemap.xml) 200.
+
+**Storefront:** the pages that fetch a single resource now keep the whole `ApiError`, not
+just the message. A **404 renders the shop's 404 view** — moved from `Order.jsx` to its own
+`pages/NotFound.jsx` because three pages share it — which sets `noindex, nofollow`
+client-side, the only "this does not exist" signal a crawler can get on a 200 document.
+Any **other failure noindexes the page** too (`noindex: Boolean(error)`), because an error
+page is never a page to rank. An **empty listing noindexes itself** until it has something
+to show. Two writers on one `<head>` fight (the child's effect runs first), so when the 404
+view is on screen the page's own `useSeo` stands down with `enabled: false` — the mechanism
+that already existed for the embedded catalogue.
+
+### Deliberately not done
+
+- **The stale-sitemap window stays.** `sitemap.xml` is a build-time copy of the API's
+  dynamic sitemap (Search Console refuses another host; a proxy was tried and dropped — see
+  `scripts/fetch-sitemap.mjs`). Products removed between deploys stay listed until the next
+  rebuild. That is now survivable — the dead URL gets a hard 404 or a rendered noindex
+  instead of a 200 error page — so the answer is the existing one: rebuild and redeploy
+  after catalogue changes.
+- **The top-level catch-all still client-redirects to `/fr`.** It only runs when the bundle
+  boots at a path the server already 404'd, so a crawler never sees the redirect as 200.
+
+### Tests and verification
+
+- New: `Product.notfound.test.jsx` (5), `Taxonomy.notfound.test.jsx` (5),
+  `Catalogue.empty.test.jsx` (3). Suite now **220 frontend** (was 207). One **pre-existing**
+  failure, untouched: `i18n.darija.test.js` expects `كيقلوا` and the dictionary says
+  `كيقولوا` — committed on main as-is, the owner's copy decision, not this session's.
+- nginx behaviour verified live against the built `dist/` in a throwaway container (the URL
+  table above). The Apache rules are the same whitelist written for per-directory
+  mod_rewrite (patterns carry no leading slash).
+- dist rebuilt: `dist/assets/index-DEtF4j4W.js`; `.htaccess` copied by the build; sitemap
+  rebuilt (330 URLs).
+
+### After the deploy (the part that proves it worked)
+
+`./deploy_chamma.sh` publishes `dist/` including the new `.htaccess` (the script already
+refuses to deploy without one). Then, from anywhere:
+`curl -sI https://chammastore.com/garbage | head -1` must say **404**, and
+`curl -sI https://chammastore.com/fr | head -1` must still say **200**. If the shared host
+ignores the new rewrite rules the whole SPA would 404 — the second curl is the alarm.
+Once confirmed, "Validate fix" in Search Console; the soft-404 entries clear as Google
+recrawls and finds real 404s or rendered noindexes.
+
+## Previous session (2026-11-11) — the customer reviews and the prompt that opens them
 
 The owner: *"add a review feature where a client see screenshots from whatsapp conversations
 with customer, in admin panel i can add/remove them, and in the customer side a popup whith
