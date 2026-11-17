@@ -205,24 +205,50 @@ export default function AdminProductEdit() {
 
   const copyError = (group) => (locale) => errors[`${group}.${locale}`]?.[0]
 
-  const addImage = async (result) => {
+  const addImage = (result) => {
     setImages((list) => [...list, { path: result.path, url: imageUrl(result.url), is_primary: false }].slice(0, MAX_IMAGES))
   }
 
+  /**
+   * A whole selection at once: a product is shot from several angles, and
+   * choosing them one file at a time was the slowest part of adding a perfume.
+   *
+   * The gallery still holds MAX_IMAGES, so the selection is cut to the slots
+   * that are actually free — uploading the rest would create files on the
+   * server that the form immediately drops. Each file is sent on its own
+   * request: the endpoint takes one image, and a batch failure must not lose
+   * the ones that already arrived.
+   */
   const upload = async (e) => {
-    const file = e.target.files?.[0]
+    const files = Array.from(e.target.files || [])
     e.target.value = ''
-    if (!file) return
+    if (files.length === 0) return
+
+    const slots = Math.max(0, MAX_IMAGES - images.length)
+    const accepted = files.slice(0, slots)
+
+    if (accepted.length === 0) {
+      setError(t('admin', 'imageLimit'))
+      return
+    }
 
     setUploading(true)
     setError(null)
-    try {
-      await addImage(await call(() => adminApi.upload(locale, file)))
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setUploading(false)
+
+    let failure = null
+
+    for (const file of accepted) {
+      try {
+        addImage(await call(() => adminApi.upload(locale, file)))
+      } catch (err) {
+        failure = err
+      }
     }
+
+    setUploading(false)
+
+    if (failure) setError(failure.message)
+    else if (accepted.length < files.length) setError(t('admin', 'imageLimit'))
   }
 
   const removeImage = (index) => {
@@ -562,6 +588,7 @@ export default function AdminProductEdit() {
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                  multiple
                   onChange={upload}
                   disabled={uploading || images.length >= MAX_IMAGES}
                   className="w-full text-xs text-stone-600 file:me-3 file:rounded-lg file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:font-medium file:text-noir"

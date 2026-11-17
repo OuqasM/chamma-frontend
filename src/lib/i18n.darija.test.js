@@ -14,7 +14,7 @@
 import { describe, expect, it } from 'vitest'
 import { dictionaries } from './i18n'
 
-const DARIJA = 'بغيتي تعرف شنو كيقلوا علينا ؟'
+const DARIJA = 'بغيتي تعرف شنو كيقولوا علينا ؟'
 
 describe('the reviews prompt line', () => {
   it('is the same Darija line on fr, ar and en', () => {

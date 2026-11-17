@@ -1789,3 +1789,31 @@ and should not be "fixed" as part of an unrelated commit.
   (zero margin) and a free delivery the shop pays 14 for, so the preview reads the truth: the sale
   loses the courier's fee.
 - Suite: **391 backend / 1753 assertions**, **177 frontend**.
+
+## 2026-11-17 · BATCH PHOTO UPLOAD, AND DELETING AN ENTITY'S IMAGES
+
+- **The product gallery takes the whole selection at once.** The file input is
+  `multiple`; each file is still one POST to `/admin/uploads` because that endpoint
+  validates a single `image`. Files are sent sequentially, one failure does not
+  abandon the ones before it, and the selection is cut to the *free* slots first:
+  sending all ten and slicing the form to eight would leave two files on the server
+  that no row points at. New key `admin.imageLimit` (fr/ar/en).
+- **The multi-select is only on the product gallery**, because categories, brands
+  and a review row each hold exactly one image column. Adding `multiple` there
+  would silently discard all but one file.
+- **`ImageLibrary::delete()` now removes the paired card thumbnail too.** Every
+  raster upload is written as `uploads/name` *and* `uploads/thumbs/name`, and the
+  old delete removed only the first — an unreachable thumbnail left on disk behind
+  every deleted brand, review and product image. Generated artwork and external
+  URLs have no thumb; the second delete is a no-op for them.
+- **A category delete now removes its image**, which it never did. Brand and review
+  deletes already called `ImageLibrary`, so they gained the thumbnail cleanup for
+  free. Products are still **soft-deleted** for order history, but their gallery is
+  hard-deleted with them (files and `product_images` rows): a restored product
+  comes back without its photos.
+- Regression suites: `MediaCleanupTest` (category, brand, product gallery, and
+  `remove_images`), plus a thumbnail assertion in `ReviewsTest`. The stale Darija
+  test constant (`كيقلوا`) was corrected to the owner's spelling (`كيقولوا`) — the
+  dictionary had been changed in `0190d92` without its test.
+- Suite: **424 backend / 1922 assertions**, **223 frontend**. Bundle
+  `dist/assets/index-DdjqQLkc.js`.
