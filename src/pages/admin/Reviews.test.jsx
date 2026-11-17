@@ -16,6 +16,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const reviews = vi.fn()
 const createReview = vi.fn()
+const createReviews = vi.fn()
 const updateReview = vi.fn()
 const deleteReview = vi.fn()
 const upload = vi.fn()
@@ -32,7 +33,7 @@ vi.mock('../../context/AdminContext', () => ({
 }))
 
 vi.mock('../../lib/api', () => ({
-  adminApi: { reviews, createReview, updateReview, deleteReview, upload },
+  adminApi: { reviews, createReview, createReviews, updateReview, deleteReview, upload },
   api: {},
   imageUrl: (u) => u,
 }))
@@ -51,7 +52,7 @@ beforeEach(() => {
 afterEach(async () => {
   await act(async () => root.unmount())
   container.remove()
-  ;[reviews, createReview, updateReview, deleteReview, upload].forEach((m) => m.mockReset())
+  ;[reviews, createReview, createReviews, updateReview, deleteReview, upload].forEach((m) => m.mockReset())
 })
 
 /** Load the list and wait for the render to settle. */
@@ -78,7 +79,7 @@ const row = (overrides = {}) => ({
 
 /** Load the list, open the create modal, upload a screenshot, and save. */
 const createThrough = async (created) => {
-  createReview.mockResolvedValue({ review: row() })
+  createReviews.mockResolvedValue({ reviews: [row()] })
   await renderWith({ data: [row(), created] })
 
   await act(async () => {
@@ -98,6 +99,21 @@ const createThrough = async (created) => {
     save.click()
   })
   await act(async () => {})
+}
+
+/** Open the create modal and hand the picker a whole selection. */
+const choose = async (files) => {
+  const input = container.querySelector('input[type=file]')
+  Object.defineProperty(input, 'files', { configurable: true, value: files })
+  await act(async () => {
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+}
+
+const openCreate = async () => {
+  await act(async () => {
+    ;[...container.querySelectorAll('button')].find((b) => b.textContent === 'create').click()
+  })
 }
 
 describe('the reviews list', () => {
@@ -129,25 +145,80 @@ describe('adding a review', () => {
     await createThrough(row({ id: 9, image_path: 'uploads/uploaded.png' }))
 
     expect(upload).toHaveBeenCalledTimes(1)
-    expect(createReview).toHaveBeenCalledTimes(1)
-    const body = createReview.mock.calls[0][1]
-    expect(body.image).toBe('uploads/uploaded.png')
+    expect(createReviews).toHaveBeenCalledTimes(1)
+    const body = createReviews.mock.calls[0][1]
+    expect(body.images).toEqual(['uploads/uploaded.png'])
     expect(body.is_active).toBe(true)
     // The owner left the order blank: nothing is sent, so the column's
     // default (append last) applies rather than a null.
     expect(body).not.toHaveProperty('position')
   })
 
+  it('turns a whole selection into that many reviews', async () => {
+    upload.mockImplementation((_locale, file) => Promise.resolve({ path: `uploads/${file.name}` }))
+    createReviews.mockResolvedValue({ reviews: [] })
+    await renderWith({ data: [] })
+    await openCreate()
+
+    await choose([
+      new File(['x'], 'one.png', { type: 'image/png' }),
+      new File(['x'], 'two.png', { type: 'image/png' }),
+      new File(['x'], 'three.png', { type: 'image/png' }),
+    ])
+
+    expect(upload).toHaveBeenCalledTimes(3)
+    expect(container.querySelectorAll('#review-form img')).toHaveLength(3)
+
+    const save = [...container.querySelectorAll('button')].find((b) => b.textContent === 'save')
+    await act(async () => {
+      save.click()
+    })
+    await act(async () => {})
+
+    expect(createReviews).toHaveBeenCalledWith('fr', {
+      images: ['uploads/one.png', 'uploads/two.png', 'uploads/three.png'],
+      is_active: true,
+    })
+  })
+
+  it('numbers the batch from the order the owner typed', async () => {
+    upload.mockImplementation((_locale, file) => Promise.resolve({ path: `uploads/${file.name}` }))
+    createReviews.mockResolvedValue({ reviews: [] })
+    await renderWith({ data: [] })
+    await openCreate()
+
+    const position = container.querySelector('#review-form input[type=number]')
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+      setter.call(position, '4')
+      position.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await choose([
+      new File(['x'], 'one.png', { type: 'image/png' }),
+      new File(['x'], 'two.png', { type: 'image/png' }),
+    ])
+
+    const save = [...container.querySelectorAll('button')].find((b) => b.textContent === 'save')
+    await act(async () => {
+      save.click()
+    })
+    await act(async () => {})
+
+    expect(createReviews.mock.calls[0][1]).toMatchObject({
+      images: ['uploads/one.png', 'uploads/two.png'],
+      position: 4,
+    })
+  })
+
   it('cannot be saved without a screenshot', async () => {
     await renderWith({ data: [] })
-
-    await act(async () => {
-      ;[...container.querySelectorAll('button')].find((b) => b.textContent === 'create').click()
-    })
+    await openCreate()
 
     const save = [...container.querySelectorAll('button')].find((b) => b.textContent === 'save')
     expect(save.disabled).toBe(true)
     expect(createReview).not.toHaveBeenCalled()
+    expect(createReviews).not.toHaveBeenCalled()
   })
 })
 

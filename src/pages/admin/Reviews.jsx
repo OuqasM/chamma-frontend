@@ -9,7 +9,7 @@ import { ActionMenu, Badge, Banner, GhostButton, Modal, PageHeader, Panel, Prima
 // A review is a screenshot, a place in the order, and an on/off switch —
 // nothing is translated, because a conversation is not translated.
 const blank = () => ({
-  image: '',
+  images: [],
   position: '',
   is_active: true,
 })
@@ -24,6 +24,7 @@ export default function AdminReviews() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(blank())
   const [errors, setErrors] = useState({})
+  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const load = () => {
@@ -59,32 +60,68 @@ export default function AdminReviews() {
 
     setEditing({ id: review.id })
     setForm({
-      image: review.image_path || '',
+      images: review.image_path ? [review.image_path] : [],
       position: review.position ?? '',
       is_active: Boolean(review.is_active),
     })
   }
 
-  const uploadImage = async (e) => {
-    const file = e.target.files?.[0]
+  /**
+   * A review row holds one screenshot, so the create form turns a whole
+   * selection into that many reviews; editing replaces the one this row has
+   * (only the first file is taken there).
+   *
+   * Each file is a request of its own — the upload endpoint validates and
+   * optimises one image — and the paths are handed to the API together so the
+   * rows are written in one transaction.
+   */
+  const uploadImages = async (e) => {
+    const files = Array.from(e.target.files || [])
     e.target.value = ''
-    if (!file) return
-    try {
-      const res = await call(() => adminApi.upload(locale, file))
-      setForm((f) => ({ ...f, image: res.path }))
-    } catch (err) {
-      setError(err.message)
+    if (files.length === 0) return
+
+    const accepted = editing?.id ? files.slice(0, 1) : files
+
+    setUploading(true)
+    setError(null)
+
+    const paths = []
+    let failure = null
+
+    for (const file of accepted) {
+      try {
+        paths.push((await call(() => adminApi.upload(locale, file))).path)
+      } catch (err) {
+        failure = err
+        break
+      }
     }
+
+    // Keep what did arrive, so a failure on the fourth file does not throw
+    // away the three before it.
+    if (paths.length > 0) {
+      setForm((f) => ({ ...f, images: editing?.id ? paths : [...f.images, ...paths] }))
+    }
+
+    setUploading(false)
+
+    if (failure) setError(failure.message)
+  }
+
+  const removeUploaded = (index) => {
+    setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }))
   }
 
   const submit = async (e) => {
     e.preventDefault()
+    if (form.images.length === 0) return
+
     setSaving(true)
     setErrors({})
     setError(null)
 
     const body = {
-      image: form.image,
+      image: form.images[0],
       position: form.position === '' ? null : Number(form.position),
       is_active: form.is_active,
     }
@@ -94,8 +131,17 @@ export default function AdminReviews() {
     if (form.position === '') delete body.position
 
     try {
-      if (editing?.id) await call(() => adminApi.updateReview(locale, editing.id, body))
-      else await call(() => adminApi.createReview(locale, body))
+      if (editing?.id) {
+        await call(() => adminApi.updateReview(locale, editing.id, body))
+      } else {
+        const payload = { images: form.images, is_active: form.is_active }
+
+        // When an order is given, the screenshots are numbered from it in
+        // selection order. Left blank, every row appends in creation order.
+        if (form.position !== '') payload.position = Number(form.position)
+
+        await call(() => adminApi.createReviews(locale, payload))
+      }
       setEditing(null)
       setNotice(t('admin', 'save'))
       await load()
@@ -184,7 +230,7 @@ export default function AdminReviews() {
             <GhostButton type="button" onClick={() => setEditing(null)}>
               {t('admin', 'cancel')}
             </GhostButton>
-            <PrimaryButton type="submit" form="review-form" disabled={saving || !form.image}>
+            <PrimaryButton type="submit" form="review-form" disabled={saving || uploading || form.images.length === 0}>
               {saving ? t('admin', 'saving') : t('admin', 'save')}
             </PrimaryButton>
           </>
@@ -192,19 +238,36 @@ export default function AdminReviews() {
       >
         <form id="review-form" onSubmit={submit} className="space-y-4">
           <div>
-            <span className="text-[13px] font-medium text-stone-600">{t('admin', 'image')}</span>
-            {form.image && (
-              <span className="mt-1.5 flex h-40 w-28 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
-                <img src={imageUrl(form.image)} alt="" className="h-full w-full object-cover" />
-              </span>
+            <span className="text-[13px] font-medium text-stone-600">{t('admin', 'images')}</span>
+            {form.images.length > 0 && (
+              <ul className="mt-1.5 grid grid-cols-3 gap-2">
+                {form.images.map((path, index) => (
+                  <li key={`${path}-${index}`} className="relative">
+                    <span className="flex h-32 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
+                      <img src={imageUrl(path)} alt="" className="h-full w-full object-cover" />
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeUploaded(index)}
+                      className="absolute end-1 top-1 rounded-full bg-rose-600/95 px-2 py-0.5 text-[11px] font-medium text-white transition hover:bg-rose-700"
+                    >
+                      {t('admin', 'removeImage')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={uploadImage}
+              multiple={!editing?.id}
+              onChange={uploadImages}
+              disabled={uploading}
               className="mt-2 w-full text-xs text-stone-600 file:me-3 file:rounded-lg file:border file:border-stone-200 file:bg-ivory file:px-3 file:py-2 file:text-xs file:font-medium file:text-noir"
             />
-            <p className="mt-1.5 text-xs text-stone-400">{t('admin', 'uploadHint')}</p>
+            <p className="mt-1.5 text-xs text-stone-400">
+              {editing?.id ? t('admin', 'uploadHint') : t('admin', 'reviewsBatchHint')}
+            </p>
           </div>
 
           <TextInput

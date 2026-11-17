@@ -249,6 +249,10 @@ export const adminApi = {
   // Customer reviews. The screenshot itself is uploaded through `upload`
   // first; these calls carry the path it returned, like the brands' logos.
   reviews: (l, opts) => admin(l, '/admin/reviews', opts),
+  // A review is one screenshot. The panel uploads the files one by one (the
+  // upload endpoint takes a single image), then hands the paths here together
+  // so the rows are written in one go rather than a request each.
+  createReviews: (l, payload) => admin(l, '/admin/reviews/batch', { method: 'POST', body: payload }),
   createReview: (l, body) => admin(l, '/admin/reviews', { method: 'POST', body }),
   updateReview: (l, id, body) => admin(l, `/admin/reviews/${id}`, { method: 'PUT', body }),
   deleteReview: (l, id) => admin(l, `/admin/reviews/${id}`, { method: 'DELETE' }),

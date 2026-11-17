@@ -1798,9 +1798,17 @@ and should not be "fixed" as part of an unrelated commit.
   abandon the ones before it, and the selection is cut to the *free* slots first:
   sending all ten and slicing the form to eight would leave two files on the server
   that no row points at. New key `admin.imageLimit` (fr/ar/en).
-- **The multi-select is only on the product gallery**, because categories, brands
-  and a review row each hold exactly one image column. Adding `multiple` there
-  would silently discard all but one file.
+- **Reviews take a whole selection too, as one review row per screenshot.** The
+  create modal is `multiple`; editing a row stays single because a review row holds
+  exactly one image. The files are uploaded one by one (the upload endpoint takes a
+  single image), then their paths go to `POST /api/admin/reviews/batch`, which
+  writes the rows in one transaction — unlike a request each, a failure halfway
+  cannot leave the owner unable to tell which screenshots were saved. A typed
+  position numbers the batch from there in selection order; blank appends in
+  creation order like the single form. New key `admin.reviewsBatchHint`.
+- **Categories and brands stay single-image**: each has one `image`/`logo` column,
+  so `multiple` there would silently discard all but one file. The product gallery
+  and the reviews batch are the two places the data model can hold a set.
 - **`ImageLibrary::delete()` now removes the paired card thumbnail too.** Every
   raster upload is written as `uploads/name` *and* `uploads/thumbs/name`, and the
   old delete removed only the first — an unreachable thumbnail left on disk behind
@@ -1812,8 +1820,9 @@ and should not be "fixed" as part of an unrelated commit.
   hard-deleted with them (files and `product_images` rows): a restored product
   comes back without its photos.
 - Regression suites: `MediaCleanupTest` (category, brand, product gallery, and
-  `remove_images`), plus a thumbnail assertion in `ReviewsTest`. The stale Darija
-  test constant (`كيقلوا`) was corrected to the owner's spelling (`كيقولوا`) — the
-  dictionary had been changed in `0190d92` without its test.
-- Suite: **424 backend / 1922 assertions**, **223 frontend**. Bundle
-  `dist/assets/index-DdjqQLkc.js`.
+  `remove_images`), plus a thumbnail assertion and two batch-create tests in
+  `ReviewsTest`. The stale Darija test constant (`كيقلوا`) was corrected to the
+  owner's spelling (`كيقولوا`) — the dictionary had been changed in `0190d92`
+  without its test.
+- Suite: **426 backend / 1931 assertions**, **225 frontend**. Bundle
+  `dist/assets/index-Cry0dPw2.js`.
