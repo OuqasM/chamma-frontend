@@ -13,6 +13,11 @@ Disallow: /*/order
 Disallow: /*/order/
 Disallow: /api/
 
+# The prerendered copies behind the pretty URLs. They are served by a rewrite,
+# not linked, and .htaccess answers a direct request with 404 — this is only
+# here so a crawler that somehow finds the path does not index a duplicate.
+Disallow: /_pages/
+
 # Faceted and stateful views of the catalogue. Each is the same products as
 # /products, which is the URL that should rank for them.
 Disallow: /*/search

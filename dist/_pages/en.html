@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Chamma Store — Only original products</title>
+    <meta name="description" content="Authentic women’s and men’s perfumes in Morocco. Cash on delivery, nationwide shipping, prices in dirhams.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/en">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr">
+    <meta property="og:title" content="Chamma Store — Only original products">
+    <meta property="og:description" content="Authentic women’s and men’s perfumes in Morocco. Cash on delivery, nationwide shipping, prices in dirhams.">
+    <meta property="og:image" content="https://chammastore.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Chamma Store — Only original products">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chamma Store — Only original products">
+    <meta property="og:url" content="https://chammastore.com/en">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chamma Store — Only original products">
+    <meta name="twitter:description" content="Authentic women’s and men’s perfumes in Morocco. Cash on delivery, nationwide shipping, prices in dirhams.">
+    <meta name="twitter:image" content="https://chammastore.com/og-image.jpg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@type":"OnlineStore","@id":"https://chammastore.com/en#store","name":"Chamma Store","url":"https://chammastore.com/en","logo":"https://chammastore.com/og-image.jpg"}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <h1 class="font-serif text-4xl text-noir">Perfumes and care that suit you</h1>
+  <p class="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">Authentic women’s and men’s perfumes in Morocco. Cash on delivery, nationwide shipping, prices in dirhams.</p>
+  <h2 class="mt-10 font-serif text-2xl text-noir">Our beauty houses</h2><ul class="mt-4 flex flex-wrap gap-4"><li><a href="/en/brands/ibraq">Ibraq</a></li><li><a href="/en/brands/rituals">Rituals</a></li><li><a href="/en/brands/victorias-secret">Victoria‘s secret</a></li><li><a href="/en/brands/bath-body-works">Bath &amp; Body Works</a></li><li><a href="/en/brands/korean-skin-care">Korean Skincare</a></li><li><a href="/en/brands/atyab-almarchoud">Atyab almarchoud</a></li><li><a href="/en/brands/ajmal">Ajmal</a></li><li><a href="/en/brands/nuxe">Nuxe</a></li><li><a href="/en/brands/the-ordinary">The Ordinary</a></li><li><a href="/en/brands/zara">Zara</a></li></ul>
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/en/products/dr-althea-vitamin-c-boosting-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9975-cdbfc056.jpeg" alt="Dr. Althea - Vitamin C Boosting Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Dr. Althea - Vitamin C Boosting Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/en/products/arencia-vitamin-c-booster-shot">
+  <img src="https://api.chammastore.com/images/uploads/img-9973-7a94535a.jpeg" alt="Arencia - Vitamin C Booster Shot" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Arencia - Vitamin C Booster Shot</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/en/products/skin1004-madagascar-centella-travel-kit">
+  <img src="https://api.chammastore.com/images/uploads/img-9941-b6174a5f.jpg" alt="SKIN1004 Madagascar Centella Travel Kit" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 Madagascar Centella Travel Kit</span>
+  <span class="block text-sm text-stone-600">300 MAD</span>
+</a><a class="block" href="/en/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+  <img src="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg" alt="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/en/products/anua-niacinamide-10-txa-4-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9974-b5b87b4a.jpeg" alt="Anua - Niacinamide 10 TXA 4 Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Anua - Niacinamide 10 TXA 4 Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/en/products/zara-vanillas-discovery-set-par-piece">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/zaralhmer-59b73b9b.jpg" alt="ZARA VANILLAS DISCOVERY SET (par pièce)" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">ZARA VANILLAS DISCOVERY SET (par pièce)</span>
+  <span class="block text-sm text-stone-600">150 MAD</span>
+</a><a class="block" href="/en/products/ritual-of-ayurveda-taille-s">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9925-700e963d.webp" alt="RITUAL OF AYURVEDA Taille S" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">RITUAL OF AYURVEDA Taille S</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/en/products/perfume-zara-discovery-set-nude-collection-4x15ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/whatsapp-image-2026-11-18-at-195553-61866945.jpeg" alt="Perfume Zara Discovery Set Nude Collection 4x15ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Perfume Zara Discovery Set Nude Collection 4x15ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

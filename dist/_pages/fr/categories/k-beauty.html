@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Soin visage | Chamma Store — Uniquement des produits originaux</title>
+    <meta name="description" content="">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/fr/categories/k-beauty">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/categories/k-beauty">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/categories/k-beauty">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/categories/k-beauty">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/categories/k-beauty">
+    <meta property="og:title" content="Soin visage | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9906-bc98d9fc.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="900">
+    <meta property="og:image:alt" content="Soin visage | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chamma Store — Uniquement des produits originaux">
+    <meta property="og:url" content="https://chammastore.com/fr/categories/k-beauty">
+    <meta property="og:locale" content="fr_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Soin visage | Chamma Store — Uniquement des produits originaux">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9906-bc98d9fc.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/fr/categories/k-beauty#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://chammastore.com/fr"},{"@type":"ListItem","position":2,"name":"Soin visage","item":"https://chammastore.com/fr/categories/k-beauty"}]},{"@type":"CollectionPage","@id":"https://chammastore.com/fr/categories/k-beauty#page","name":"Soin visage","description":"","url":"https://chammastore.com/fr/categories/k-beauty"}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400"><a href="/fr">Accueil</a> / <span class="text-stone-600">Soin visage</span></nav>
+  <h1 class="font-serif text-3xl text-noir">Soin visage</h1>
+  
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/fr/products/dr-althea-vitamin-c-boosting-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9975-cdbfc056.jpeg" alt="Dr. Althea - Vitamin C Boosting Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Dr. Althea - Vitamin C Boosting Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/arencia-vitamin-c-booster-shot">
+  <img src="https://api.chammastore.com/images/uploads/img-9973-7a94535a.jpeg" alt="Arencia - Vitamin C Booster Shot" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Arencia - Vitamin C Booster Shot</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/fr/products/skin1004-madagascar-centella-travel-kit">
+  <img src="https://api.chammastore.com/images/uploads/img-9941-b6174a5f.jpg" alt="SKIN1004 Madagascar Centella Travel Kit" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 Madagascar Centella Travel Kit</span>
+  <span class="block text-sm text-stone-600">300 MAD</span>
+</a><a class="block" href="/fr/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+  <img src="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg" alt="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/anua-niacinamide-10-txa-4-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9974-b5b87b4a.jpeg" alt="Anua - Niacinamide 10 TXA 4 Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Anua - Niacinamide 10 TXA 4 Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/celimax-pore-dark-spot-brightening-care-sunscreen-spf50-pa-50ml-soin-eclaircissant-protection-solaire">
+  <img src="https://api.chammastore.com/images/uploads/cilimax-removebg-preview-35a5047d.png" alt="Celimax Pore + Dark Spot Brightening Care Sunscreen SPF50+ PA++++ 50ml – Soin Éclaircissant &amp; Protection Solaire" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Celimax Pore + Dark Spot Brightening Care Sunscreen SPF50+ PA++++ 50ml – Soin Éclaircissant &amp; Protection Solaire</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/fr/products/medicube-pdrn-pink-collagen-volume-multi-balm-5-volufiline-10-g">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/medicubepdrnpinkcollagenvolumemultibalm-891835bc.webp" alt="MEDICUBE PDRN PINK COLLAGEN VOLUME MULTI BALM 5% VOLUFILINE 10 G" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MEDICUBE PDRN PINK COLLAGEN VOLUME MULTI BALM 5% VOLUFILINE 10 G</span>
+  <span class="block text-sm text-stone-600">260 MAD</span>
+</a><a class="block" href="/fr/products/anua-azelaic-acid-10-hyaluron-redness-soothing-serum-30ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/anuakhder-93c7811f.jpg" alt="Anua Azelaic Acid 10 Hyaluron Redness Soothing Serum 30ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Anua Azelaic Acid 10 Hyaluron Redness Soothing Serum 30ml</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/the-ordinary-the-mini-icons-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ord-the-mini-icons-set-5d28cfb1.webp" alt="The Ordinary The Mini Icons Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">The Ordinary The Mini Icons Set</span>
+  <span class="block text-sm text-stone-600">380 MAD</span>
+</a><a class="block" href="/fr/products/creme-skinoren-acide-azelaique-20-30g">
+  <img src="https://api.chammastore.com/images/uploads/skinoren-20-creme-pour-application-cutanee-ad433395.jpg" alt="Crème - SKINOREN - Acide azélaïque 20% - 30g" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Crème - SKINOREN - Acide azélaïque 20% - 30g</span>
+  <span class="block text-sm text-stone-600">185 MAD</span>
+</a><a class="block" href="/fr/products/celimax-pore-dark-spot-brightening-serum-30-ml">
+  <img src="https://api.chammastore.com/images/uploads/celimaxpore-darkspotbrighteningserum-30ml1-22f050fc.webp" alt="CELIMAX PORE + DARK SPOT BRIGHTENING SERUM - 30 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">CELIMAX PORE + DARK SPOT BRIGHTENING SERUM - 30 ml</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/the-vita-a-retinal-shot-tightening-booster-booster-anti-age-15ml-celimax">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/untitleddesign-22-b363fbaa.webp" alt="The Vita-A Retinal Shot Tightening Booster - Booster anti-âge [15ml] - Celimax" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">The Vita-A Retinal Shot Tightening Booster - Booster anti-âge [15ml] - Celimax</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/fr/products/dr-althea-345-relief-cream-50-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0236-78ca1ac9.webp" alt="DR ALTHEA 345 RELIEF CREAM 50 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">DR ALTHEA 345 RELIEF CREAM 50 ML</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/im-from-rice-toner-150-ml">
+  <img src="https://api.chammastore.com/images/uploads/im-from-im-from-rice-toner-150-ml-soins-hydratants-397fd0f7.webp" alt="IM FROM RICE TONER 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IM FROM RICE TONER 150 ML</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/numbuzin-no9-nad-retinol-volumetox-eye-cream">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/numbuzin-no9nad-retinolvolumetoxeyecream9-908cf87f.webp" alt="NUMBUZIN - No.9 NAD+ Retinol Volumetox Eye Cream" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">NUMBUZIN - No.9 NAD+ Retinol Volumetox Eye Cream</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/celimax-pore-dark-spot-brightening-cream-35-ml">
+  <img src="https://api.chammastore.com/images/uploads/celimaxdarkspotcream-removebg-preview-6de1852d.png" alt="CELIMAX PORE + DARK SPOT BRIGHTENING CREAM 35 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">CELIMAX PORE + DARK SPOT BRIGHTENING CREAM 35 ML</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/the-ordinary-glycolic-acid-7-exfoliating-toner-240ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ord-glyc-acid-7pct-100ml-aug-upc-be26e3eb.webp" alt="The Ordinary Glycolic Acid 7% Exfoliating Toner 240ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">The Ordinary Glycolic Acid 7% Exfoliating Toner 240ml</span>
+  <span class="block text-sm text-stone-600">240 MAD</span>
+</a><a class="block" href="/fr/products/dr-althea-147-barrier-cream">
+  <img src="https://api.chammastore.com/images/uploads/img-9970-c74a5def.jpeg" alt="Dr. Althea - 147 Barrier Cream" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Dr. Althea - 147 Barrier Cream</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/caudalie-essentials-x-maria-de-la-orden">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9956-58e49544.jpeg" alt="Caudalie Essentials x Maria de la Orden" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Caudalie Essentials x Maria de la Orden</span>
+  <span class="block text-sm text-stone-600">300 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

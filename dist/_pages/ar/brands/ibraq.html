@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Ibraq | متجر شاما — منتجات أصلية فقط</title>
+    <meta name="description" content="عطور أصلية للنساء والرجال في المغرب. الدفع عند الاستلام، توصيل في كل المغرب، وبأسعار الدرهم.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/ar/brands/ibraq">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/brands/ibraq">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/brands/ibraq">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/brands/ibraq">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/brands/ibraq">
+    <meta property="og:title" content="Ibraq | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:description" content="عطور أصلية للنساء والرجال في المغرب. الدفع عند الاستلام، توصيل في كل المغرب، وبأسعار الدرهم.">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/ibraq-6d3e8e63.jpg">
+    <meta property="og:image:alt" content="Ibraq | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="متجر شاما — منتجات أصلية فقط">
+    <meta property="og:url" content="https://chammastore.com/ar/brands/ibraq">
+    <meta property="og:locale" content="ar_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ibraq | متجر شاما — منتجات أصلية فقط">
+    <meta name="twitter:description" content="عطور أصلية للنساء والرجال في المغرب. الدفع عند الاستلام، توصيل في كل المغرب، وبأسعار الدرهم.">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/ibraq-6d3e8e63.jpg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/ar/brands/ibraq#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://chammastore.com/ar"},{"@type":"ListItem","position":2,"name":"Ibraq","item":"https://chammastore.com/ar/brands/ibraq"}]},{"@type":"CollectionPage","@id":"https://chammastore.com/ar/brands/ibraq#page","name":"Ibraq","description":"عطور أصلية للنساء والرجال في المغرب. الدفع عند الاستلام، توصيل في كل المغرب، وبأسعار الدرهم.","url":"https://chammastore.com/ar/brands/ibraq"}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400"><a href="/ar">الرئيسية</a> / <span class="text-stone-600">Ibraq</span></nav>
+  <h1 class="font-serif text-3xl text-noir">Ibraq</h1>
+  
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/ar/products/musk-pomegranate-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/777e167d-a8ac-4f92-a56d-51c460067e7b-1000x1000-u6qzmptqf4u3tfdy2nhbespwrb1qap7jdjjkkzsc-a8197140.webp" alt="MUSK POMEGRANATE MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POMEGRANATE MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-shams-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/25cb9905-d1f2-4d39-af8c-6da87d7611b1-1000x1000-yzgagn3ojlvfq0wbqi70dlppo5rkcgm7y9omfogd-afbbe463.webp" alt="MUSK SHAMS MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK SHAMS MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-qamar-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/043e74d9-c42f-4611-9877-d29bbd8dbcc8-1000x1000-kqqclobtqdtckgy1uz13cifraeqbf79lfkdlviu1-dd2f52ed.webp" alt="MUSK QAMAR MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK QAMAR MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-powder-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/muskpowderminis-722619f6.webp" alt="MUSK POWDER MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POWDER MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/purple-heart-diamond-150-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/purpleheart150-f6c6c3c2.webp" alt="Purple Heart Diamond 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Purple Heart Diamond 150 ML</span>
+  <span class="block text-sm text-stone-600">530 MAD</span>
+</a><a class="block" href="/ar/products/pink-diamond-sakura-150-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/pink150-fcd80609.webp" alt="Pink Diamond - Sakura 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Pink Diamond - Sakura 150 ML</span>
+  <span class="block text-sm text-stone-600">530 MAD</span>
+</a><a class="block" href="/ar/products/emerald-soul-diamond-150-ml-2">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/150mllimonya-f2696267.webp" alt="Emerald Soul Diamond 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Nude Coral Diamond 150 ml</span>
+  <span class="block text-sm text-stone-600">530 MAD</span>
+</a><a class="block" href="/ar/products/emerald-soul-diamond-150-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/diamond150lkhedra-37eea757.webp" alt="Emerald Soul Diamond 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Emerald Soul Diamond 150 ML</span>
+  <span class="block text-sm text-stone-600">530 MAD</span>
+</a><a class="block" href="/ar/products/diamond-mini-collection-20ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0724-07bcfc4c.jpeg" alt="Diamond Mini Collection - 20ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Diamond Mini Collection - 20ml (par pièce )</span>
+  <span class="block text-sm text-stone-600">160 MAD</span>
+</a><a class="block" href="/ar/products/powder-musk-75-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0721-ebb66af1.jpeg" alt="POWDER MUSK 75 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">POWDER MUSK 75 ml</span>
+  <span class="block text-sm text-stone-600">330 MAD</span>
+</a><a class="block" href="/ar/products/ibraq-irth-dahn-coffret-dhuiles-parfumees-36ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/f3fc5869-9137-44c6-af71-1aa8afb1661a-1000x1000-o6s52nj2i3sb65yaxle84rzrrbqnmi2r1pczsvou-d06a9764.jpg" alt="IBRAQ Irth Dahn Coffret d’Huiles Parfumées 3×6ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IBRAQ Irth Dahn Coffret d’Huiles Parfumées 3×6ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/ibraq-musk-duhn-5-in-1">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ibraqadhan2-437f36b2.webp" alt="IBRAQ Musk Duhn 5 in 1" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IBRAQ Musk Duhn 5 in 1</span>
+  <span class="block text-sm text-stone-600">500 MAD</span>
+</a><a class="block" href="/ar/products/coffret-ibraq-musk-12p-20ml">
+  <img src="https://api.chammastore.com/images/uploads/4889dc7e-7daa-497e-844b-1e5878948cd7-1000x1000-be96v0bn4zvhx0klug2ymns9ecfvaeriayywkify-removebg-preview-6e06cd26.png" alt="COFFRET IBRAQ MUSK 12P – 20ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IBRAQ MINI MUSK 20ML (par pièce)</span>
+  <span class="block text-sm text-stone-600">130 MAD</span>
+</a><a class="block" href="/ar/products/white-regent-diamond-75ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9993-f0ca78cd.jpeg" alt="WHITE REGENT DIAMOND 75ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">WHITE REGENT DIAMOND 75ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/nude-coral-diamond-75ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9994-8835996a.jpeg" alt="NUDE CORAL DIAMOND 75ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">NUDE CORAL DIAMOND 75ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/emerald-soul-diamond-75-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9995-af88f829.jpeg" alt="EMERALD SOUL DIAMOND 75 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">EMERALD SOUL DIAMOND 75 ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/sugar-musk-75-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9986-32a08a1e.png" alt="SUGAR MUSK 75 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SUGAR MUSK 75 ml</span>
+  <span class="block text-sm text-stone-600">330 MAD</span>
+</a><a class="block" href="/ar/products/mini-diamond-collection">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9982-7d7469f7.jpg" alt="MINI DIAMOND COLLECTION" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MINI DIAMOND COLLECTION</span>
+  <span class="block text-sm text-stone-600">550 MAD</span>
+</a><a class="block" href="/ar/products/diamond-grey-box-2">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9977-d5f27c96.jpeg" alt="DIAMOND GREY BOX 2" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">DIAMOND GREY BOX 2</span>
+  <span class="block text-sm text-stone-600">950 MAD</span>
+</a><a class="block" href="/ar/products/abaq-pomegranate-musk">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/abbaqruman-8b798370.webp" alt="ABAQ POMEGRANATE MUSK" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">ABAQ POMEGRANATE MUSK 75ml</span>
+  <span class="block text-sm text-stone-600">330 MAD</span>
+</a><a class="block" href="/ar/products/special-ibraq">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/specialibraq-2d39440e.webp" alt="SPECIAL MUSK" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SPECIAL MUSK 75ml</span>
+  <span class="block text-sm text-stone-600">330 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

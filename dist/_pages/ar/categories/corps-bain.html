@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Corps &amp; bain | متجر شاما — منتجات أصلية فقط</title>
+    <meta name="description" content="">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/ar/categories/corps-bain">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/categories/corps-bain">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/categories/corps-bain">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/categories/corps-bain">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/categories/corps-bain">
+    <meta property="og:title" content="Corps &amp; bain | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9912-800538c8.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="900">
+    <meta property="og:image:alt" content="Corps &amp; bain | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="متجر شاما — منتجات أصلية فقط">
+    <meta property="og:url" content="https://chammastore.com/ar/categories/corps-bain">
+    <meta property="og:locale" content="ar_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Corps &amp; bain | متجر شاما — منتجات أصلية فقط">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9912-800538c8.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/ar/categories/corps-bain#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://chammastore.com/ar"},{"@type":"ListItem","position":2,"name":"Corps & bain","item":"https://chammastore.com/ar/categories/corps-bain"}]},{"@type":"CollectionPage","@id":"https://chammastore.com/ar/categories/corps-bain#page","name":"Corps & bain","description":"","url":"https://chammastore.com/ar/categories/corps-bain"}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400"><a href="/ar">الرئيسية</a> / <span class="text-stone-600">Corps &amp; bain</span></nav>
+  <h1 class="font-serif text-3xl text-noir">Corps &amp; bain</h1>
+  
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/ar/products/ritual-of-ayurveda-taille-s">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9925-700e963d.webp" alt="RITUAL OF AYURVEDA Taille S" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">RITUAL OF AYURVEDA Taille S</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/vaseline-gluta-hya-serum-burst-lotion-flawless-bright-330ml">
+  <img src="https://api.chammastore.com/images/uploads/vasline-5947f5d9.webp" alt="Vaseline Gluta Hya Serum Burst Lotion Flawless Bright 330ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Vaseline Gluta Hya Serum Burst Lotion Flawless Bright 330ml</span>
+  <span class="block text-sm text-stone-600">170 MAD</span>
+</a><a class="block" href="/ar/products/misk-collection">
+  <img src="https://api.chammastore.com/images/uploads/sans-titre-1-4bcd11c3.png" alt="Misk Collection" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Misk Collection</span>
+  <span class="block text-sm text-stone-600">780 MAD</span>
+</a><a class="block" href="/ar/products/ajmal-sacrifice-for-her-body-powder-100g">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ajmalsacrify-03d5b320.webp" alt="Ajmal Sacrifice for Her Body Powder 100g" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Ajmal Sacrifice for Her Body Powder 100g</span>
+  <span class="block text-sm text-stone-600">130 MAD</span>
+</a><a class="block" href="/ar/products/youre-the-one-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/yourtheone-photoroom-1-1-93bc211e.png" alt="You&#39;re The One Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">You&#39;re The One Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/ar/products/into-the-night-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/b-bwintothenight-removebg-e9306869.png" alt="Into The Night Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Into The Night Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/ar/products/musk-pomegranate-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/777e167d-a8ac-4f92-a56d-51c460067e7b-1000x1000-u6qzmptqf4u3tfdy2nhbespwrb1qap7jdjjkkzsc-a8197140.webp" alt="MUSK POMEGRANATE MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POMEGRANATE MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-shams-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/25cb9905-d1f2-4d39-af8c-6da87d7611b1-1000x1000-yzgagn3ojlvfq0wbqi70dlppo5rkcgm7y9omfogd-afbbe463.webp" alt="MUSK SHAMS MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK SHAMS MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-qamar-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/043e74d9-c42f-4611-9877-d29bbd8dbcc8-1000x1000-kqqclobtqdtckgy1uz13cifraeqbf79lfkdlviu1-dd2f52ed.webp" alt="MUSK QAMAR MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK QAMAR MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/musk-powder-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/muskpowderminis-722619f6.webp" alt="MUSK POWDER MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POWDER MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/ar/products/warm-vanilla-sugar">
+  <img src="https://api.chammastore.com/images/uploads/warmvaniulla-43ee13ed.jpeg" alt="Warm Vanilla Sugar" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Warm Vanilla Sugar</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/ar/products/youre-the-one">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/you-re-the-one-body-mist-by-bath-body-works-for-women-236-ml-base-bf8c0549-5fec36b6.webp" alt="You&#39;re the One" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">You&#39;re the One</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/ar/products/into-the-night-236ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/intothenight-681b9b95.jpg" alt="Into The Night 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Into The Night</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/ar/products/japanese-cherry-blossom-fine-fragrance-mist">
+  <img src="https://api.chammastore.com/images/uploads/2659575-4ac75b49.jpg" alt="Japanese Cherry Blossom Fine Fragrance Mist" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Japanese Cherry Blossom Fine Fragrance Mist</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/ar/products/love-spell-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/victorias-secret-love-spell-lotion-brume-corporelles-ec718fac.webp" alt="Love Spell Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Love Spell Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/ar/products/victorias-secret-pure-seduction-duo-mist-250ml-lotion-236ml-2">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/vs-velvet-patals-0f546987.webp" alt="Victoria’s Secret Pure Seduction Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Velvet Petals Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/ar/products/victorias-secret-pure-seduction-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/duo-vs-pure-seduction-a31108c6.webp" alt="Victoria’s Secret Pure Seduction Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Pure Seduction Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/ar/products/ibraq-irth-dahn-coffret-dhuiles-parfumees-36ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/f3fc5869-9137-44c6-af71-1aa8afb1661a-1000x1000-o6s52nj2i3sb65yaxle84rzrrbqnmi2r1pczsvou-d06a9764.jpg" alt="IBRAQ Irth Dahn Coffret d’Huiles Parfumées 3×6ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IBRAQ Irth Dahn Coffret d’Huiles Parfumées 3×6ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/ibraq-musk-duhn-5-in-1">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ibraqadhan2-437f36b2.webp" alt="IBRAQ Musk Duhn 5 in 1" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">IBRAQ Musk Duhn 5 in 1</span>
+  <span class="block text-sm text-stone-600">500 MAD</span>
+</a><a class="block" href="/ar/products/rituals-the-ritual-of-sakura-coffret-s">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0541-458a8d5d.webp" alt="RITUALS The Ritual Of Sakura Coffret S" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">RITUALS The Ritual Of Sakura Coffret S</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/ar/products/my-pink-crush-mes-essentiels-rose">
+  <img src="https://api.chammastore.com/images/uploads/nuxe-coffret-my-pink-crush-a58e10a9.webp" alt="MY PINK CRUSH / Mes essentiels rose" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MY PINK CRUSH / Mes essentiels rose</span>
+  <span class="block text-sm text-stone-600">280 MAD</span>
+</a><a class="block" href="/ar/products/nuxe-trousse-mes-indispensables-prodigieux-floral-4-soins">
+  <img src="https://api.chammastore.com/images/uploads/img-0480-78a5988a.webp" alt="Nuxe Trousse Mes Indispensables Prodigieux  Floral - 4 soins" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Nuxe Trousse Mes Indispensables Prodigieux  Floral - 4 soins</span>
+  <span class="block text-sm text-stone-600">300 MAD</span>
+</a><a class="block" href="/ar/products/ajmal-aurum-summer-body-powder-100-g-poudre-corporelle-parfumee">
+  <img src="https://api.chammastore.com/images/uploads/img-0407-c3b5f643.jpeg" alt="Ajmal Aurum Summer Body Powder – 100 g | Poudre Corporelle Parfumée" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Ajmal Aurum Summer Body Powder – 100 g | Poudre Corporelle Parfumée</span>
+  <span class="block text-sm text-stone-600">130 MAD</span>
+</a><a class="block" href="/ar/products/ajmal-poudre-sacred-love-corporelle-parfumee">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0406-6c36fe37.jpg" alt="Ajmal poudre Sacred Love Corporelle Parfumée" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Ajmal Sacred Love Powder For Women - 100GM</span>
+  <span class="block text-sm text-stone-600">130 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

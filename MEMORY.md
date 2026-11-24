@@ -1623,7 +1623,9 @@ Needs the owner's decision:
    **disabled**, and no order alert ever arrived. Both order and restock alerts depend on it.
 7. **Rotate the exposed credentials.** Anything pasted into chat must be considered public.
    Give the mailbox a dedicated app password, not the account password.
-8. Submit the sitemap in Search Console; needs owner access.
+8. Submit the sitemap in Search Console; needs owner access. The pages it
+   points at are now prerendered (2026-11-24), so what is left is the owner's
+   click: submit, inspect a product URL, request indexing.
 
 Never verified by eye (no browser access):
 
@@ -1826,3 +1828,64 @@ and should not be "fixed" as part of an unrelated commit.
   without its test.
 - Suite: **426 backend / 1931 assertions**, **225 frontend**. Bundle
   `dist/assets/index-Cry0dPw2.js`.
+
+## 2026-11-24 · THE PAGES GOOGLE AND WHATSAPP ACTUALLY READ
+
+- *"my website isnt show up in google searchs"*. It was not the sitemap, the
+  canonicals or the JSON-LD — those were all correct. It was that **every URL
+  answered with the same 6 KB shell**: `curl` as Googlebot on a product page
+  returned the French home title, no canonical, no `ld+json`, no product name,
+  and a 42-byte `<body>`. Google can render the bundle, but on a domain
+  registered 2026-09-29 that second pass is slow and not guaranteed; WhatsApp,
+  Bing and every AI crawler never run it at all.
+- `scripts/prerender.mjs` now runs last in `npm run build`, after
+  `fetch-sitemap.mjs`, and writes one static document per URL in
+  `dist/sitemap.xml`: **333 pages**. Each carries the page's `<html lang>`/`dir`,
+  title, description, canonical, hreflang set, Open Graph/Twitter card,
+  schema.org JSON-LD and the real content (name, brand, price, stock,
+  description, listing grid) inside `#root`. `createRoot` clears `#root` on
+  mount, so a shopper gets the content instantly and then the live app.
+- **The files live in `dist/_pages/fr/products/<slug>.html`, not at the URL's
+  own path.** A directory at `dist/fr/products/<slug>/index.html` makes mod_dir
+  answer `/fr/products/<slug>` with a 301 to the trailing-slash form — measured
+  in a local Apache, not guessed — while the canonical names the no-slash URL.
+  Every product would then canonicalise to a URL that redirects. `.htaccess`
+  maps the URL to the side tree instead:
+  `RewriteCond %{DOCUMENT_ROOT}/_pages%{REQUEST_URI}.html -f`.
+  This uses only `-f`/`-d`, which the host already proves it honours, so it
+  needs no `DirectorySlash Off` (an `Indexes`-override directive the host may
+  not allow).
+- **The side tree is not a second URL space.** A direct request for
+  `/_pages/...` is answered 404, guarded by
+  `RewriteCond %{ENV:REDIRECT_STATUS} ^$` so the internal rewrite itself is not
+  blocked; `robots.txt` also disallows the path. Trailing slashes on locale
+  URLs 301 to the slash-less form, so there is one URL per page.
+- **WebP product photos are not used as `og:image`.** WhatsApp's WebP preview
+  support is inconsistent and it caches the first failure; those products fall
+  back to the branded `/og-image.jpg` (1200×630) instead. JPEG/PNG photos are
+  used with their real dimensions. The JSON-LD still names the WebP image —
+  Google reads it fine. A JPEG variant per product would let every share show
+  the bottle; that is the follow-up, not this change.
+- The static OG block in `index.html` is now the **fallback shell** (checkout,
+  order lookup, admin, 404). Prerendered pages strip it and write their own.
+  The inline canonical script bails when a canonical is already in the document
+  — otherwise it would append a second one to every prerendered page.
+- **Stale pages cannot survive a delete**: the script removes `dist/_pages` (and
+  the bare `dist/fr|ar|en` trees from the first attempt) before writing, and
+  fails the build if the catalogue cannot be read rather than silently shipping
+  the shell for everything.
+- Verified: build writes 333 pages; an Apache 2.4 instance serving `dist/` with
+  the real `.htaccess` returns 200 with the product title at
+  `/fr/products/special-ibraq` (no redirect), 301 to the slash-less URL for the
+  trailing-slash form, the SPA shell for `/fr/checkout` and `/admin`, 404 for a
+  direct `/_pages/` request, and 200 for assets, sitemap and robots. All 333
+  pages parse as HTML with one canonical, one `og:title`, one `h1`, a non-empty
+  `#root` and valid JSON-LD. **225 frontend tests pass.**
+- Still the owner's work: submit the sitemap in Search Console, request indexing
+  for a handful of product URLs, and set up Merchant Center with the existing
+  feed (`/api/{locale}/products.xml`). Prerendering fixes what Google *can* read;
+  it does not give a two-month-old domain authority.
+- Known, not fixed here: product `meta_description` is `Str::limit(..., 160)`,
+  which cuts mid-word ("...sensation de p...") — now visible in real results.
+  Titles are the product name alone (`SPECIAL MUSK 75ml`) with no "parfum" or
+  "Maroc"; both are copy decisions for the catalogue, not build wiring.

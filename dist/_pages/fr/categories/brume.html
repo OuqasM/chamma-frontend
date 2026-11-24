@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Brume | Chamma Store — Uniquement des produits originaux</title>
+    <meta name="description" content="">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/fr/categories/brume">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/categories/brume">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/categories/brume">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/categories/brume">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/categories/brume">
+    <meta property="og:title" content="Brume | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9899-74a038df.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="900">
+    <meta property="og:image:alt" content="Brume | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chamma Store — Uniquement des produits originaux">
+    <meta property="og:url" content="https://chammastore.com/fr/categories/brume">
+    <meta property="og:locale" content="fr_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Brume | Chamma Store — Uniquement des produits originaux">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9899-74a038df.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/fr/categories/brume#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://chammastore.com/fr"},{"@type":"ListItem","position":2,"name":"Brume","item":"https://chammastore.com/fr/categories/brume"}]},{"@type":"CollectionPage","@id":"https://chammastore.com/fr/categories/brume#page","name":"Brume","description":"","url":"https://chammastore.com/fr/categories/brume"}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400"><a href="/fr">Accueil</a> / <span class="text-stone-600">Brume</span></nav>
+  <h1 class="font-serif text-3xl text-noir">Brume</h1>
+  
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/fr/products/youre-the-one-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/yourtheone-photoroom-1-1-93bc211e.png" alt="You&#39;re The One Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">You&#39;re The One Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/fr/products/into-the-night-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/b-bwintothenight-removebg-e9306869.png" alt="Into The Night Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Into The Night Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/fr/products/warm-vanilla-sugar">
+  <img src="https://api.chammastore.com/images/uploads/warmvaniulla-43ee13ed.jpeg" alt="Warm Vanilla Sugar" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Warm Vanilla Sugar</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/youre-the-one">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/you-re-the-one-body-mist-by-bath-body-works-for-women-236-ml-base-bf8c0549-5fec36b6.webp" alt="You&#39;re the One" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">You&#39;re the One</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/into-the-night-236ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/intothenight-681b9b95.jpg" alt="Into The Night 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Into The Night</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/japanese-cherry-blossom-fine-fragrance-mist">
+  <img src="https://api.chammastore.com/images/uploads/2659575-4ac75b49.jpg" alt="Japanese Cherry Blossom Fine Fragrance Mist" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Japanese Cherry Blossom Fine Fragrance Mist</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/love-spell-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/victorias-secret-love-spell-lotion-brume-corporelles-ec718fac.webp" alt="Love Spell Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Love Spell Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-pure-seduction-duo-mist-250ml-lotion-236ml-2">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/vs-velvet-patals-0f546987.webp" alt="Victoria’s Secret Pure Seduction Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Velvet Petals Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-pure-seduction-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/duo-vs-pure-seduction-a31108c6.webp" alt="Victoria’s Secret Pure Seduction Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Pure Seduction Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-bare-vanilla-whipped-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/gemini-generated-image-l5n10wl5n10wl5n1-12076529.jpeg" alt="Victoria’s Secret Bare Vanilla Whipped Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Victoria’s Secret Bare Vanilla Whipped Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-bare-vanilla-shimmer-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/shimmer-b3e6aa4d.webp" alt="Victoria’s Secret Bare Vanilla Shimmer Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Victoria’s Secret Bare Vanilla Shimmer Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-bare-vanilla-duo-mist-250ml-lotion-236ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-0280-bbfe0b56.webp" alt="Victoria’s Secret Bare Vanilla Duo – Mist 250ml + Lotion 236ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Bare Vanilla Duo – Mist 250ml + Lotion 236ml</span>
+  <span class="block text-sm text-stone-600">400 MAD</span>
+</a><a class="block" href="/fr/products/bath-body-works-a-thousand-wishes-brume-creme">
+  <img src="https://api.chammastore.com/images/uploads/gemini-generated-image-w1vyesw1vyesw1vy-removebg-preview-57fc6286.png" alt="BATH &amp; BODY WORKS – A Thousand Wishes Brume &amp; Créme" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">BATH &amp; BODY WORKS – A Thousand Wishes Brume &amp; Créme</span>
+  <span class="block text-sm text-stone-600">380 MAD</span>
+</a><a class="block" href="/fr/products/bath-body-into-the-night-duo-2-pcs">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/inshot-20230807-192732130-0257de80.webp" alt="BATH &amp; BODY - Into The Night Duo (2 pcs )" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">BATH &amp; BODY - Into The Night Duo (2 pcs )</span>
+  <span class="block text-sm text-stone-600">380 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-pear-glace">
+  <img src="https://api.chammastore.com/images/uploads/vspg1-25ca01f1.jpeg" alt="Victoria&#39;s Secret Pear Glacé" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Victoria&#39;s Secret Pear Glacé</span>
+  <span class="block text-sm text-stone-600">120 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-coconut-passion-perfume-75-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9952-f1a288e0.jpeg" alt="Victoria&#39;s Secret Coconut Passion Perfume 75 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Victoria&#39;s Secret Coconut Passion Perfume 75 ml</span>
+  <span class="block text-sm text-stone-600">120 MAD</span>
+</a><a class="block" href="/fr/products/victorias-secret-velvet-petals-fragrance-mini-mist-75ml">
+  <img src="https://api.chammastore.com/images/uploads/img-9950-d9afea0b.png" alt="Victoria&#39;s Secret Velvet Petals Fragrance Mini Mist - 75ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Victoria&#39;s Secret Velvet Petals Fragrance Mini Mist - 75ml</span>
+  <span class="block text-sm text-stone-600">120 MAD</span>
+</a><a class="block" href="/fr/products/amber-romance-shimmer-250-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9918-81e830f0.jpeg" alt="Amber Romance Shimmer 250 ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Amber Romance Shimmer Victoria’s Secret 250 ml</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

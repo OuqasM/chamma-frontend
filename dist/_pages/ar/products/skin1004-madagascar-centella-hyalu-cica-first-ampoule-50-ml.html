@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML | متجر شاما — منتجات أصلية فقط</title>
+    <meta name="description" content="اكتشفي سر البشرة شديدة الترطيب والهدوء والإشراق مع SKIN1004 Madagascar Centella Hyalu-Cica First Ampoule 50 ml، وهو سيروم أساسي لكل من يرغب في استعادة بشرة صحية...">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <meta property="og:title" content="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:description" content="اكتشفي سر البشرة شديدة الترطيب والهدوء والإشراق مع SKIN1004 Madagascar Centella Hyalu-Cica First Ampoule 50 ml، وهو سيروم أساسي لكل من يرغب في استعادة بشرة صحية...">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg">
+    <meta property="og:image:width" content="720">
+    <meta property="og:image:height" content="720">
+    <meta property="og:image:alt" content="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML | متجر شاما — منتجات أصلية فقط">
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="متجر شاما — منتجات أصلية فقط">
+    <meta property="og:url" content="https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+    <meta property="og:locale" content="ar_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML | متجر شاما — منتجات أصلية فقط">
+    <meta name="twitter:description" content="اكتشفي سر البشرة شديدة الترطيب والهدوء والإشراق مع SKIN1004 Madagascar Centella Hyalu-Cica First Ampoule 50 ml، وهو سيروم أساسي لكل من يرغب في استعادة بشرة صحية...">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://chammastore.com/ar"},{"@type":"ListItem","position":2,"name":"Soin visage","item":"https://chammastore.com/ar/categories/k-beauty"},{"@type":"ListItem","position":3,"name":"SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML","item":"https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml"}]},{"@type":"Product","@id":"https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml#product","name":"SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML","description":"اكتشفي سر البشرة شديدة الترطيب والهدوء والإشراق مع SKIN1004 Madagascar Centella Hyalu-Cica First Ampoule 50 ml، وهو سيروم أساسي لكل من يرغب في استعادة بشرة صحية...","sku":"SKIN1004-MADAGASCAR-CENTELLA-HYALU-CICA-FIRST-AMPOUL","image":"https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg","brand":{"@type":"Brand","name":"Korean Skincare"},"offers":{"@type":"Offer","url":"https://chammastore.com/ar/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml","priceCurrency":"MAD","price":"220.00","availability":"https://schema.org/InStock","itemCondition":"https://schema.org/NewCondition"}}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400">
+    <a href="/ar">الرئيسية</a>
+     / <a href="/ar/categories/k-beauty">Soin visage</a>
+    / <span class="text-stone-600">SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML</span>
+  </nav>
+  <div class="grid gap-10 md:grid-cols-2">
+    <div>
+      <img src="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg" alt="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML" width="800" height="800" class="w-full">
+    </div>
+    <div>
+      <a class="text-xs uppercase tracking-[0.25em] text-stone-500" href="/ar/brands/korean-skin-care">Korean Skincare</a>
+      <h1 class="mt-2 font-serif text-3xl leading-tight text-noir md:text-4xl">SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML</h1>
+      <p class="mt-5 text-2xl font-semibold tracking-tight text-noir">220 MAD</p>
+      <p class="mt-3 text-xs">متوفر</p>
+      <dl class="mt-6 space-y-1.5 border-y border-stone-200 py-4 text-xs text-stone-600">
+        
+        <div class="flex justify-between"><dt class="text-stone-400">الجنس</dt><dd>للجنسين</dd></div>
+        <div class="flex justify-between"><dt class="text-stone-400">المرجع</dt><dd>SKIN1004-MADAGASCAR-CENTELLA-HYALU-CICA-FIRST-AMPOUL</dd></div>
+      </dl>
+      <div class="rich-text mt-6"><p><strong>اكتشفي سر البشرة شديدة الترطيب والهدوء والإشراق مع SKIN1004 Madagascar Centella Hyalu-Cica First Ampoule 50 ml</strong>، وهو سيروم أساسي لكل من يرغب في استعادة بشرة صحية ومشرقة.</p>
+<p>تُعد هذه الأمبولة تركيبة مركزة تجمع بين مكوّنين معروفين في عالم العناية بالبشرة: <strong>حمض الهيالورونيك</strong>، المعروف بقدرته على ترطيب البشرة بعمق، و<strong>السنتيلا الآسيوية من مدغشقر</strong>، وهي نبتة استثنائية معروفة بخصائصها المهدئة والمساعدة على ترميم البشرة.</p></div>
+    </div>
+  </div>
+</main></div>
+  </body>
+</html>

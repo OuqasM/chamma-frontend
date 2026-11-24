@@ -28,6 +28,36 @@
     # the same fallback for hosts that do not run this .htaccess (nginx).
     RewriteRule ^/?$ https://chammastore.com/fr [R=301,L]
 
+    # Every prerendered URL is canonically slash-less, so a trailing slash is
+    # redirected away rather than served as a second copy. Query strings are
+    # kept by a redirect that does not name one.
+    RewriteCond %{REQUEST_URI} ^/(fr|ar|en)(/.+)?/$
+    RewriteRule ^ /%1%2 [R=301,L]
+
+    # Prerendered pages.
+    #
+    # scripts/prerender.mjs writes dist/_pages/fr/products/<slug>.html, in a
+    # side tree outside the URL space, and this serves it at the URL it names.
+    # It is not written to dist/fr/products/<slug>/index.html because a
+    # directory at the URL makes mod_dir answer /fr/products/<slug> with a 301
+    # to the trailing-slash form, while the canonical in the page names the
+    # no-slash URL — the two would disagree on every product.
+    #
+    # %{DOCUMENT_ROOT} is the published directory; %{REQUEST_URI} is the path
+    # the client asked for, so the check is "does this URL have a page?" and
+    # nothing else. The two conditions above keep it away from real files and
+    # directories (assets, the hero photographs, sitemap.xml).
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/_pages%{REQUEST_URI}.html -f
+    RewriteRule ^ /_pages%{REQUEST_URI}.html [L]
+
+    # The side tree is not a second set of URLs. An internal rewrite carries a
+    # REDIRECT_STATUS; a request that arrives with /_pages/ in its own URL has
+    # not been rewritten and is answered as not found.
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteRule ^_pages(/|$) - [R=404,L]
+
     # The bundle is a single page app, but the SPA owns a known URL space, not
     # every URL: every storefront route lives under a locale prefix
     # (/{locale}/products/..., /{locale}/checkout, ...) and the admin panel
@@ -75,7 +105,10 @@ ErrorDocument 404 /index.html
 # index.html must never be cached, or a deploy would keep serving the
 # previous bundle's filenames.
 <IfModule mod_headers.c>
-    <FilesMatch "index\.html$">
+    # Every HTML document, not only index.html: the prerendered pages under
+    # _pages/ name the current bundle's hashed files, so a cached copy would
+    # keep pointing at a previous release after a deploy.
+    <FilesMatch "\.html$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
     </FilesMatch>
     <FilesMatch "\.(?:js|mjs|css|woff2?)$">

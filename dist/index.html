@@ -8,20 +8,22 @@
     <title>Chamma Store — Uniquement des produits originaux</title>
 
     <!--
-      Link-preview tags, written statically into the document on purpose.
-      The rest of the page's metadata is applied by React (useSeo), but the
-      crawlers that build the previews — facebookexternalhit for WhatsApp,
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
       Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
       the raw HTML and never run JavaScript. An SPA that writes its OG tags
       only after mount shares as a bare URL with no picture at all, which is
       exactly what WhatsApp users saw before this block existed.
 
-      The strings below are the default-locale (fr) home card; a crawler that
-      executes JS (Google, WhatsApp when the URL has been re-scraped) replaces
-      them in place with the per-page values from useSeo. The domain is
-      hardcoded rather than taken from https://chammastore.com because an unset
-      variable interpolates to an empty string here, and og:image needs an
-      absolute https:// URL to work in any of these apps.
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
     -->
     <meta property="og:title" content="Chamma Store — Uniquement des produits originaux" />
     <meta property="og:description" content="Parfums authentiques femme et homme au Maroc. Paiement à la livraison, livraison partout au Maroc et prix en dirhams." />
@@ -95,6 +97,11 @@
       // noindex routes (search, cart, checkout, wishlist, order, admin) are
       // left without a canonical so the two signals never disagree.
       ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
         var path = location.pathname.replace(/\/+$/, '')
         if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
         var origin = 'https://chammastore.com'

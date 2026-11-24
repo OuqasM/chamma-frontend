@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Amber Romance Shimmer Victoria’s Secret 250 ml | Chamma Store — Uniquement des produits originaux</title>
+    <meta name="description" content="Une étreinte chaleureuse et lumineuse, sublimée par une touche de brillance éthérée Une fragrance chaleureuse et rayonnante, rehaussée d’une subtile touche de b...">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/fr/products/amber-romance-shimmer-250-ml">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/amber-romance-shimmer-250-ml">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/amber-romance-shimmer-250-ml">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/amber-romance-shimmer-250-ml">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/products/amber-romance-shimmer-250-ml">
+    <meta property="og:title" content="Amber Romance Shimmer Victoria’s Secret 250 ml | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:description" content="Une étreinte chaleureuse et lumineuse, sublimée par une touche de brillance éthérée Une fragrance chaleureuse et rayonnante, rehaussée d’une subtile touche de b...">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9918-81e830f0.jpeg">
+    <meta property="og:image:width" content="1441">
+    <meta property="og:image:height" content="1920">
+    <meta property="og:image:alt" content="Amber Romance Shimmer Victoria’s Secret 250 ml | Chamma Store — Uniquement des produits originaux">
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Chamma Store — Uniquement des produits originaux">
+    <meta property="og:url" content="https://chammastore.com/fr/products/amber-romance-shimmer-250-ml">
+    <meta property="og:locale" content="fr_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Amber Romance Shimmer Victoria’s Secret 250 ml | Chamma Store — Uniquement des produits originaux">
+    <meta name="twitter:description" content="Une étreinte chaleureuse et lumineuse, sublimée par une touche de brillance éthérée Une fragrance chaleureuse et rayonnante, rehaussée d’une subtile touche de b...">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9918-81e830f0.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/fr/products/amber-romance-shimmer-250-ml#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://chammastore.com/fr"},{"@type":"ListItem","position":2,"name":"Brume","item":"https://chammastore.com/fr/categories/brume"},{"@type":"ListItem","position":3,"name":"Amber Romance Shimmer Victoria’s Secret 250 ml","item":"https://chammastore.com/fr/products/amber-romance-shimmer-250-ml"}]},{"@type":"Product","@id":"https://chammastore.com/fr/products/amber-romance-shimmer-250-ml#product","name":"Amber Romance Shimmer Victoria’s Secret 250 ml","description":"Une étreinte chaleureuse et lumineuse, sublimée par une touche de brillance éthérée Une fragrance chaleureuse et rayonnante, rehaussée d’une subtile touche de b...","sku":"AMBER-ROMANCE-SHIMMER-250-ML","image":"https://api.chammastore.com/images/uploads/img-9918-81e830f0.jpeg","brand":{"@type":"Brand","name":"Victoria‘s secret"},"offers":{"@type":"Offer","url":"https://chammastore.com/fr/products/amber-romance-shimmer-250-ml","priceCurrency":"MAD","price":"190.00","availability":"https://schema.org/OutOfStock","itemCondition":"https://schema.org/NewCondition"}}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400">
+    <a href="/fr">Accueil</a>
+     / <a href="/fr/categories/brume">Brume</a>
+    / <span class="text-stone-600">Amber Romance Shimmer Victoria’s Secret 250 ml</span>
+  </nav>
+  <div class="grid gap-10 md:grid-cols-2">
+    <div>
+      <img src="https://api.chammastore.com/images/uploads/img-9918-81e830f0.jpeg" alt="Amber Romance Shimmer 250 ml" width="800" height="800" class="w-full">
+    </div>
+    <div>
+      <a class="text-xs uppercase tracking-[0.25em] text-stone-500" href="/fr/brands/victorias-secret">Victoria‘s secret</a>
+      <h1 class="mt-2 font-serif text-3xl leading-tight text-noir md:text-4xl">Amber Romance Shimmer Victoria’s Secret 250 ml</h1>
+      <p class="mt-5 text-2xl font-semibold tracking-tight text-noir">190 MAD</p>
+      <p class="mt-3 text-xs">Rupture de stock</p>
+      <dl class="mt-6 space-y-1.5 border-y border-stone-200 py-4 text-xs text-stone-600">
+        
+        <div class="flex justify-between"><dt class="text-stone-400">Genre</dt><dd>Femme</dd></div>
+        <div class="flex justify-between"><dt class="text-stone-400">Référence</dt><dd>AMBER-ROMANCE-SHIMMER-250-ML</dd></div>
+      </dl>
+      <div class="rich-text mt-6"><p><strong>Une étreinte chaleureuse et lumineuse, sublimée par une touche de brillance éthérée</strong></p>
+<p>Une fragrance chaleureuse et rayonnante, rehaussée d’une subtile touche de brillance éthérée. Elle associe de riches notes fruitées à des accents épicés et crémeux, sur un fond doux et réconfortant.</p>
+<p><strong>Type de parfum :</strong> Ambre Gourmand</p>
+<p><strong>Notes olfactives :</strong></p>
+<ul><li><strong>Notes de tête :</strong> Cerise noire, Abricot doré</li><li><strong>Notes de cœur :</strong> Lait épicé, Nuage de cannelle</li><li><strong>Notes de fond :</strong> Vanille crémeuse, Ambre doré</li></ul>
+<p><strong>Contenance :</strong> 250 mL / 8,4 fl oz</p></div>
+    </div>
+  </div>
+</main></div>
+  </body>
+</html>

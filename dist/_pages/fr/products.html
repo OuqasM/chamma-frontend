@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>Boutique — tous les parfums | Chamma Store</title>
+    <meta name="description" content="Tous les parfums du catalogue, filtrables par marque, catégorie et prix. Paiement à la livraison partout au Maroc.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/fr/products">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/products">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/products">
+    <meta property="og:title" content="Boutique — tous les parfums | Chamma Store">
+    <meta property="og:description" content="Tous les parfums du catalogue, filtrables par marque, catégorie et prix. Paiement à la livraison partout au Maroc.">
+    <meta property="og:image" content="https://chammastore.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Boutique — tous les parfums | Chamma Store">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chamma Store — Uniquement des produits originaux">
+    <meta property="og:url" content="https://chammastore.com/fr/products">
+    <meta property="og:locale" content="fr_MA">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Boutique — tous les parfums | Chamma Store">
+    <meta name="twitter:description" content="Tous les parfums du catalogue, filtrables par marque, catégorie et prix. Paiement à la livraison partout au Maroc.">
+    <meta name="twitter:image" content="https://chammastore.com/og-image.jpg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/fr/products#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":"https://chammastore.com/fr"},{"@type":"ListItem","position":2,"name":"Boutique — tous les parfums | Chamma Store","item":"https://chammastore.com/fr/products"}]},{"@type":"CollectionPage","@id":"https://chammastore.com/fr/products#page","name":"Boutique — tous les parfums | Chamma Store","description":"Tous les parfums du catalogue, filtrables par marque, catégorie et prix. Paiement à la livraison partout au Maroc.","url":"https://chammastore.com/fr/products"}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <h1 class="font-serif text-3xl text-noir">Boutique</h1>
+  <p class="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">Tous les parfums du catalogue, filtrables par marque, catégorie et prix. Paiement à la livraison partout au Maroc.</p>
+  <div class="mt-8 grid grid-cols-2 gap-6 md:grid-cols-4"><a class="block" href="/fr/products/dr-althea-vitamin-c-boosting-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9975-cdbfc056.jpeg" alt="Dr. Althea - Vitamin C Boosting Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Dr. Althea - Vitamin C Boosting Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/arencia-vitamin-c-booster-shot">
+  <img src="https://api.chammastore.com/images/uploads/img-9973-7a94535a.jpeg" alt="Arencia - Vitamin C Booster Shot" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Arencia - Vitamin C Booster Shot</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/fr/products/skin1004-madagascar-centella-travel-kit">
+  <img src="https://api.chammastore.com/images/uploads/img-9941-b6174a5f.jpg" alt="SKIN1004 Madagascar Centella Travel Kit" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 Madagascar Centella Travel Kit</span>
+  <span class="block text-sm text-stone-600">300 MAD</span>
+</a><a class="block" href="/fr/products/skin1004-madagascar-centella-hyalu-cica-first-ampoule-50-ml">
+  <img src="https://api.chammastore.com/images/uploads/img-9939-ec60af99.jpeg" alt="SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">SKIN1004 MADAGASCAR CENTELLA HYALU-CICA FIRST AMPOULE 50 ML</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/anua-niacinamide-10-txa-4-serum">
+  <img src="https://api.chammastore.com/images/uploads/img-9974-b5b87b4a.jpeg" alt="Anua - Niacinamide 10 TXA 4 Serum" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Anua - Niacinamide 10 TXA 4 Serum</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/zara-vanillas-discovery-set-par-piece">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/zaralhmer-59b73b9b.jpg" alt="ZARA VANILLAS DISCOVERY SET (par pièce)" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">ZARA VANILLAS DISCOVERY SET (par pièce)</span>
+  <span class="block text-sm text-stone-600">150 MAD</span>
+</a><a class="block" href="/fr/products/ritual-of-ayurveda-taille-s">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/img-9925-700e963d.webp" alt="RITUAL OF AYURVEDA Taille S" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">RITUAL OF AYURVEDA Taille S</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/fr/products/perfume-zara-discovery-set-nude-collection-4x15ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/whatsapp-image-2026-11-18-at-195553-61866945.jpeg" alt="Perfume Zara Discovery Set Nude Collection 4x15ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Perfume Zara Discovery Set Nude Collection 4x15ml</span>
+  <span class="block text-sm text-stone-600">350 MAD</span>
+</a><a class="block" href="/fr/products/vaseline-gluta-hya-serum-burst-lotion-flawless-bright-330ml">
+  <img src="https://api.chammastore.com/images/uploads/vasline-5947f5d9.webp" alt="Vaseline Gluta Hya Serum Burst Lotion Flawless Bright 330ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Vaseline Gluta Hya Serum Burst Lotion Flawless Bright 330ml</span>
+  <span class="block text-sm text-stone-600">170 MAD</span>
+</a><a class="block" href="/fr/products/celimax-pore-dark-spot-brightening-care-sunscreen-spf50-pa-50ml-soin-eclaircissant-protection-solaire">
+  <img src="https://api.chammastore.com/images/uploads/cilimax-removebg-preview-35a5047d.png" alt="Celimax Pore + Dark Spot Brightening Care Sunscreen SPF50+ PA++++ 50ml – Soin Éclaircissant &amp; Protection Solaire" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Celimax Pore + Dark Spot Brightening Care Sunscreen SPF50+ PA++++ 50ml – Soin Éclaircissant &amp; Protection Solaire</span>
+  <span class="block text-sm text-stone-600">230 MAD</span>
+</a><a class="block" href="/fr/products/medicube-pdrn-pink-collagen-volume-multi-balm-5-volufiline-10-g">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/medicubepdrnpinkcollagenvolumemultibalm-891835bc.webp" alt="MEDICUBE PDRN PINK COLLAGEN VOLUME MULTI BALM 5% VOLUFILINE 10 G" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MEDICUBE PDRN PINK COLLAGEN VOLUME MULTI BALM 5% VOLUFILINE 10 G</span>
+  <span class="block text-sm text-stone-600">260 MAD</span>
+</a><a class="block" href="/fr/products/anua-azelaic-acid-10-hyaluron-redness-soothing-serum-30ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/anuakhder-93c7811f.jpg" alt="Anua Azelaic Acid 10 Hyaluron Redness Soothing Serum 30ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Anua Azelaic Acid 10 Hyaluron Redness Soothing Serum 30ml</span>
+  <span class="block text-sm text-stone-600">250 MAD</span>
+</a><a class="block" href="/fr/products/khisla-pink-hair-mist-125ml">
+  <img src="https://api.chammastore.com/images/uploads/khislapink1-removebg-preview-c33a6a56.png" alt="Khisla Pink Hair Mist 125ml" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Khisla Pink Hair Mist 125ml</span>
+  <span class="block text-sm text-stone-600">790 MAD</span>
+</a><a class="block" href="/fr/products/misk-collection">
+  <img src="https://api.chammastore.com/images/uploads/sans-titre-1-4bcd11c3.png" alt="Misk Collection" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Misk Collection</span>
+  <span class="block text-sm text-stone-600">780 MAD</span>
+</a><a class="block" href="/fr/products/ajmal-sacrifice-for-her-body-powder-100g">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/ajmalsacrify-03d5b320.webp" alt="Ajmal Sacrifice for Her Body Powder 100g" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Ajmal Sacrifice for Her Body Powder 100g</span>
+  <span class="block text-sm text-stone-600">130 MAD</span>
+</a><a class="block" href="/fr/products/youre-the-one-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/yourtheone-photoroom-1-1-93bc211e.png" alt="You&#39;re The One Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">You&#39;re The One Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/fr/products/into-the-night-gift-set">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/b-bwintothenight-removebg-e9306869.png" alt="Into The Night Gift Set" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Into The Night Gift Set</span>
+  <span class="block text-sm text-stone-600">600 MAD</span>
+</a><a class="block" href="/fr/products/gardenia-wonder-rose-par-piece">
+  <img src="https://api.chammastore.com/images/uploads/ddd-removebg-preview-6f6bbbc8.png" alt="GARDENIA &amp; WONDER ROSE (par pièce)" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">GARDENIA &amp; WONDER ROSE (par pièce)</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/red-vanilla-zara-black-amber-par-piece">
+  <img src="https://api.chammastore.com/images/uploads/backzarabydkbitjouj-removebg-preview-7d2b8ce3.png" alt="RED VANILLA &amp; ZARA BLACK AMBER (par pièce)" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">RED VANILLA &amp; ZARA BLACK AMBER (par pièce)</span>
+  <span class="block text-sm text-stone-600">190 MAD</span>
+</a><a class="block" href="/fr/products/musk-pomegranate-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/777e167d-a8ac-4f92-a56d-51c460067e7b-1000x1000-u6qzmptqf4u3tfdy2nhbespwrb1qap7jdjjkkzsc-a8197140.webp" alt="MUSK POMEGRANATE MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POMEGRANATE MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/musk-shams-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/25cb9905-d1f2-4d39-af8c-6da87d7611b1-1000x1000-yzgagn3ojlvfq0wbqi70dlppo5rkcgm7y9omfogd-afbbe463.webp" alt="MUSK SHAMS MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK SHAMS MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/musk-qamar-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/043e74d9-c42f-4611-9877-d29bbd8dbcc8-1000x1000-kqqclobtqdtckgy1uz13cifraeqbf79lfkdlviu1-dd2f52ed.webp" alt="MUSK QAMAR MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK QAMAR MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/musk-powder-minis">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/muskpowderminis-722619f6.webp" alt="MUSK POWDER MINIS" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">MUSK POWDER MINIS</span>
+  <span class="block text-sm text-stone-600">220 MAD</span>
+</a><a class="block" href="/fr/products/purple-heart-diamond-150-ml">
+  <img src="https://api.chammastore.com/images/uploads/thumbs/purpleheart150-f6c6c3c2.webp" alt="Purple Heart Diamond 150 ML" width="320" height="320" loading="lazy" class="w-full">
+  <span class="mt-2 block text-sm text-noir">Purple Heart Diamond 150 ML</span>
+  <span class="block text-sm text-stone-600">530 MAD</span>
+</a></div>
+</main></div>
+  </body>
+</html>

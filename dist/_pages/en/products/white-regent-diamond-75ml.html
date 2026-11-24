@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+
+    <!--
+      Link-preview tags for the pages that are not prerendered.
+
+      The crawlers that build previews — facebookexternalhit for WhatsApp,
+      Facebook and Instagram, Applebot for iMessage, Twitterbot for X — fetch
+      the raw HTML and never run JavaScript. An SPA that writes its OG tags
+      only after mount shares as a bare URL with no picture at all, which is
+      exactly what WhatsApp users saw before this block existed.
+
+      The 333 indexable storefront URLs no longer read this block: the build
+      runs scripts/prerender.mjs, which replaces it with that page's own card
+      (product photo, price, canonical, JSON-LD). What is left here is the
+      shell for everything else the SPA serves — checkout, order lookup, the
+      admin panel and the 404 — where the French home card is the right
+      default. The domain is hardcoded rather than taken from
+      https://chammastore.com because an unset variable interpolates to an empty
+      string here, and og:image needs an absolute https:// URL.
+    -->
+    <script>
+      // Open the connections to the API host before the bundle asks for them.
+      //
+      // In the split-host deployment the storefront (chammastore.com) reads
+      // the API and its media from api.chammastore.com, and a cross-origin
+      // request pays DNS, TCP and TLS before any byte of the homepage payload
+      // moves. Two sockets are warmed because the browser keeps two: a
+      // credential-less fetch (every API call) and a no-cors image load (every
+      // product photograph) do not share one. Doing this here, while the
+      // bundle is still downloading, overlaps the handshake with work the
+      // browser is doing anyway.
+      //
+      // `https://api.chammastore.com` is empty for the single-origin Docker deployment and
+      // in development, where everything is same-origin — the guard leaves
+      // those builds with no link at all rather than a preconnect to nothing.
+      ;(function () {
+        var origin = 'https://api.chammastore.com'
+        if (!/^https?:\/\//.test(origin)) return
+        var preconnect = function () {
+          var link = document.createElement('link')
+          link.setAttribute('rel', 'preconnect')
+          link.setAttribute('href', origin)
+          return link
+        }
+        document.head.appendChild(preconnect())
+        var cors = preconnect()
+        cors.setAttribute('crossorigin', '')
+        document.head.appendChild(cors)
+      })()
+    </script>
+    <script>
+      // A reload has to start at the top. Chrome replays the offset it saved for
+      // this history entry against the document while it is still short — the
+      // storefront mounts a spinner and the shell first, and the API fills the
+      // page in afterwards — so the replay clamps to the bottom of that short
+      // page and the shopper lands well down the real one with the header out of
+      // sight. The app owns scroll instead: `ScrollToTop` resets the storefront
+      // on every route, so the browser's own restoration is turned off here,
+      // before it runs.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    </script>
+    <script>
+      // One canonical, from the URL, before the bundle runs.
+      //
+      // Every storefront path is served this same document and the SPA wrote
+      // the canonical only after React had mounted and the API had answered.
+      // A crawler reading the document in the meantime — or one that never
+      // ran the bundle — saw identical HTML under /fr, /ar and /en with no
+      // canonical, which Google reports as "duplicate without user-selected
+      // canonical" and refuses to index. Naming the document here, from its
+      // own path, closes that gap; `useSeo` replaces the tag with the
+      // authoritative value (the API's canonical plus the hreflang set) once
+      // the page has data.
+      //
+      // The path test is the list of pages that actually carry content: the
+      // noindex routes (search, cart, checkout, wishlist, order, admin) are
+      // left without a canonical so the two signals never disagree.
+      ;(function () {
+        // A prerendered page (scripts/prerender.mjs) already carries its
+        // canonical and hreflang set in the document. Adding a second one from
+        // here would make the two signals disagree, and a document with two
+        // canonicals is treated as conflicting.
+        if (document.head.querySelector('link[rel="canonical"]')) return
+        var path = location.pathname.replace(/\/+$/, '')
+        if (!/^\/(fr|ar|en)(\/(products(\/[^/]+)?|offers|reviews|brands\/[^/]+|categories\/[^/]+))?$/.test(path)) return
+        var origin = 'https://chammastore.com'
+        if (!/^https?:\/\//.test(origin)) origin = location.origin
+        var link = document.createElement('link')
+        link.setAttribute('rel', 'canonical')
+        link.setAttribute('href', origin.replace(/\/$/, '') + path)
+        document.head.appendChild(link)
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cry0dPw2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CpNyY_VB.css">
+      <title>WHITE REGENT DIAMOND 75ml | Chamma Store — Only original products</title>
+    <meta name="description" content="White Regent Diamond tells a story of silent grandeur, born from the depths of velvety luxury and the brilliance of a precious diamond. A fragrance that shines...">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://chammastore.com/en/products/white-regent-diamond-75ml">
+    <link rel="alternate" hreflang="fr" href="https://chammastore.com/fr/products/white-regent-diamond-75ml">
+    <link rel="alternate" hreflang="ar" href="https://chammastore.com/ar/products/white-regent-diamond-75ml">
+    <link rel="alternate" hreflang="en" href="https://chammastore.com/en/products/white-regent-diamond-75ml">
+    <link rel="alternate" hreflang="x-default" href="https://chammastore.com/fr/products/white-regent-diamond-75ml">
+    <meta property="og:title" content="WHITE REGENT DIAMOND 75ml | Chamma Store — Only original products">
+    <meta property="og:description" content="White Regent Diamond tells a story of silent grandeur, born from the depths of velvety luxury and the brilliance of a precious diamond. A fragrance that shines...">
+    <meta property="og:image" content="https://api.chammastore.com/images/uploads/img-9993-f0ca78cd.jpeg">
+    <meta property="og:image:width" content="1000">
+    <meta property="og:image:height" content="1000">
+    <meta property="og:image:alt" content="WHITE REGENT DIAMOND 75ml | Chamma Store — Only original products">
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Chamma Store — Only original products">
+    <meta property="og:url" content="https://chammastore.com/en/products/white-regent-diamond-75ml">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WHITE REGENT DIAMOND 75ml | Chamma Store — Only original products">
+    <meta name="twitter:description" content="White Regent Diamond tells a story of silent grandeur, born from the depths of velvety luxury and the brilliance of a precious diamond. A fragrance that shines...">
+    <meta name="twitter:image" content="https://api.chammastore.com/images/uploads/img-9993-f0ca78cd.jpeg">
+    <script type="application/ld+json" data-seo="jsonld">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://chammastore.com/en/products/white-regent-diamond-75ml#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://chammastore.com/en"},{"@type":"ListItem","position":2,"name":"Parfums","item":"https://chammastore.com/en/categories/perfume"},{"@type":"ListItem","position":3,"name":"Mini produits","item":"https://chammastore.com/en/categories/mini-produits"},{"@type":"ListItem","position":4,"name":"WHITE REGENT DIAMOND 75ml","item":"https://chammastore.com/en/products/white-regent-diamond-75ml"}]},{"@type":"Product","@id":"https://chammastore.com/en/products/white-regent-diamond-75ml#product","name":"WHITE REGENT DIAMOND 75ml","description":"White Regent Diamond tells a story of silent grandeur, born from the depths of velvety luxury and the brilliance of a precious diamond. A fragrance that shines...","sku":"WHITE-REGENT-DIAMOND-75ML","image":"https://api.chammastore.com/images/uploads/img-9993-f0ca78cd.jpeg","brand":{"@type":"Brand","name":"Ibraq"},"offers":{"@type":"Offer","url":"https://chammastore.com/en/products/white-regent-diamond-75ml","priceCurrency":"MAD","price":"350.00","availability":"https://schema.org/InStock","itemCondition":"https://schema.org/NewCondition"}}]}</script>
+  </head>
+  <body>
+    <div id="root"><main class="mx-auto max-w-7xl px-4 py-10">
+  <nav class="mb-8 text-xs text-stone-400">
+    <a href="/en">Home</a>
+     / <a href="/en/categories/perfume">Parfums</a> / <a href="/en/categories/mini-produits">Mini produits</a>
+    / <span class="text-stone-600">WHITE REGENT DIAMOND 75ml</span>
+  </nav>
+  <div class="grid gap-10 md:grid-cols-2">
+    <div>
+      <img src="https://api.chammastore.com/images/uploads/img-9993-f0ca78cd.jpeg" alt="WHITE REGENT DIAMOND 75ml" width="800" height="800" class="w-full">
+    </div>
+    <div>
+      <a class="text-xs uppercase tracking-[0.25em] text-stone-500" href="/en/brands/ibraq">Ibraq</a>
+      <h1 class="mt-2 font-serif text-3xl leading-tight text-noir md:text-4xl">WHITE REGENT DIAMOND 75ml</h1>
+      <p class="mt-5 text-2xl font-semibold tracking-tight text-noir">350 MAD</p>
+      <p class="mt-3 text-xs">In stock</p>
+      <dl class="mt-6 space-y-1.5 border-y border-stone-200 py-4 text-xs text-stone-600">
+        
+        <div class="flex justify-between"><dt class="text-stone-400">Gender</dt><dd>Unisex</dd></div>
+        <div class="flex justify-between"><dt class="text-stone-400">SKU</dt><dd>WHITE-REGENT-DIAMOND-75ML</dd></div>
+      </dl>
+      <div class="rich-text mt-6"><p><strong>White Regent Diamond</strong> tells a story of silent grandeur, born from the depths of velvety luxury and the brilliance of a precious diamond.</p>
+<p>A fragrance that shines quietly, like a breath of velvet, leaving a lasting and timeless impression, just like a diamond. Its story begins with enchanting notes of tea and aromatic herbs, gracefully unfolding into a royal embrace of patchouli and vanilla, creating a regal olfactory masterpiece unlike any other.</p>
+<p><strong>Size: 150 mL</strong></p>
+<p><strong>Fragrance Notes:</strong></p>
+<ul><li><strong>Top Notes:</strong> Fig, Cardamom, Tea, Sandalwood</li><li><strong>Heart Notes:</strong> Iris, Vetiver Herbs</li><li><strong>Base Notes:</strong> Tonka Bean, Patchouli, Vanilla</li></ul></div>
+    </div>
+  </div>
+</main></div>
+  </body>
+</html>
